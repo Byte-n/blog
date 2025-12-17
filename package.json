@@ -1,0 +1,18 @@
+{
+  "name": "blog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "fuwari dev",
+    "build": "fuwari build",
+    "preview": "fuwari preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.19.0",
+  "dependencies": {
+    "@byte.n/fuwari": "0.0.2"
+  }
+}
