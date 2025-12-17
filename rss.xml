@@ -1,0 +1,4102 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte.n</title><description>Demo Site</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>InjectVConsolePlugin自动注入vConsole</title><link>https://fuwari.vercel.app/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</guid><pubDate>Sat, 15 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;const HtmlWebpackPlugin = require(&apos;html-webpack-plugin&apos;)
+
+// 启用 speed-measure-webpack-plugin 时此插件不能正常工作
+class InjectVConsolePlugin {
+    constructor(options = {}) {
+        this.vconsoleUrl = options.vconsoleUrl || &apos;https://static.zhnysz.com/lib/vconsole.min.js&apos;
+        this.enabled = Boolean(process.env.VCONSOLE)
+    }
+
+    apply(compiler) {
+        if (!this.enabled) {
+            return
+        }
+
+        compiler.hooks.compilation.tap(&apos;InjectVConsolePlugin&apos;, (compilation) =&amp;gt; {
+            HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tap(
+                &apos;InjectVConsolePlugin&apos;,
+                (data) =&amp;gt; {
+                    const scripts = data.assetTags?.scripts || data.scripts
+                    if (scripts) {
+                        scripts.unshift(
+                            {
+                                tagName: &apos;script&apos;,
+                                voidTag: false,
+                                attributes: {
+                                    src: this.vconsoleUrl,
+                                },
+                            },
+                            {
+                                tagName: &apos;script&apos;,
+                                voidTag: false,
+                                innerHTML: &apos;new window.VConsole()&apos;,
+                            }
+                        )
+                    }
+                    return data
+                }
+            )
+        })
+    }
+}
+
+module.exports = InjectVConsolePlugin
+
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>微信扫码登录统一封装</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 12 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;微信扫描登录&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html&quot;&gt;微信官方文档&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在网页中嵌入微信的登录二维码，会在&lt;code&gt;login_container&lt;/code&gt; 下嵌入一个&lt;code&gt;iframe&lt;/code&gt; ，&lt;code&gt;iframe&lt;/code&gt; 的地址其实就是 “https://open.weixin.qq.com/connect/qrconnect?&lt;code&gt;appid&lt;/code&gt;=APPID&amp;amp;&lt;code&gt;redirect_uri&lt;/code&gt;=REDIRECT_URI&amp;amp;&lt;code&gt;response_type&lt;/code&gt;=code&amp;amp;&lt;code&gt;scope&lt;/code&gt;=SCOPE&amp;amp;&lt;code&gt;state&lt;/code&gt;=STATE#wechat_redirect” ，URL中对应的参数就是&lt;code&gt;WxLogin&lt;/code&gt;的构造参数。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;var obj = new WxLogin({
+  self_redirect:true,
+  id:&quot;login_container&quot;,
+  appid: &quot;&quot;,
+  scope: &quot;&quot;,
+  redirect_uri: &quot;&quot;,
+  state: &quot;&quot;,
+  style: &quot;&quot;,
+  href: &quot;&quot;,
+  onReady: function(isReady){
+    console.log(isReady);
+  }
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在扫码完成登录后，该&lt;code&gt;iframe&lt;/code&gt;就会重定向到&lt;code&gt;redirect_uri&lt;/code&gt; ，并在&lt;code&gt;url&lt;/code&gt;的参数中拼接&lt;code&gt;code&lt;/code&gt;参数。
+&lt;code&gt;redirect_uri&lt;/code&gt; 是微信登录成功界面。此页面可以获取到&lt;code&gt;code&lt;/code&gt;，在页面加载后，读取&lt;code&gt;code&lt;/code&gt; 通过&lt;code&gt;window.postMessage&lt;/code&gt; ，将&lt;code&gt;code&lt;/code&gt;传递给上一级网页。&lt;/p&gt;
+&lt;h2&gt;统一的重定向地址&lt;/h2&gt;
+&lt;p&gt;扩展实现一个支持多种方式回传code与state的网页：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;!DOCTYPE html&amp;gt;
+&amp;lt;html lang=&quot;en&quot;&amp;gt;
+
+&amp;lt;head&amp;gt;
+    &amp;lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&amp;gt;
+    &amp;lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&amp;gt;
+    &amp;lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&amp;gt;
+    &amp;lt;title&amp;gt;Redirect...&amp;lt;/title&amp;gt;
+    
+&amp;lt;/head&amp;gt;
+
+&amp;lt;body&amp;gt;
+&amp;lt;div class=&quot;container&quot;&amp;gt;
+    &amp;lt;div class=&quot;loading&quot;&amp;gt;
+        加载中...
+    &amp;lt;/div&amp;gt;
+    &amp;lt;script&amp;gt;
+        var urlParams = new URLSearchParams(window.location.search);
+        var code = urlParams.get(&apos;code&apos;)
+        var state = urlParams.get(&apos;state&apos;)
+        var key = urlParams.get(&apos;key&apos;)
+        var redirect = urlParams.get(&apos;redirect&apos;)
+        /*
+        回传 JSON.stringfy({ code, state }) 的方式：
+        pm: parent.postMessage
+        ss: 直接将值设置到 sessionStorage.setItem(key, ... )
+        r: 重定向：调整到 redirect 的地址，拼接参数 code与state，redirect需要解码
+        */
+        var ct = urlParams.get(&apos;ct&apos;);
+
+        function main() {
+            // 根据 ct 参数值执行不同的操作
+            const data = {code, state};
+            const dataStr = JSON.stringify(data);
+
+            switch (ct) {
+                case &apos;pm&apos;:
+                    // 使用 parent.postMessage 回传数据
+                    if (window.parent &amp;amp;&amp;amp; window.parent !== window) {
+                        let targetOrigin;
+                        try {
+                            targetOrigin = window.parent.origin;
+                        } catch (error) {
+                            console.log(&apos;读取 window.parent.origin 失败，使用默认 targetOrigin:&apos;, error);
+                            targetOrigin = location.origin
+                        }
+                        window.parent.postMessage({action: &apos;WECHAT_LOGIN_SUCCESS&apos;, data}, targetOrigin);
+                    }
+                    break;
+                case &apos;ss&apos;:
+                    // 使用 sessionStorage.setItem 回传数据
+                    if (key) {
+                        sessionStorage.setItem(key, dataStr);
+                    }
+                    break;
+                case &apos;r&apos;:
+                    // 重定向：调整到 redirect 的地址，拼接参数 code 与 state
+                    if (redirect) {
+                        const decodedRedirect = decodeURIComponent(redirect);
+                        const redirectUrl = new URL(decodedRedirect);
+                        redirectUrl.searchParams.set(&apos;code&apos;, code);
+                        redirectUrl.searchParams.set(&apos;state&apos;, state);
+                        window.location.href = redirectUrl.toString();
+                    }
+                    break;
+                default:
+                    // 如果未指定或指定错误的 ct 值，默认使用 postMessage
+                    if (window.parent &amp;amp;&amp;amp; window.parent !== window) {
+                        let targetOrigin = &apos;*&apos;;
+                        try {
+                            targetOrigin = window.parent.origin;
+                        } catch (error) {
+                            console.log(&apos;读取 window.parent.origin 失败，使用默认 targetOrigin:&apos;, error);
+                        }
+                        window.parent.postMessage(data, targetOrigin);
+                    }
+                    break;
+            }
+        }
+
+        main();
+    &amp;lt;/script&amp;gt;
+&amp;lt;/div&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;例如使用：&lt;/h2&gt;
+&lt;p&gt;预期使用&lt;strong&gt;同源的postMessage&lt;/strong&gt;来传递消息：
+本地、开发、测试、线上域名都不一样。而微信的验证回调只能填写一个地址。
+所以预期的方案是由这个唯一的地址根据参数进行不同的操作，将参数回传。
+假设验证回调为：&lt;code&gt;https://q.xxxx.com/wxcb?ct=r&amp;amp;redirect=${redirect}&lt;/code&gt;
+本地是&lt;code&gt;localhost:9000&lt;/code&gt; ，用户扫描登陆后会触发回调&lt;code&gt;https://q.xxxx.com/wxcb?ct=r&amp;amp;redirect=${redirect}&amp;amp;code=x&amp;amp;state=x&lt;/code&gt; ，将 &lt;code&gt;redirect&lt;/code&gt; 调整为本地的&lt;code&gt;localhost:9000/wxcb.html?ct=pm&lt;/code&gt; ，就会再跳转到&lt;code&gt;localhost:9000/wxcb.html?ct=pm&amp;amp;code=x&amp;amp;state=x&lt;/code&gt;再由此网页通过同源postMessage将code传递给当前网页去完成登陆。这样当前网页就不用刷新了，几个步骤的网页都在当前网页的iframe中刷新&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  const initWechatLogin = useCallback(() =&amp;gt; {
+    try {
+      const redirect = encodeURIComponent(
+        `${location.protocol}//${location.host}/wxcb.html?ct=pm`
+      )
+      // 创建微信登录实例
+      new window.WxLogin({
+        id: &apos;wechat-login-container&apos;,
+        self_redirect: true,
+        appid: APP_ID,
+        scope: &apos;snsapi_login&apos;,
+        redirect_uri: encodeURIComponent(
+          `https://q.xxxx.com/wxcb?ct=r&amp;amp;redirect=${redirect}`
+        ),
+        state: &apos;lite&apos;,
+        style: &apos;&apos;, 
+      })
+    } catch (error) {
+      onError?.(error)
+    }
+  }, [])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;img src=&quot;img.png&quot; alt=&quot;img.png&quot; /&gt;&lt;/p&gt;
+</content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;const req = require.context(&apos;@/pages&apos;, true, __AUTO_ROUTER_REG__, &apos;lazy&apos;)&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;路由组件都动态导入，路由的&lt;code&gt;component&lt;/code&gt; 设置为&lt;code&gt;Loadable({ loader, loading: Loading })&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;loading&lt;/code&gt;：自定义的加载提示组件&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loader&lt;/code&gt; 的签名为&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Promise&amp;lt;React.ComponentType&amp;lt;Props&amp;gt; | { default: React.ComponentType&amp;lt;Props&amp;gt; }&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;借助req可以轻松实现这一点&lt;code&gt;() =&amp;gt; Promise.resolve(req(key))&lt;/code&gt; ，&lt;code&gt;key&lt;/code&gt; 是&lt;code&gt;req.keys()&lt;/code&gt; 的项。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 是一个高阶组件，它会返回一个新的组件，此组件内部会调用&lt;code&gt;loader&lt;/code&gt; 加载异步导入的组件(&lt;code&gt;import(xxx)&lt;/code&gt;)。在加载完成前，会展示&lt;code&gt;loading&lt;/code&gt; 对应的组件。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 来自&lt;code&gt;&apos;react-loadable&apos;&lt;/code&gt; 库。
+也可以使用&lt;code&gt;React.lazy&lt;/code&gt; + &lt;code&gt;Suspense&lt;/code&gt; 来实现：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// React 官方方案示例
+const LazyComponent = React.lazy(() =&amp;gt; import(&apos;./HeavyComponent&apos;));
+
+function App() {
+  return (
+    &amp;lt;Suspense fallback={&amp;lt;Loading /&amp;gt;}&amp;gt;
+      &amp;lt;LazyComponent /&amp;gt;
+    &amp;lt;/Suspense&amp;gt;
+  );
+}
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>Antd-ext Sheet 组件的来源与创建历程</title><link>https://fuwari.vercel.app/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
+&lt;p&gt;在开发订单创建页面时，我们需要处理商品条目的录入。这是一个典型的“大量数据录入”场景，表格列中包含了多种输入组件（Input、Select、Picker 等）。&lt;/p&gt;
+&lt;p&gt;业务与产品团队提出了以下核心需求：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;类 Excel 体验&lt;/strong&gt;：界面要尽量简洁，减少嵌套层级和边框噪音。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;交互流畅&lt;/strong&gt;：单元格点击即可激活选中，再次点击进入编辑状态。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;视觉一致性&lt;/strong&gt;：整体视觉风格需与现有的 Ant Design 系统保持高度一致。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;2. 技术选型&lt;/h2&gt;
+&lt;p&gt;在实现方案上，我们主要对比了两种方向：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：引入类 Excel 库（如 x-data-spreadsheet）&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：天然具备 Excel 的交互体验和丰富功能。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：UI 定制成本极高，所有输入框样式都需要重写以匹配 Ant Design 的设计语言；维护成本较大。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：基于 Ant Design Table 模拟&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：完全复用 Ant Design 的组件生态和视觉风格；易于集成。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需要自行实现“选中/编辑”切换的交互逻辑和样式去噪。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;最终选择&lt;/strong&gt;：基于 Table 进行模拟。我们的目标是打造一个“看上去像 Excel”的录入表格，而不是实现一个完整的在线 Excel。利用 Table 的现有能力，配合精细的样式控制和逻辑封装，能以最低成本达成目标。&lt;/p&gt;
+&lt;h2&gt;3. 设计思路&lt;/h2&gt;
+&lt;p&gt;为了实现上述目标，我们在设计上做出了以下关键决策，并在每一步都进行了方案对比：&lt;/p&gt;
+&lt;h3&gt;3.1 渲染模型：Render Props vs Component Injection&lt;/h3&gt;
+&lt;p&gt;在如何定义单元格渲染逻辑上，我们考虑了两种方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：传统 Render Props (Ant Design Table 默认方式)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：极其灵活，开发者可以在 &lt;code&gt;render&lt;/code&gt; 函数中返回任意 JSX，逻辑完全掌控。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：对于大量输入组件，需要手动绑定 &lt;code&gt;value&lt;/code&gt; 和 &lt;code&gt;onChange&lt;/code&gt;，样板代码冗余；最关键的是，&lt;strong&gt;无法通过 TypeScript 自动推导组件的 Props 类型&lt;/strong&gt;，开发者容易传错属性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：Component + componentProps 注入 (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;类型安全&lt;/strong&gt;：可以利用 TypeScript 推导，根据传入的 &lt;code&gt;Component&lt;/code&gt; 自动提示对应的 &lt;code&gt;componentProps&lt;/code&gt;（并排除 &lt;code&gt;value&lt;/code&gt;/&lt;code&gt;onChange&lt;/code&gt;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;代码简洁&lt;/strong&gt;：Sheet 内部负责实例化组件并注入受控属性，开发者只需关注配置。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：灵活性稍逊，需要组件遵循 &lt;code&gt;value/onChange&lt;/code&gt; 的受控规范。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;Component + componentProps&lt;/strong&gt; 模式，优先保证开发效率和类型安全。底层沿用 Table 的 &lt;code&gt;columns&lt;/code&gt; 模型（列配置 -&amp;gt; 渲染单元格），保证开发者上手的低门槛。&lt;/p&gt;
+&lt;h3&gt;3.2 样式策略：全局覆盖 vs 局部隔离&lt;/h3&gt;
+&lt;p&gt;为了模拟 Excel 的无边框视觉：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：全局 CSS 覆盖 (Global Overrides)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：实现简单，通过 CSS 选择器强行覆盖 Input 样式。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：极易造成样式污染。例如，修改了 Input 的边框，可能会意外影响到 Select 下拉框中的搜索框或 Modal 中的输入框。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：局部样式注入 + ConfigProvider (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;样式隔离&lt;/strong&gt;：通过 &lt;code&gt;useStyle&lt;/code&gt; 生成唯一的 hashId，在单元格内层统一去除边框、背景，并根据 &lt;code&gt;layout&lt;/code&gt;（&lt;code&gt;block&lt;/code&gt;/&lt;code&gt;inline&lt;/code&gt;）和 &lt;code&gt;size&lt;/code&gt; 派生出 &lt;code&gt;w-full&lt;/code&gt;、&lt;code&gt;h-full&lt;/code&gt; 等布局类。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：实现复杂度略高，需处理 CSS-in-JS 的优先级问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;局部样式注入&lt;/strong&gt;，确保组件的封装性和安全性。&lt;/p&gt;
+&lt;h3&gt;3.3 交互设计：状态切换 vs 始终渲染&lt;/h3&gt;
+&lt;p&gt;在实现“点击编辑”的交互时：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：查看态/编辑态切换 (Switching Mode)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：查看态仅渲染文本，DOM 节点少，性能较好。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：&lt;strong&gt;列宽抖动&lt;/strong&gt;严重。文本节点和输入框节点的默认宽度、内边距不同，切换瞬间表格列宽会发生跳变，体验极差。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：始终渲染输入控件 (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：&lt;strong&gt;零视觉跳变&lt;/strong&gt;。通过样式将输入框伪装成文本（去边框、背景），配合点击计数逻辑（&lt;code&gt;cellClickCount&lt;/code&gt;：一次点击选中，二次点击编辑），激活时仅需添加高亮样式，列宽保持绝对稳定。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：DOM 节点数量较多，对 React 渲染性能有挑战（通过 &lt;code&gt;React.memo&lt;/code&gt; 和 &lt;code&gt;componentProps&lt;/code&gt; 缓存优化）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;始终渲染输入控件&lt;/strong&gt; 策略，以空间换取极致的交互体验。同时，在双击进入编辑时，如果存在 &lt;code&gt;selectionStart&lt;/code&gt;，将光标自动置于末尾，避免误选文本。&lt;/p&gt;
+&lt;h3&gt;3.4 校验管理：Form.List vs 独立校验&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：复用 Ant Design Form.List&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：直接复用 Form 的验证体系，无需额外代码。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：Ant Design Form 在处理数百行深层嵌套数据时性能瓶颈明显；且强绑定 Form 上下文，无法独立使用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：独立状态管理 + async-validator (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;独立性&lt;/strong&gt;：组件可独立运行，不依赖 Form Context。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;性能可控&lt;/strong&gt;：采用“列-行”维度的精细化更新，避免全表重渲染。&lt;code&gt;cellStatus&lt;/code&gt; 存储“列-行”维度的错误信息，通过 &lt;code&gt;classNames&lt;/code&gt; 渲染红色边框，并利用 Tooltip 展示具体错误文案。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需自行维护校验状态和集成 &lt;code&gt;async-validator&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;独立状态管理&lt;/strong&gt;，提供更灵活的校验 UI 和更好的性能，同时支持受控（&lt;code&gt;value&lt;/code&gt;）与非受控模式。&lt;/p&gt;
+&lt;h2&gt;4. 列映射（convertColumn）&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;convertColumn&lt;/code&gt; 是连接 Sheet 列配置与 Ant Design &lt;code&gt;Table&lt;/code&gt; 列配置的桥梁，它做了三件事：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;把 Sheet 自己的列描述（&lt;code&gt;ColumnType&lt;/code&gt;）转换成 Table 能识别的 &lt;code&gt;columns&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在列级别挂上表头状态（例如是否有错误）&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在单元格级别接管交互与样式（通过 &lt;code&gt;onCell&lt;/code&gt; 与 &lt;code&gt;render&lt;/code&gt;）&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面是核心实现的精简版本（有删减）：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const convertColumn = useCallback(
+  (column: ColumnType&amp;lt;RecordType&amp;gt;, columnIndex: number): TableColumnType&amp;lt;RecordType&amp;gt; =&amp;gt; {
+    const { Component, componentProps, type, align, layout, ...rest } = column;
+    const isDataCell = type === &apos;data&apos; || isNil(type);
+
+    // 1. 解析布局：inline / w-full / h-full
+    let layouts: (typeof layout)[] = [];
+    let isInlineLayout = false;
+    if (!Component &amp;amp;&amp;amp; !layout) {
+      layouts = [&apos;inline&apos;];
+      isInlineLayout = true;
+    } else {
+      layouts = layout === &apos;block&apos; || !layout ? [&apos;w-full&apos;, &apos;h-full&apos;] : [layout];
+      isInlineLayout = layouts.includes(&apos;inline&apos;);
+    }
+
+    const dataIndex = isDataCell
+      ? (column as DataColumnType&amp;lt;RecordType, keyof RecordType&amp;gt;).dataIndex
+      : rowKey;
+
+    return {
+      ...rest,
+      dataIndex: dataIndex as string,
+
+      // 2. 头部单元格：如果这一列有任意单元格报错，则给表头加错误样式
+      onHeaderCell: () =&amp;gt; ({
+        className: classNames({ [`${prefixCls}-th-status-error`]: Boolean(cellStatus[columnIndex]) }),
+      }),
+
+      // 3. 表体单元格 onCell：负责行为 + 样式
+      onCell: (record: RecordType, rowIndex) =&amp;gt; {
+        if (!record || isNil(rowIndex)) return {};
+        if (isDataCell) {
+          // 计算当前单元格的状态：是否编辑 / 是否有错误 / 点击次数
+          const { edited, errorMessage, clickCount } = computeStatus(rowIndex, columnIndex);
+
+          // 组装单元格 className：状态 + 布局
+          const cns = classNames(`${prefixCls}-cell-data`, {
+            [`${prefixCls}-cell-error`]: errorMessage,
+            [`${prefixCls}-cell-active`]: edited,
+            [`${prefixCls}-cell-no-selection`]: clickCount === 1,
+            [`${prefixCls}-cell-layout-w-full`]: layouts.includes(&apos;w-full&apos;),
+            [`${prefixCls}-cell-layout-h-full`]: layouts.includes(&apos;h-full&apos;),
+            [`${prefixCls}-cell-layout-inline`]: isInlineLayout,
+          });
+
+          return {
+            className: cns,
+            onClick: (e) =&amp;gt; {
+              // 维护点击计数：第一次点击只选中，第二次点击进入编辑
+              const newCellClickCount: typeof cellClickCount =
+                [columnIndex, rowIndex, edited ? clickCount + 1 : 1];
+              setCellClickCount(newCellClickCount);
+
+              // 第二次点击时，如果目标是 input 等，可把光标移到末尾，避免整段选中
+              if (edited) {
+                const target = e.target as HTMLInputElement;
+                if (newCellClickCount[2] === 2 &amp;amp;&amp;amp; typeof target.selectionStart === &apos;number&apos;) {
+                  target.selectionStart = target.selectionEnd;
+                }
+              }
+            },
+          };
+        }
+        // 操作列：只挂上操作列样式
+        return { className: `${prefixCls}-cell-operator` };
+      },
+
+      // 4. render：真正渲染单元格内容，并把受控能力注入进去
+      render: (_: any, record: RecordType, rowIndex: number) =&amp;gt; {
+        if (isDataCell) {
+          const { edited, errorMessage } = computeStatus(rowIndex, dataIndex as any);
+          return (
+            &amp;lt;Cell&amp;lt;RecordType&amp;gt;
+              // 来自列配置的 componentProps：业务侧写的 props
+              componentProps={componentProps}
+              // 真正渲染的组件：列没指定时默认用 Sheet.Text
+              Component={(Component ?? Weigets.Text) as React.ComponentType&amp;lt;DataCellComponentProps&amp;gt;}
+              // 受控 value：从当前行数据里取对应 dataIndex 的值
+              value={record[dataIndex]}
+              // 定位信息：用于更新与校验
+              rowIndex={rowIndex}
+              dataIndex={dataIndex}
+              // 校验相关：是否展示 tooltip、错误信息
+              validateTooltip={Component ? validateTooltip : false}
+              edited={edited}
+              errorMessage={errorMessage}
+              // 视觉与布局
+              prefixCls={prefixCls}
+              align={align}
+              className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
+              // 更新回调：让单元格在内部调用时，能只更新自己这一格
+              onUpdateCellByKey={updateCellByKey}
+            /&amp;gt;
+          );
+        }
+
+        // 操作列的渲染：把当前行记录与一组操作回调注入进去
+        return (
+          &amp;lt;OperatorCell&amp;lt;RecordType&amp;gt;
+            Component={Component as React.ComponentType&amp;lt;OperatorCellComponentProps&amp;lt;RecordType&amp;gt;&amp;gt;}
+            value={record}
+            index={rowIndex}
+            prefixCls={prefixCls}
+            componentProps={componentProps}
+            onInsertRow={insertRow}
+            onDeleteRow={deleteRow}
+            onUpdateCell={updateCell}
+            align={align}
+            className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
+          /&amp;gt;
+        );
+      },
+    };
+  },
+  [computeStatus, prefixCls, updateCellByKey, validateTooltip, updateCell],
+);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4.1 Table &lt;code&gt;onCell&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;在 Ant Design Table 中，&lt;code&gt;onCell&lt;/code&gt; 的本质作用是：&lt;strong&gt;为某一列的每一个单元格（&lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt;）动态注入 props&lt;/strong&gt;，这些 props 会和 Table 自己生成的属性合并，最终作用在真实 DOM 上。&lt;/li&gt;
+&lt;li&gt;在 Sheet 中，我们利用 &lt;code&gt;onCell&lt;/code&gt; 做了几件关键的事情：
+&lt;ul&gt;
+&lt;li&gt;通过 &lt;code&gt;className&lt;/code&gt; 控制&lt;strong&gt;单元格的状态样式&lt;/strong&gt;：是否处于编辑态（&lt;code&gt;cell-active&lt;/code&gt;）、是否有错误（&lt;code&gt;cell-error&lt;/code&gt;）、是否只是被选中但未进入编辑（&lt;code&gt;cell-no-selection&lt;/code&gt;）；&lt;/li&gt;
+&lt;li&gt;根据列的 &lt;code&gt;layout&lt;/code&gt; 决定布局类（&lt;code&gt;cell-layout-inline / -cell-layout-w-full / -cell-layout-h-full&lt;/code&gt;），从而统一内边距和宽高；&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;onClick&lt;/code&gt; 中维护 &lt;code&gt;cellClickCount&lt;/code&gt;，实现“第一次点击选中、第二次点击进入编辑态”的 Excel 风格交互，并修正双击时的光标位置。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;可以理解为：&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责“外壳”的行为和状态，决定这个 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 看起来和“点起来”是什么感觉。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;4.2 列 &lt;code&gt;render&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;在 Ant Design Table 中，列的 &lt;code&gt;render&lt;/code&gt; 决定了&lt;strong&gt;单元格内部内容&lt;/strong&gt;怎么渲染，它拿到当前行数据与索引后，返回一段 JSX。&lt;/li&gt;
+&lt;li&gt;在 Sheet 中，我们统一用 &lt;code&gt;render&lt;/code&gt; 去渲染封装好的 &lt;code&gt;Cell&lt;/code&gt; / &lt;code&gt;OperatorCell&lt;/code&gt;，并在这里把所有“受控能力”注入进去：
+&lt;ul&gt;
+&lt;li&gt;对于数据列：
+&lt;ul&gt;
+&lt;li&gt;把当前行的字段值 &lt;code&gt;record[dataIndex]&lt;/code&gt; 作为受控 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;Cell&lt;/code&gt;，再由 &lt;code&gt;Cell&lt;/code&gt; 传给真正的输入组件；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;rowIndex&lt;/code&gt;、&lt;code&gt;dataIndex&lt;/code&gt; 传进去，&lt;code&gt;Cell&lt;/code&gt; 在触发 &lt;code&gt;onChange&lt;/code&gt; 时会通过 &lt;code&gt;onUpdateCellByKey&lt;/code&gt; 精确更新这一格的数据；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;edited&lt;/code&gt;、&lt;code&gt;errorMessage&lt;/code&gt;、&lt;code&gt;validateTooltip&lt;/code&gt; 等状态注入，让单元格知道当前是否处于编辑态、是否需要展示错误提示；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;componentProps&lt;/code&gt; 注入，让业务侧配置的 &lt;code&gt;placeholder&lt;/code&gt;、&lt;code&gt;min&lt;/code&gt;、&lt;code&gt;options&lt;/code&gt; 等都能透传到具体输入组件上。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;对于操作列：
+&lt;ul&gt;
+&lt;li&gt;把整行记录 &lt;code&gt;record&lt;/code&gt; 作为 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;OperatorCell&lt;/code&gt;，让操作列可以基于整行信息做事情（比如复制、删除）；&lt;/li&gt;
+&lt;li&gt;注入 &lt;code&gt;onInsertRow&lt;/code&gt;、&lt;code&gt;onDeleteRow&lt;/code&gt;、&lt;code&gt;onUpdateCell&lt;/code&gt; 等行级操作方法。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此可以总结为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 外层：交互状态 + 布局 + 点击行为&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;render&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 内层：真正渲染什么组件，以及组件如何拿到受控值与更新回调&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这两个能力叠加在一起，使得 Sheet 在保持 &lt;code&gt;Table&lt;/code&gt; 心智模型的同时，又能实现类 Excel 的高密度录入体验。&lt;/p&gt;
+&lt;h2&gt;5. 类型推导&lt;/h2&gt;
+&lt;p&gt;为了提供极致的开发体验，我们设计了辅助函数 &lt;code&gt;Sheet.col&lt;/code&gt;。它利用 TypeScript 的泛型推导，实现了 &lt;code&gt;componentProps&lt;/code&gt; 的智能提示。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 开发者无需手动定义复杂的泛型
+Sheet.col(Sheet.InputNumber&amp;lt;number&amp;gt;, {
+  title: &apos;价格&apos;,
+  dataIndex: &apos;price&apos;,
+  //这里的 componentProps 会被自动推导为 InputNumberProps，且排除了 value/onChange
+  componentProps: {
+    min: 0,
+    precision: 2
+  },
+})
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这一设计极大地降低了 TypeScript 的使用门槛，同时保证了类型安全。&lt;/p&gt;
+&lt;h2&gt;6. 扩展能力&lt;/h2&gt;
+&lt;p&gt;Sheet 组件设计了良好的扩展性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;内置组件 (Widgets)&lt;/strong&gt;：我们封装了 &lt;code&gt;Sheet.Input&lt;/code&gt;、&lt;code&gt;Sheet.InputNumber&lt;/code&gt;、&lt;code&gt;Sheet.CheckBox&lt;/code&gt; 等常用组件，它们默认实现了无边框样式和受控接口。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Form 集成&lt;/strong&gt;：通过 &lt;code&gt;Sheet.FormItem&lt;/code&gt;，可以将 Sheet 作为一个普通的表单项嵌入到 Ant Design 的 Form 中，复用 Form 的验证体系，同时保留 Sheet 内部的列级校验。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;自定义组件&lt;/strong&gt;：任何支持 &lt;code&gt;value&lt;/code&gt; / &lt;code&gt;onChange&lt;/code&gt; 的组件都可以直接作为 &lt;code&gt;Component&lt;/code&gt; 传入。利用 &lt;code&gt;extractInnerLayoutClasses&lt;/code&gt; 工具，自定义组件也能轻松适配 Sheet 的布局系统。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;7. 使用示例&lt;/h2&gt;
+&lt;p&gt;以下是一个完整的商品录入示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import Sheet, { SheetRef } from &apos;@byte.n/antd-ext/Sheet&apos;;
+import React, { useRef } from &apos;react&apos;;
+
+const App = () =&amp;gt; {
+  const ref = useRef&amp;lt;SheetRef&amp;lt;any&amp;gt;&amp;gt;(null);
+
+  const columns = [
+    // 使用辅助函数定义列
+    Sheet.col(Sheet.Input, {
+      title: &apos;商品名称&apos;,
+      dataIndex: &apos;name&apos;,
+      rule: { required: true, message: &apos;必填&apos; }, // 列级校验
+    }),
+    Sheet.col(Sheet.InputNumber, {
+      title: &apos;数量&apos;,
+      dataIndex: &apos;count&apos;,
+      componentProps: { min: 1 },
+    }),
+    // 自定义操作列
+    Sheet.operatorCol(Sheet.Text, {
+      title: &apos;操作&apos;,
+      width: 80
+    }),
+  ];
+
+  return (
+    &amp;lt;div&amp;gt;
+      &amp;lt;div style={{ marginBottom: 16 }}&amp;gt;
+        &amp;lt;button onClick={() =&amp;gt; ref.current?.insertRow(0)}&amp;gt;新增一行&amp;lt;/button&amp;gt;
+        &amp;lt;button onClick={() =&amp;gt; ref.current?.validate()}&amp;gt;提交验证&amp;lt;/button&amp;gt;
+      &amp;lt;/div&amp;gt;
+
+      &amp;lt;Sheet
+        ref={ref}
+        rowKey=&quot;id&quot;
+        // 生成唯一键的策略
+        createNewKey={({ index }) =&amp;gt; `row_${Date.now()}_${index}`}
+        columns={columns}
+        defaultValue={[{ id: &apos;1&apos;, name: &apos;示例商品&apos;, count: 10 }]}
+      /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  );
+};
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;8. 总结与实践提示&lt;/h2&gt;
+&lt;p&gt;Sheet 组件通过复用 Table 的底层能力，以较低的成本实现了类 Excel 的交互体验。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;何时使用 Sheet？&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当需要在一个表格中密集录入数据时（如采购单、参数配置）。&lt;/li&gt;
+&lt;li&gt;需要“即点即改”的交互，而非传统的“点击编辑按钮 -&amp;gt; 弹窗/行编辑”模式。&lt;/li&gt;
+&lt;li&gt;表单中包含数组结构的数据。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;实践提示：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;性能优化&lt;/strong&gt;：虽然 Sheet 做了大量优化，但面对数百行数据时，React 的重渲染仍是瓶颈。建议结合分页或虚拟滚动（如有必要）使用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;校验时机&lt;/strong&gt;：Sheet 默认在 &lt;code&gt;change&lt;/code&gt; 时触发校验。如果数据量极大，可考虑防抖或仅在提交时调用 &lt;code&gt;ref.current.validate()&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;样式定制&lt;/strong&gt;：尽量使用 &lt;code&gt;layout&lt;/code&gt; 属性（&lt;code&gt;w-full&lt;/code&gt;, &lt;code&gt;inline&lt;/code&gt;）来控制组件宽度，避免写硬编码的 style，以保持响应式能力。&lt;/li&gt;
+&lt;/ol&gt;
+</content:encoded></item><item><title>js ES6</title><link>https://fuwari.vercel.app/posts/js/es6/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/js/es6/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;新增的对象、函数等&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Map&lt;/code&gt;, &lt;code&gt;Set&lt;/code&gt; ,&lt;code&gt;WeakMap&lt;/code&gt;, &lt;code&gt;WeakSet&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;放射与代理&lt;code&gt;Reflect&lt;/code&gt;、&lt;code&gt;Proxy&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;structureClone&lt;/code&gt; 全局函数&lt;/li&gt;
+&lt;li&gt;view transition api&lt;/li&gt;
+&lt;li&gt;transform stream接口&lt;/li&gt;
+&lt;li&gt;documen元素变更监听
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;MutaionObserver&lt;/code&gt;监听 DOM 树的变化&lt;/li&gt;
+&lt;li&gt;**&lt;code&gt;ResizeObserver&lt;/code&gt;**监听 &lt;strong&gt;元素尺寸变化&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;**&lt;code&gt;IntersectionObserver&lt;/code&gt;**监听 &lt;strong&gt;元素是否进入/离开视口&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;PerformanceObserver&lt;/code&gt;&lt;/strong&gt; 监听 &lt;strong&gt;性能条目（PerformanceEntry）&lt;/strong&gt; 的生成&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ArrayBuffer&lt;/code&gt;, &lt;code&gt;DataView&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;国际化 &lt;strong&gt;&lt;code&gt;RelativeTimeFormat&lt;/code&gt; / &lt;code&gt;Intl&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;取消机制：&lt;strong&gt;&lt;code&gt;AbortController&lt;/code&gt; + &lt;code&gt;signal&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;函数
+&lt;ul&gt;
+&lt;li&gt;Array
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Array.from&lt;/code&gt; 将可迭代的对象转为真正的数组&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Array.of&lt;/code&gt; 创建一个包含指定元素的新数组&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Array.prototype.copyWithin&lt;/code&gt; 浅复制一部分&lt;/li&gt;
+&lt;li&gt;**&lt;code&gt;Array.prototype.fill&lt;/code&gt;**用一个固定值填充数组的全部或部分元素。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;Array.prototype.find&lt;/code&gt; 、&lt;code&gt;findIndex&lt;/code&gt;、&lt;code&gt;keys&lt;/code&gt;、&lt;code&gt;values&lt;/code&gt;、&lt;code&gt;entries&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;includes&lt;/code&gt; [es7]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;flat&lt;/code&gt; [&lt;strong&gt;ES10&lt;/strong&gt;]&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Array.prototype.at()&lt;/code&gt;（支持负索引）[&lt;strong&gt;ES12]&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;String
+| &lt;code&gt;String.prototype.includes()&lt;/code&gt; | 判断字符串是否包含指定子串（返回布尔值） | ES6 |
+| --- | --- | --- |
+| &lt;code&gt;String.prototype.startsWith()&lt;/code&gt; | 判断字符串是否以指定子串开头 | ES6 |
+| &lt;code&gt;String.prototype.endsWith()&lt;/code&gt; | 判断字符串是否以指定子串结尾 | ES6 |
+| &lt;code&gt;for...of&lt;/code&gt; 遍历字符串 | 正确迭代包含 emoji 等 Unicode 字符的字符串 | ES6 |
+| &lt;code&gt;String.prototype.padStart()&lt;/code&gt; | 在字符串开头填充字符至指定长度 | ES8 |
+| &lt;code&gt;String.prototype.padEnd()&lt;/code&gt; | 在字符串末尾填充字符至指定长度 | ES8 |
+| &lt;code&gt;String.prototype.trimStart()&lt;/code&gt; | 移除字符串开头的空白字符（别名：&lt;code&gt;trimLeft&lt;/code&gt;） | ES9 |
+| &lt;code&gt;String.prototype.trimEnd()&lt;/code&gt; | 移除字符串末尾的空白字符（别名：&lt;code&gt;trimRight&lt;/code&gt;） | ES9 |
+| &lt;code&gt;String.prototype.matchAll()&lt;/code&gt; | 返回所有正则匹配结果（含捕获组）的迭代器 | ES10 |
+| &lt;code&gt;String.prototype.replaceAll()&lt;/code&gt; | 替换所有匹配的子串（无需正则全局标志） | ES12 |
+| &lt;code&gt;String.prototype.at()&lt;/code&gt; | 支持负索引访问字符（如 &lt;code&gt;.at(-1)&lt;/code&gt;），更好支持 Unicode | ES13 |&lt;/li&gt;
+&lt;li&gt;Object
+| &lt;strong&gt;方法 / 特性&lt;/strong&gt; | &lt;strong&gt;说明&lt;/strong&gt; | &lt;strong&gt;所属版本&lt;/strong&gt; |
+| --- | --- | --- |
+| &lt;code&gt;Object.assign(target, ...sources)&lt;/code&gt; | 浅拷贝多个源对象到目标对象（常用于合并、克隆） | ES6 |
+| &lt;code&gt;Object.is(value1, value2)&lt;/code&gt; | 更严格的相等比较（修复 &lt;code&gt;===&lt;/code&gt; 对 &lt;code&gt;NaN&lt;/code&gt; 和 &lt;code&gt;+0/-0&lt;/code&gt; 的问题） | ES6 |
+| &lt;code&gt;Object.getOwnPropertyDescriptors(obj)&lt;/code&gt; | 获取对象所有自身属性的完整描述符（含 getter/setter） | ES8 |
+| &lt;code&gt;Object.values(obj)&lt;/code&gt; | 返回对象自身可枚举属性的值组成的数组 | ES8 |
+| &lt;code&gt;Object.entries(obj)&lt;/code&gt; | 返回对象自身可枚举属性的 &lt;code&gt;[key, value]&lt;/code&gt; 键值对数组 | ES8 |
+| &lt;code&gt;Object.getOwnPropertyNames(obj)&lt;/code&gt; | （注：此方法 ES5 已有，非新增） | — |
+| &lt;code&gt;Object.fromEntries(iterable)&lt;/code&gt; | 将键值对列表（如 &lt;code&gt;Map&lt;/code&gt; 或 &lt;code&gt;entries&lt;/code&gt; 数组）转为对象 | ES10 |
+| &lt;code&gt;Object.hasOwn(obj, prop)&lt;/code&gt; | 安全检查对象自身是否含有某属性（替代 &lt;code&gt;hasOwnProperty&lt;/code&gt;） | ES13 |&lt;/li&gt;
+&lt;li&gt;Math ： log 预算、三角函数、平方、立方根等&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;新增的特性&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;class[ES6]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;模块化 &lt;code&gt;import/export&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;迭代器：Iterator&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;类修饰器，函数修饰器&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;BigInt 与 Symbol&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;对象属性字面量简写：&lt;code&gt;const obj = { name, age }&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;以前只能&lt;code&gt;const obj = { name: name , age : age }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;模板字符串&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;扩展运算符&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;ES6（数组）&lt;/li&gt;
+&lt;li&gt;ES9（对象）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;解构赋值[ES6]&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;异步迭代（Async iteration） + &lt;code&gt;for await...of&lt;/code&gt; [ES9]&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;对象的&lt;code&gt;Symbol.asyncIterator&lt;/code&gt; 返回一个异步的迭代器。&lt;/p&gt;
+&lt;p&gt;可以使用三种方式创建：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;**&lt;code&gt;obj[**Symbol.asyncIterator**]**&lt;/code&gt;返回异步生成器函数（Async Generator Function）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;obj[Symbol.asyncIterator]&lt;/code&gt;返回一个对象 &lt;code&gt;{ next: () ⇒ { value: any, done: boolean } }&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;本身就是一个异步生成器函数&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;function createAsyncIterable(max) {
+  return {
+    async *[Symbol.asyncIterator]() {
+      for (let i = 1; i &amp;lt;= max; i++) {
+        await new Promise(resolve =&amp;gt; setTimeout(resolve, 500)); // 模拟异步操作
+        yield i;
+      }
+    }
+  };
+}
+
+function createManualAsyncIterable(max) {
+  let current = 1;
+
+  return {
+    [Symbol.asyncIterator]() {
+      return {
+        next() {
+          if (current &amp;lt;= max) {
+            const value = current++;
+            // 模拟异步延迟
+            return new Promise(resolve =&amp;gt;
+              setTimeout(() =&amp;gt; resolve({ value, done: false }), 500)
+            );
+          } else {
+            return Promise.resolve({ done: true });
+          }
+        }
+      };
+    }
+  };
+}
+
+async function* asyncNumberStream() {
+  let i = 1;
+  while (i &amp;lt;= 3) {
+    await new Promise(r =&amp;gt; setTimeout(r, 300));
+    yield i++;
+  }
+}
+
+// 使用 for await...of 遍历
+(async () =&amp;gt; {
+  for await (const num of createAsyncIterable(3)) {
+    console.log(num); // 每隔 500ms 输出：1, 2, 3
+  }
+})();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;let&lt;/code&gt;`const&lt;code&gt;\&lt;/code&gt;var` 关键字&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;var&lt;/code&gt;就会将它们提升到当前作用域的顶端、可重复声明&lt;/li&gt;
+&lt;li&gt;全局声明的&lt;code&gt;var&lt;/code&gt;变量，会挂载到&lt;code&gt;window&lt;/code&gt;上&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;var a = &quot;a&quot;
+let b = &quot;b&quot;
+const c = &quot;c&quot;
+console.log(window.a) // a
+console.log(window.b) // undefined
+console.log(window.c) // undefined
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;const&lt;/code&gt; 声明的变量是常量，变量本身不能重新赋值&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;let&lt;/code&gt; 声明的是可以修改变量，变量本身能重新赋值&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;let&lt;/code&gt;`const` 有块级作用域、禁止重复声明&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;// let \ const
+if (true) {
+    const a = 1; // 换 let 效果一致
+}
+console.log(a) // Uncaught ReferenceError: a is not defined
+
+// var
+if (true) {
+    var a = 1; // var 无块级作用域
+}
+console.log(a) // 1
+
+// var 与 变量提升
+function func () {
+  // 因为没有块级作用域，变量提示会提示到上一个作用域的顶部，所以这里访问 a 不会出错
+	a = 2
+	console.log(a) // 2
+	if (true) {
+	    var a = 1; // var 无块级作用域
+	}
+	console.log(a) // 1
+}
+
+func() // 2 、 1
+
+// 没有如何修饰符号时，且作用域内没有定义重复的变量时
+function func () {
+  // 隐式全局变量创建
+	a = 2 // 如果开启 严格模式 (&apos;use strict&apos;)：会抛出 ReferenceError: a is not defined
+	console.log(2) // 1
+}
+
+func() // 2
+window.a // 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;let&lt;/code&gt;`const` 有暂时性死区&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;备注：若是在浏览器的控制台中测试，则需要每次开始前刷新浏览器。因为浏览器的conosle是一个连续的上下文环境。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 单独执行下面的语句不会有问题
+console.log(typeof value)  // &quot;undefined&quot;
+
+// 单独执行下面的语句不会有问题
+console.log(typeof value)  // &quot;undefined&quot;
+var value = &quot;&quot;
+
+// 执行下面的则有问题
+console.log(typeof value)
+const value = &quot;&quot;
+
+// 执行下面的则有问题
+console.log(typeof value)
+let value = &quot;&quot;
+
+// 这样就没问题了
+console.log(typeof value)  // &quot;undefined&quot;
+if (true) {
+    let value = &quot;&quot; // value 仅在 if 内有效。
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;函数新特性&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;箭头函数
+&lt;ul&gt;
+&lt;li&gt;没有&lt;code&gt;this&lt;/code&gt;, &lt;code&gt;super&lt;/code&gt;, &lt;code&gt;arguments&lt;/code&gt;, &lt;code&gt;new.target&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;This指针不能被修改，this为创建箭头函数时的上下文中的this&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;默认参数&lt;code&gt;function f(a = 1) { ... }&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;剩余参数(可变参数、不定长参数）&lt;code&gt;function f(...args) { ... }&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;函数调用时扩展运算符&lt;code&gt;fn(...arr)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;异步函数&lt;code&gt;async function f() { ... }&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Generator 函数 (支持异步)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;function* countSync() {
+  yield 1;
+  yield 2;
+  yield 3;
+}
+
+// 使用 for...of（同步）
+for (const n of countSync()) {
+  console.log(n); // 1, 2, 3（立即输出）
+}
+
+async function* countAsync() {
+  await delay(100);
+  yield 1;
+  await delay(100);
+  yield 2;
+}
+
+// 必须用 for await...of（在 async 函数中）
+(async () =&amp;gt; {
+  for await (const n of countAsync()) {
+    console.log(n); // 每隔 100ms 输出 1, 2
+  }
+})();
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;async/await/Promise&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>Antd-ext Select 组件的来源与创建历程</title><link>https://fuwari.vercel.app/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
+&lt;p&gt;在实际项目中，我们几乎所有页面都会用到 &lt;code&gt;Select&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;简单场景下，它只是一个 key/value 下拉框；&lt;/li&gt;
+&lt;li&gt;复杂场景下，它需要承载 &lt;strong&gt;业务数据结构&lt;/strong&gt;、&lt;strong&gt;自定义标签展示&lt;/strong&gt;、&lt;strong&gt;下拉内容扩展&lt;/strong&gt; 等能力。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在这些复杂场景里，直接使用 Ant Design 自带的 &lt;code&gt;Select&lt;/code&gt;，会遇到几个典型问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;类型不够友好&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;多数时候我们写的是 &lt;code&gt;Select&amp;lt;string&amp;gt;&lt;/code&gt;，但真正的数据结构远不止一个字符串；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;onChange&lt;/code&gt; 回调里的 &lt;code&gt;option&lt;/code&gt; 类型要么是 &lt;code&gt;any&lt;/code&gt;，要么需要手动补充复杂的泛型。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;业务数据难以跟随 option 走&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;真实场景里，一个 option 往往需要附带额外的业务数据（如 &lt;code&gt;id&lt;/code&gt;、&lt;code&gt;name&lt;/code&gt;、&lt;code&gt;category&lt;/code&gt; 等）；&lt;/li&gt;
+&lt;li&gt;开发者常常在 &lt;code&gt;options&lt;/code&gt; 外再维护一份 Map，自行做映射和查找。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;自定义标签渲染不够顺手&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;比如在选中项里展示一个 &lt;code&gt;Tag&lt;/code&gt;、或者附加其他字段，需要和 &lt;code&gt;labelInValue&lt;/code&gt;、&lt;code&gt;tagRender&lt;/code&gt; 等组合使用，心智成本较高。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;下拉内容扩展的能力分散&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;想在下拉面板底部加一个“新建选项”的区域，需要结合 &lt;code&gt;dropdownRender&lt;/code&gt;、&lt;code&gt;open&lt;/code&gt;、&lt;code&gt;onDropdownVisibleChange&lt;/code&gt; 等多个 API，一旦处理不好就会出现“点外面关不掉”的体验问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为了解决这些在业务里高频出现、却在原生 &lt;code&gt;Select&lt;/code&gt; 中需要大量样板代码才能覆盖的场景，我们在 antd-ext 中设计了一个增强版选择器：&lt;strong&gt;EnhancedSelect&lt;/strong&gt;。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;2. 设计目标&lt;/h2&gt;
+&lt;p&gt;EnhancedSelect 的目标很明确：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;在 API 形态上尽量保持与 Ant Design Select 一致&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在类型与扩展能力上，覆盖一线业务开发中最常见的痛点&lt;/strong&gt;；&lt;/li&gt;
+&lt;li&gt;让大部分场景下，开发者只需要引入 EnhancedSelect，就可以在“几乎不改写代码”的前提下获得：
+&lt;ul&gt;
+&lt;li&gt;更强的 TypeScript 类型推导；&lt;/li&gt;
+&lt;li&gt;更好用的标签渲染能力；&lt;/li&gt;
+&lt;li&gt;更自然的下拉扩展体验；&lt;/li&gt;
+&lt;li&gt;更合理的 options 管理与去重机制；&lt;/li&gt;
+&lt;li&gt;对多选场景下 tag 展示的更好控制。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此，我们在设计上遵循了两条原则：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;不破坏原有 Select 的心智模型&lt;/strong&gt;：&lt;code&gt;options&lt;/code&gt; 仍然是数组，&lt;code&gt;onChange&lt;/code&gt; 仍然是“值 + 选项”；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;尽量通过类型与轻量封装来解决问题&lt;/strong&gt;，避免再堆出一个“巨大新组件”。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h2&gt;3. 类型设计：用泛型约束值与选项&lt;/h2&gt;
+&lt;p&gt;EnhancedSelect 最核心的差异其实体现在类型层面。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;export type Val = string | number | boolean;
+export type Model = undefined | &apos;multiple&apos; | &apos;tags&apos;;
+export type ComputeValByModel&amp;lt;Model, V&amp;gt; = Model extends undefined ? V : V[];
+
+export interface OptionType&amp;lt;Value extends Val, Data = unknown&amp;gt; extends ValueType&amp;lt;Value&amp;gt; {
+  data: Data;
+}
+
+interface ValueType&amp;lt;Value extends Val&amp;gt; {
+  key?: React.Key;
+  label: React.ReactNode;
+  value: Value;
+}
+
+export type ComputeOptionType&amp;lt;Value extends Val, Data&amp;gt; = Data extends undefined
+  ? ValueType&amp;lt;Value&amp;gt;
+  : OptionType&amp;lt;Value, Data&amp;gt;;
+
+export interface EnhancedSelectProps&amp;lt;V extends Val, D = undefined, M extends Model = undefined&amp;gt;
+  extends Omit&amp;lt;
+    SelectProps&amp;lt;ComputeValByModel&amp;lt;M, V&amp;gt;, ComputeOptionType&amp;lt;V, D&amp;gt;&amp;gt;,
+    | &apos;labelRender&apos;
+    | &apos;labelInValue&apos;
+    | &apos;onChange&apos;
+    | &apos;dropdownRender&apos;
+    | &apos;onDropdownVisibleChange&apos;
+    | &apos;popupRender&apos;
+    | &apos;classNames&apos;
+    | &apos;styles&apos;
+    | &apos;maxTagCount&apos;
+  &amp;gt; {
+  onChange?: (value: ComputeValByModel&amp;lt;M, V&amp;gt;, option?: ComputeValByModel&amp;lt;M, ComputeOptionType&amp;lt;V, D&amp;gt;&amp;gt;) =&amp;gt; void;
+  mode?: M;
+  labelRender?: (props: OptionType&amp;lt;Val, D | undefined&amp;gt;) =&amp;gt; React.ReactNode;
+  popupRender?: (menu: React.ReactElement, opt: { close: VoidFunction }) =&amp;gt; React.ReactElement;
+  classNames?: SelectProps[&apos;classNames&apos;] &amp;amp; { popupProxy?: string };
+  styles?: SelectProps[&apos;styles&apos;] &amp;amp; { popupProxy?: React.CSSProperties };
+  maxTagCount?: SelectProps[&apos;maxTagCount&apos;] | &apos;scroll&apos;;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;几个关键点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;值类型 &lt;code&gt;V&lt;/code&gt;&lt;/strong&gt;：被限制为 &lt;code&gt;string | number | boolean&lt;/code&gt;，与原生 &lt;code&gt;Select&lt;/code&gt; 保持一致；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;模式 &lt;code&gt;M&lt;/code&gt;&lt;/strong&gt;：根据 &lt;code&gt;mode&lt;/code&gt;（单选 / 多选 / tags），自动推导 &lt;code&gt;value&lt;/code&gt; 是 &lt;code&gt;V&lt;/code&gt; 还是 &lt;code&gt;V[]&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;数据类型 &lt;code&gt;D&lt;/code&gt;&lt;/strong&gt;：通过 &lt;code&gt;OptionType&amp;lt;V, D&amp;gt;&lt;/code&gt; 把业务数据挂在 &lt;code&gt;data&lt;/code&gt; 字段上；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;options 类型&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;当 &lt;code&gt;D&lt;/code&gt; 是 &lt;code&gt;undefined&lt;/code&gt; 时，&lt;code&gt;options&lt;/code&gt; 的元素就是简单的 &lt;code&gt;ValueType&amp;lt;V&amp;gt;&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;当 &lt;code&gt;D&lt;/code&gt; 有实际类型时，&lt;code&gt;options&lt;/code&gt; 的元素就是带 &lt;code&gt;data&lt;/code&gt; 的业务对象。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onChange 类型&lt;/strong&gt;：
+&lt;ul&gt;
+&lt;li&gt;单选时 &lt;code&gt;value&lt;/code&gt; 是 &lt;code&gt;V&lt;/code&gt;，&lt;code&gt;option&lt;/code&gt; 是 &lt;code&gt;OptionType&amp;lt;V, D&amp;gt;&lt;/code&gt;；&lt;/li&gt;
+&lt;li&gt;多选时 &lt;code&gt;value&lt;/code&gt; 是 &lt;code&gt;V[]&lt;/code&gt;，&lt;code&gt;option&lt;/code&gt; 是 &lt;code&gt;OptionType&amp;lt;V, D&amp;gt;[]&lt;/code&gt;；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;从使用者的视角来看，只要在引入时声明好 &lt;code&gt;V&lt;/code&gt; 和 &lt;code&gt;D&lt;/code&gt;，之后的 &lt;code&gt;options&lt;/code&gt; / &lt;code&gt;onChange&lt;/code&gt; / &lt;code&gt;labelRender&lt;/code&gt; 等都能获得完整的类型提示，无需手写任何复杂泛型。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;4. 选项管理与 labelRender：让业务数据自然跟随选项&lt;/h2&gt;
+&lt;p&gt;在标准 &lt;code&gt;Select&lt;/code&gt; 里，如果你想在选中项上展示额外信息（比如给每个选项显示一个 &lt;code&gt;category&lt;/code&gt; 标签），通常有两种写法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;label&lt;/code&gt; 里直接拼接展示逻辑（但这样选中项也只能显示这段 label）；&lt;/li&gt;
+&lt;li&gt;结合 &lt;code&gt;labelInValue&lt;/code&gt;、&lt;code&gt;tagRender&lt;/code&gt; 等 API，自行维护一个“值到业务数据”的 Map。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;EnhancedSelect 希望解决的是：&lt;strong&gt;既保留“干净的 label 文案”，又能在选中项里拿到完整数据结构&lt;/strong&gt;。&lt;/p&gt;
+&lt;h3&gt;4.1 allOptionsRef：统一管理 options 与 data&lt;/h3&gt;
+&lt;p&gt;内部实现里，我们用一个 &lt;code&gt;allOptionsRef&lt;/code&gt; 把“所有出现过的 options”统一存起来，并用 &lt;code&gt;unionBy&lt;/code&gt; 按 &lt;code&gt;value&lt;/code&gt; 去重：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const allOptionsRef = useRef&amp;lt;ComputeOptionType&amp;lt;V, D&amp;gt;[]&amp;gt;([]);
+if (options?.length) {
+  allOptionsRef.current = unionBy(allOptionsRef.current.concat(options), (v) =&amp;gt; v.value);
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这样做有两个目的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;合并与去重&lt;/strong&gt;：支持 options 变化的场景（比如分页加载选项），但始终能拿到完整的 options 数据；&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;为 labelRender 提供 data 数据源&lt;/strong&gt;：即使当前渲染的 label 只给了 &lt;code&gt;value&lt;/code&gt; 和 &lt;code&gt;label&lt;/code&gt;，我们也能从 &lt;code&gt;allOptionsRef&lt;/code&gt; 里把 &lt;code&gt;data&lt;/code&gt; 补全回来。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;4.2 realLabelRender：自动补齐 data 的标签渲染&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const realLabelRender = useMemo&amp;lt;SelectProps[&apos;labelRender&apos;]&amp;gt;(() =&amp;gt; {
+  if (!labelRender) {
+    return;
+  }
+  return (opt) =&amp;gt; {
+    const option = allOptionsRef.current.find((v) =&amp;gt; v.value === opt.value) as OptionType&amp;lt;Val, D&amp;gt;;
+    return labelRender?.({ ...opt, data: option?.data });
+  };
+}, [labelRender]);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;EnhancedSelect 对外暴露的 &lt;code&gt;labelRender&lt;/code&gt; 类型是：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(props: OptionType&amp;lt;Val, D | undefined&amp;gt;) =&amp;gt; React.ReactNode
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;也就是说，业务侧拿到的是“带 data 的完整 Option 对象”。&lt;/p&gt;
+&lt;p&gt;典型使用示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const options = [
+  { label: &apos;选项1&apos;, value: &apos;1&apos;, data: { id: 1, name: &apos;选项1&apos;, category: &apos;A&apos; } },
+  // ...
+];
+
+const labelRender: EnhancedSelectProps&amp;lt;string, typeof options[number][&apos;data&apos;]&amp;gt;[&apos;labelRender&apos;] = (option) =&amp;gt; {
+  return (
+    &amp;lt;span&amp;gt;
+      {option.label}
+      &amp;lt;Tag color=&quot;blue&quot; style={{ marginLeft: 4 }}&amp;gt;
+        {option.data?.category}
+      &amp;lt;/Tag&amp;gt;
+    &amp;lt;/span&amp;gt;
+  );
+};
+
+&amp;lt;EnhancedSelect
+  mode=&quot;multiple&quot;
+  placeholder=&quot;请选择&quot;
+  options={options}
+  value={value}
+  onChange={setValue}
+  labelRender={labelRender}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这让“在标签上展示数据”的需求变得非常自然，无需再单独维护一份 &lt;code&gt;Map&amp;lt;value, data&amp;gt;&lt;/code&gt;。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;5. 搜索行为：默认对 label 做匹配&lt;/h2&gt;
+&lt;p&gt;原生 &lt;code&gt;Select&lt;/code&gt; 在开启 &lt;code&gt;showSearch&lt;/code&gt; 时，默认是通过 &lt;code&gt;optionFilterProp&lt;/code&gt; 来指定过滤依据。业务里绝大部分情况下，我们是按 &lt;code&gt;label&lt;/code&gt; 搜索的。&lt;/p&gt;
+&lt;p&gt;为避免在每个使用处都重复配置，EnhancedSelect 在内部对 &lt;code&gt;showSearch&lt;/code&gt; 做了一层包装：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const realShowSearch = useMemo(() =&amp;gt; {
+  if (showSearch === false || isNil(showSearch)) {
+    return false;
+  }
+  if (showSearch === true) {
+    return { optionFilterProp: &apos;label&apos; };
+  }
+  return {
+    optionFilterProp: &apos;label&apos;,
+    ...showSearch,
+  };
+}, [showSearch]);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;当 &lt;code&gt;showSearch&lt;/code&gt; 未配置或为 &lt;code&gt;false&lt;/code&gt; 时：关闭搜索；&lt;/li&gt;
+&lt;li&gt;当 &lt;code&gt;showSearch&lt;/code&gt; 为 &lt;code&gt;true&lt;/code&gt; 时：开启搜索，并默认按 &lt;code&gt;label&lt;/code&gt; 过滤；&lt;/li&gt;
+&lt;li&gt;当传入对象时：自动补齐 &lt;code&gt;optionFilterProp: &apos;label&apos;&lt;/code&gt;，同时允许自定义其他搜索行为。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这是一种典型的“带默认值的增强”：不改变原有 API，但减少业务层的重复配置。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;6. popupRender：安全地扩展下拉内容&lt;/h2&gt;
+&lt;p&gt;许多产品场景需要“在下拉里直接新建选项”，比如：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在城市选择器底部增加“新增地址”按钮；&lt;/li&gt;
+&lt;li&gt;在标签选择器里直接创建新的标签。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;原生 &lt;code&gt;Select&lt;/code&gt; 可以通过 &lt;code&gt;dropdownRender&lt;/code&gt; / &lt;code&gt;popupRender&lt;/code&gt; 实现类似能力，但往往需要业务侧自己管理 &lt;code&gt;open&lt;/code&gt; 状态、点击外部关闭等逻辑，一不小心就会出现“下拉关不上”的问题。&lt;/p&gt;
+&lt;p&gt;尤其是在 &lt;strong&gt;Ant Design 6&lt;/strong&gt; 中，下拉的事件处理相比 v5 更加“严格、正确”：对于 &lt;code&gt;blur&lt;/code&gt;、点击外部等场景的收起逻辑收紧后，如果开发者在下拉面板中自由扩展内容，很容易出现和社区问题 &lt;a href=&quot;https://github.com/ant-design/ant-design/issues/56033&quot;&gt;#56033&lt;/a&gt; 类似的情况——点击扩展区域也会意外触发下拉收起，或者行为前后版本不一致。EnhancedSelect 在这里做了一层统一封装，屏蔽掉底层版本差异，让你可以用更直观的 &lt;code&gt;popupRender&lt;/code&gt; 形态来描述“下拉 + 扩展区域”，而不用反复调试各种事件细节。&lt;/p&gt;
+&lt;p&gt;EnhancedSelect 在这块做了三件事：&lt;/p&gt;
+&lt;h3&gt;6.1 内部接管 open 状态&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const openIsControlled = open !== undefined;
+const [internalOpen, setInternalOpen] = useState(defaultOpen);
+const realOpen = openIsControlled ? open : internalOpen;
+
+const changeOpen = useCallback(
+  (v: boolean) =&amp;gt; {
+    if (!openIsControlled) {
+      setInternalOpen(v);
+    }
+    onOpenChange?.(v);
+  },
+  [onOpenChange, openIsControlled],
+);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;当业务侧传入 &lt;code&gt;open&lt;/code&gt; 时，EnhancedSelect 按受控模式工作；&lt;/li&gt;
+&lt;li&gt;当仅使用 &lt;code&gt;popupRender&lt;/code&gt; 而不显式控制 &lt;code&gt;open&lt;/code&gt; 时，组件内部自己管理打开/关闭状态，并同步通知外部的 &lt;code&gt;onOpenChange&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;6.2 useClickAway：点击下拉外部自动关闭&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const popupProxyDivRef = useRef&amp;lt;HTMLDivElement&amp;gt;(null);
+useClickAway(
+  () =&amp;gt; changeOpen(false),
+  [
+    () =&amp;gt; {
+      if (!popupRender) {
+        return null;
+      }
+      return selectRef.current?.nativeElement;
+    },
+    () =&amp;gt; {
+      if (!popupRender) {
+        return null;
+      }
+      return popupProxyDivRef.current!;
+    },
+  ],
+);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这段逻辑的含义是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当使用了 &lt;code&gt;popupRender&lt;/code&gt; 时，我们把“点击外部”的范围定义为：
+&lt;ul&gt;
+&lt;li&gt;原始 Select 的下拉区域；&lt;/li&gt;
+&lt;li&gt;我们包裹 &lt;code&gt;popupRender&lt;/code&gt; 的代理容器 &lt;code&gt;popupProxyDivRef&lt;/code&gt;；&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;只要点击发生在这两个区域之外，就自动执行 &lt;code&gt;changeOpen(false)&lt;/code&gt; 关闭下拉。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这样，业务在 &lt;code&gt;popupRender&lt;/code&gt; 中随意添加输入框、按钮、说明文字，都不会破坏“点击外部关闭”的基础体验。&lt;/p&gt;
+&lt;p&gt;从实现原理上看，&lt;code&gt;useClickAway&lt;/code&gt;（详见 &lt;a href=&quot;https://ahooks.js.org/hooks/use-click-away/&quot;&gt;useClickAway 文档&lt;/a&gt;）做的事情其实很“朴素”：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 &lt;code&gt;useEffect&lt;/code&gt; 中通过 &lt;code&gt;document.addEventListener&lt;/code&gt; 绑定全局事件监听（默认是 &lt;code&gt;mousedown&lt;/code&gt; 和 &lt;code&gt;touchstart&lt;/code&gt;，也可以自定义）；&lt;/li&gt;
+&lt;li&gt;每次事件触发时，拿到 &lt;code&gt;event.target&lt;/code&gt;，然后遍历传入的目标节点（可以是 &lt;code&gt;ref.current&lt;/code&gt; 或返回 DOM 的函数），用 &lt;code&gt;node &amp;amp;&amp;amp; node.contains(event.target as Node)&lt;/code&gt; 来判断“这次点击是否发生在任一目标内部”；&lt;/li&gt;
+&lt;li&gt;如果所有目标节点都不存在，或者都不包含当前事件目标，就认为这是一场“点击外部”的行为，调用开发者提供的回调函数；&lt;/li&gt;
+&lt;li&gt;在组件卸载或依赖变更时，再用 &lt;code&gt;document.removeEventListener&lt;/code&gt; 解除监听，避免内存泄漏或重复绑定。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;换句话说，&lt;code&gt;useClickAway&lt;/code&gt; 就是基于浏览器最基础的 &lt;strong&gt;全局事件监听 + &lt;code&gt;Node.contains&lt;/code&gt; 判断&lt;/strong&gt; 搭了一层轻量 Hook，既兼容了多节点场景，又帮我们把注册/清理这些 &lt;code&gt;document&lt;/code&gt; 级别事件的细节封装了起来。&lt;/p&gt;
+&lt;h3&gt;6.3 proxyPopupRender：为业务侧提供 close 能力&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const proxyPopupRender = useCallback&amp;lt;Exclude&amp;lt;SelectProps[&apos;popupRender&apos;], undefined&amp;gt;&amp;gt;(
+  (nodes) =&amp;gt; (
+    &amp;lt;div ref={popupProxyDivRef} className={cns?.popupProxy} style={styles?.popupProxy}&amp;gt;
+      {popupRender!(nodes, { close: changeOpen.bind(null, false) })}
+    &amp;lt;/div&amp;gt;
+  ),
+  [popupRender, cns?.popupProxy, styles?.popupProxy, changeOpen],
+);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;EnhancedSelect 对业务暴露的 &lt;code&gt;popupRender&lt;/code&gt; 形态略有增强：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(menu: React.ReactElement, opt: { close: VoidFunction }) =&amp;gt; React.ReactElement
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这意味着业务可以非常自然地在内部调用 &lt;code&gt;close()&lt;/code&gt; 来关闭下拉，例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;EnhancedSelect
+  options={options}
+  popupRender={(menu, { close }) =&amp;gt; (
+    &amp;lt;&amp;gt;
+      &amp;lt;div onClick={close}&amp;gt;{menu}&amp;lt;/div&amp;gt;
+      &amp;lt;Divider style={{ margin: &apos;4px 0&apos; }} /&amp;gt;
+      &amp;lt;Space&amp;gt;
+        &amp;lt;Input
+          placeholder=&quot;输入新选项&quot;
+          value={newOption}
+          onChange={(e) =&amp;gt; setNewOption(e.target.value)}
+          onPressEnter={handleAddOption}
+        /&amp;gt;
+        &amp;lt;Button type=&quot;primary&quot; onClick={handleAddOption}&amp;gt;
+          添加
+        &amp;lt;/Button&amp;gt;
+      &amp;lt;/Space&amp;gt;
+    &amp;lt;/&amp;gt;
+  )}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这一模式在实际业务里非常常见：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;下拉展开 → 输入新内容 → 点击“保存并选中” → 自动关闭下拉 → 更新选中值。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;EnhancedSelect 把“关闭逻辑”的实现细节都包在内部，业务只需关心什么时候调用 &lt;code&gt;close()&lt;/code&gt; 即可。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;7. maxTagCount 与已选项展示策略&lt;/h2&gt;
+&lt;p&gt;多选场景下，标签展示一直是一个 UX 难点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;选项一多，就会把输入框撑得很高；&lt;/li&gt;
+&lt;li&gt;即便用了 &lt;code&gt;maxTagCount&lt;/code&gt;，还需要考虑“滚动 vs 响应式 vs 省略号”。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;EnhancedSelect 对 &lt;code&gt;maxTagCount&lt;/code&gt; 做了一个轻量级扩展：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;maxTagCount?: SelectProps[&apos;maxTagCount&apos;] | &apos;scroll&apos;;
+
+&amp;lt;Select
+  {...}
+  maxTagCount={maxTagCount === &apos;scroll&apos; ? undefined : maxTagCount}
+  className={classNames(prefixCls, hashId, cssVarCls, { scroll: maxTagCount === &apos;scroll&apos; }, props.className)}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;当 &lt;code&gt;maxTagCount&lt;/code&gt; 为数字（如 &lt;code&gt;3&lt;/code&gt;）或 &lt;code&gt;&apos;responsive&apos;&lt;/code&gt; 时，行为与原生 Select 完全一致；&lt;/li&gt;
+&lt;li&gt;当 &lt;code&gt;maxTagCount&lt;/code&gt; 为 &lt;code&gt;&apos;scroll&apos;&lt;/code&gt; 时：
+&lt;ul&gt;
+&lt;li&gt;EnhancedSelect 不再把这个值传给底层 Select，而是仅通过类名 &lt;code&gt;scroll&lt;/code&gt; 控制样式；&lt;/li&gt;
+&lt;li&gt;你可以在外层通过 CSS 限制高度，超出的标签走滚动条。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;配合 demo 中的写法：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;EnhancedSelect
+  mode=&quot;multiple&quot;
+  maxTagCount=&quot;scroll&quot;
+  options={options}
+  value={value}
+  onChange={setValue}
+  style={{ width: &apos;100%&apos;, maxHeight: 120 }}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;可以非常直观地对比：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;maxTagCount=&quot;responsive&quot;&lt;/code&gt;：根据宽度自动调整展示数量，超出部分显示省略号；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;maxTagCount=&quot;scroll&quot;&lt;/code&gt;：限制整体高度，通过滚动展示全部标签；&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;maxTagCount={3}&lt;/code&gt;：只展示固定数量标签，超出部分显示 &lt;code&gt;+N&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h2&gt;8. 使用示例&lt;/h2&gt;
+&lt;h3&gt;8.1 自定义标签 + 业务数据&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;import React, { useState } from &apos;react&apos;;
+import { EnhancedSelect, EnhancedSelectProps } from &apos;@byte.n/antd-ext&apos;;
+import { Tag } from &apos;antd&apos;;
+
+const options = [
+  { label: &apos;选项1&apos;, value: &apos;1&apos;, data: { id: 1, name: &apos;选项1&apos;, category: &apos;A&apos; } },
+  { label: &apos;选项2&apos;, value: &apos;2&apos;, data: { id: 2, name: &apos;选项2&apos;, category: &apos;B&apos; } },
+  // ...
+];
+
+const CustomLabelDemo: React.FC = () =&amp;gt; {
+  const [value, setValue] = useState&amp;lt;string[]&amp;gt;([]);
+
+  const labelRender: EnhancedSelectProps&amp;lt;
+    string,
+    (typeof options)[number][&apos;data&apos;]
+  &amp;gt;[&apos;labelRender&apos;] = (option) =&amp;gt; (
+    &amp;lt;span&amp;gt;
+      {option.label}
+      &amp;lt;Tag color=&quot;blue&quot; style={{ marginLeft: 4 }}&amp;gt;
+        {option.data?.category}
+      &amp;lt;/Tag&amp;gt;
+    &amp;lt;/span&amp;gt;
+  );
+
+  return (
+    &amp;lt;EnhancedSelect
+      mode=&quot;multiple&quot;
+      placeholder=&quot;请选择&quot;
+      options={options}
+      value={value}
+      onChange={setValue}
+      labelRender={labelRender}
+      style={{ width: 300 }}
+    /&amp;gt;
+  );
+};
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;8.2 在下拉中扩展“新建选项”区域&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;import { EnhancedSelect } from &apos;@byte.n/antd-ext&apos;;
+import { Button, Divider, Input, Space } from &apos;antd&apos;;
+import React, { useState } from &apos;react&apos;;
+
+export default function PopupRenderDemo() {
+  const [options, setOptions] = useState([
+    { label: &apos;选项1&apos;, value: &apos;1&apos; },
+    { label: &apos;选项2&apos;, value: &apos;2&apos; },
+    { label: &apos;选项3&apos;, value: &apos;3&apos; },
+  ]);
+
+  const [newOption, setNewOption] = useState(&apos;&apos;);
+
+  const handleAddOption = () =&amp;gt; {
+    if (newOption.trim()) {
+      const value = `option-${Date.now()}`;
+      setOptions([...options, { label: newOption, value }]);
+      setNewOption(&apos;&apos;);
+    }
+  };
+
+  return (
+    &amp;lt;EnhancedSelect
+      style={{ width: 240 }}
+      options={options}
+      placeholder=&quot;请选择&quot;
+      popupRender={(menu, { close }) =&amp;gt; (
+        &amp;lt;&amp;gt;
+          &amp;lt;div onClick={close}&amp;gt;{menu}&amp;lt;/div&amp;gt;
+          &amp;lt;Divider style={{ margin: &apos;4px 0&apos; }} /&amp;gt;
+          &amp;lt;Space&amp;gt;
+            &amp;lt;Input
+              placeholder=&quot;输入新选项&quot;
+              value={newOption}
+              onChange={(e) =&amp;gt; setNewOption(e.target.value)}
+              onPressEnter={handleAddOption}
+            /&amp;gt;
+            &amp;lt;Button type=&quot;primary&quot; onClick={handleAddOption}&amp;gt;
+              添加
+            &amp;lt;/Button&amp;gt;
+          &amp;lt;/Space&amp;gt;
+        &amp;lt;/&amp;gt;
+      )}
+    /&amp;gt;
+  );
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;8.3 多选 + 标签展示策略对比&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;import React, { useState } from &apos;react&apos;;
+import { Space, Card, Typography } from &apos;antd&apos;;
+import { EnhancedSelect } from &apos;@byte.n/antd-ext&apos;;
+
+const { Title, Text } = Typography;
+
+const options = Array.from({ length: 100 }, (_, index) =&amp;gt; ({
+  label: `选项${index + 1}`,
+  value: `${index + 1}`,
+}));
+
+const ResponsiveDemo: React.FC = () =&amp;gt; {
+  const [value, setValue] = useState&amp;lt;string[]&amp;gt;(Array.from({ length: 50 }, (_, index) =&amp;gt; `${index + 1}`));
+
+  return (
+    &amp;lt;Space direction=&quot;vertical&quot; size=&quot;large&quot; style={{ width: &apos;100%&apos; }}&amp;gt;
+      &amp;lt;Title level={4}&amp;gt;maxTagCount 不同取值效果对比&amp;lt;/Title&amp;gt;
+
+      &amp;lt;Card title=&quot;maxTagCount=&apos;responsive&apos;&quot; size=&quot;small&quot;&amp;gt;
+        &amp;lt;EnhancedSelect
+          mode=&quot;multiple&quot;
+          placeholder=&quot;请选择多个选项&quot;
+          options={options}
+          value={value}
+          onChange={setValue}
+          maxTagCount=&quot;responsive&quot;
+          style={{ width: &apos;100%&apos; }}
+        /&amp;gt;
+      &amp;lt;/Card&amp;gt;
+
+      &amp;lt;Card title=&quot;maxTagCount=&apos;scroll&apos; + 限制高度&quot; size=&quot;small&quot;&amp;gt;
+        &amp;lt;EnhancedSelect
+          mode=&quot;multiple&quot;
+          maxTagCount=&quot;scroll&quot;
+          placeholder=&quot;请选择多个选项&quot;
+          options={options}
+          value={value}
+          onChange={setValue}
+          style={{ width: &apos;100%&apos;, maxHeight: 120 }}
+        /&amp;gt;
+        &amp;lt;div style={{ marginTop: 8 }}&amp;gt;
+          &amp;lt;Text type=&quot;secondary&quot;&amp;gt;选中: {value.length} 项&amp;lt;/Text&amp;gt;
+        &amp;lt;/div&amp;gt;
+      &amp;lt;/Card&amp;gt;
+    &amp;lt;/Space&amp;gt;
+  );
+};
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;9. 总结与实践建议&lt;/h2&gt;
+&lt;p&gt;EnhancedSelect 的核心理念是：&lt;strong&gt;在不改变 Select 使用习惯的前提下，把复杂场景里最常见的痛点都“顺便”解决掉&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过类型系统，让 &lt;code&gt;value&lt;/code&gt;、&lt;code&gt;options&lt;/code&gt;、&lt;code&gt;onChange&lt;/code&gt; 在单选/多选/标签模式下都拥有准确的类型推导；&lt;/li&gt;
+&lt;li&gt;通过 &lt;code&gt;OptionType&lt;/code&gt; 与 &lt;code&gt;labelRender&lt;/code&gt;，让业务数据自然跟随选项流转，不再需要额外维护映射表；&lt;/li&gt;
+&lt;li&gt;通过 &lt;code&gt;popupRender&lt;/code&gt; + 内部 open 管理 + &lt;code&gt;useClickAway&lt;/code&gt;，提供了“好用且安全”的下拉扩展能力；&lt;/li&gt;
+&lt;li&gt;通过 &lt;code&gt;maxTagCount&lt;/code&gt; 的小扩展，覆盖了高密度多选场景下标签展示的常见需求。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;建议的使用姿势：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在需要自定义标签、携带业务数据、复杂下拉扩展时，优先考虑使用 EnhancedSelect 替代原生 Select；&lt;/li&gt;
+&lt;li&gt;结合 TypeScript 的泛型参数（&lt;code&gt;V&lt;/code&gt;/&lt;code&gt;D&lt;/code&gt;/&lt;code&gt;M&lt;/code&gt;），在定义组件时就把值类型与业务数据结构声明清楚，可以显著减少后续 bug；&lt;/li&gt;
+&lt;li&gt;下拉扩展时，尽量把“新增/编辑”操作放在 &lt;code&gt;popupRender&lt;/code&gt; 中完成，并在操作结束后调用 &lt;code&gt;close()&lt;/code&gt;，保持交互的一致性。&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>微信小程序maxLength在IOS拼音输入法下异常</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</guid><pubDate>Sat, 08 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;使用自定义的高阶函数在onInput会调中手动限制长度&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import {BaseEventOrig, CommonEventFunction} from &quot;@tarojs/components/types/common&quot;;
+import {InputProps} from &quot;@tarojs/components&quot;;
+
+export const onInputMaxLength = (
+  maxLength: number,
+  onInput?: CommonEventFunction&amp;lt;InputProps.inputEventDetail&amp;gt;
+) =&amp;gt; {
+
+  return (e: BaseEventOrig&amp;lt;InputProps.inputEventDetail&amp;gt;) =&amp;gt; {
+    e.detail.value = String(e.detail.value).substring(0, maxLength);
+    onInput?.(e)
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>Taro-微信小程序自定义状态栏适配</title><link>https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</guid><pubDate>Fri, 07 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;navBarHeight&lt;/code&gt;使用的是&lt;code&gt;statusBarHeight || 44&lt;/code&gt; 像素，在安卓的部分机型上，与小程序菜单按钮上下间距不一致或与菜单按钮重叠。在IOS上则一切正常。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;动态计算合适的 navBar高度&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src=&quot;img_1.png&quot; alt=&quot;img_1.png&quot; /&gt;&lt;/p&gt;
+&lt;h2&gt;代码&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;import Taro from &apos;@tarojs/taro&apos;
+import { useMemo } from &apos;react&apos;
+
+export default function useSystemInfo() {
+  const menuInfo = Taro.getMenuButtonBoundingClientRect()
+  const { systemInfo, navBarHeight, safeHeight, bottomSafeHeight, statusBarHeight, windowInfo } = useMemo(() =&amp;gt; {
+    // 获取的数值单位是px
+    const windowInfo = wx.getWindowInfo(); // 用
+    const menuButtonInfo = wx.getMenuButtonBoundingClientRect();
+    let statusBarHeight = windowInfo.statusBarHeight;
+    let navBarHeight = menuButtonInfo.height + (menuButtonInfo.top - statusBarHeight) * 2;
+    let safeHeight = windowInfo.safeArea.height;
+    let bottomSafeHeight = windowInfo.screenHeight - windowInfo.safeArea.height - statusBarHeight;
+
+    return {
+      navBarHeight, safeHeight, bottomSafeHeight,
+      statusBarHeight,
+      systemInfo: Taro.getSystemInfoSync(), windowInfo
+    }
+  }, [])
+
+  return {
+    menuInfo,
+    systemInfo, windowInfo,
+    navBarHeight, safeHeight, bottomSafeHeight, statusBarHeight
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;使用&lt;/h2&gt;
+&lt;p&gt;组件&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import useSystemInfo from &apos;@/modules/common/hooks/useSystemInfo&apos;
+import { View } from &apos;@tarojs/components&apos;
+import Taro from &apos;@tarojs/taro&apos;
+import classNames from &apos;classnames&apos;
+import { ReactNode, useEffect, useState } from &apos;react&apos;
+import &apos;./index.scss&apos;
+
+export interface NavBarProps {
+  title?: ReactNode
+  left?: ReactNode
+  onBackClick?: () =&amp;gt; void
+  fixed?: boolean
+  placeholder?: boolean
+  background?: string
+}
+
+export default function NavBar({
+  background = &apos;#fff&apos;,
+  title,
+  fixed = true,
+  placeholder = true,
+  left = &amp;lt;View className=&quot;sonic-icon sonic-icon-right-arrow&quot;&amp;gt;&amp;lt;/View&amp;gt;,
+  onBackClick = () =&amp;gt; {
+    Taro.navigateBack()
+  },
+}: NavBarProps) {
+  const { navBarHeight, statusBarHeight } = useSystemInfo()
+  const [useBackground, setUseBackground] = useState(false)
+  useEffect(() =&amp;gt; {
+    if (!fixed || !placeholder || Number.isNaN(navBarHeight)) {
+      return
+    }
+    const observe = Taro.createIntersectionObserver(this, {
+      thresholds: [0],
+      observeAll: false,
+    })
+    observe
+      .relativeToViewport({
+        top: 0,
+      })
+      .observe(&apos;.observe-view&apos;, (res) =&amp;gt; {
+        setUseBackground(res.intersectionRatio &amp;lt; 1)
+      })
+    return () =&amp;gt; {
+      observe.disconnect()
+    }
+  }, [fixed, placeholder, navBarHeight])
+  return (
+    &amp;lt;&amp;gt;
+      &amp;lt;View
+        style={{
+          backgroundColor: background
+            ? background
+            : useBackground
+              ? background
+              : &apos;transparent&apos;,
+        }}
+        className={classNames(&apos;nav-bar-container&apos;, {
+          &apos;fixed-top&apos;: fixed,
+        })}
+      &amp;gt;
+        &amp;lt;View style={{ height: statusBarHeight }}&amp;gt;&amp;lt;/View&amp;gt;
+        &amp;lt;View
+          className=&quot;nav-bar flex items-center cff fz36&quot;
+          style={{
+            height: (navBarHeight),
+          }}
+        &amp;gt;
+          {left &amp;amp;&amp;amp; (
+            &amp;lt;View onClick={onBackClick} className=&quot;nav-bar-back px-25 py-20&quot;&amp;gt;
+              {left}
+            &amp;lt;/View&amp;gt;
+          )}
+          &amp;lt;View className=&quot;nav-bar-title text-overflow tx-c f36 c00 &quot;&amp;gt;
+            {title}
+          &amp;lt;/View&amp;gt;
+        &amp;lt;/View&amp;gt;
+      &amp;lt;/View&amp;gt;
+      {placeholder &amp;amp;&amp;amp; (
+        &amp;lt;View className=&quot;placeholder&quot;&amp;gt;
+          &amp;lt;View style={{ height: statusBarHeight }} /&amp;gt;
+          &amp;lt;View style={{ height: navBarHeight }} /&amp;gt;
+        &amp;lt;/View&amp;gt;
+      )}
+      &amp;lt;View className=&quot;observe-view&quot; style={{ height: 1 }}&amp;gt;&amp;lt;/View&amp;gt;
+    &amp;lt;/&amp;gt;
+  )
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;样式 index.scss&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;.nav-bar-container {
+  width: 100vw;
+  transition: 0.5s background-color;
+  .sonic-icon-right-arrow {
+    transform: rotate(180deg);
+  }
+
+  &amp;amp;.fixed-top {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    z-index: 100;
+  }
+}
+.nav-bar-back {
+  position: relative;
+  z-index: 9;
+  color: #000;
+}
+
+.nav-bar-title {
+  position: absolute;
+  width: 100%;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>Webpack 4 到 Webpack 5 打包优化实战：构建时间从 42s 优化到 19s</title><link>https://fuwari.vercel.app/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</guid><pubDate>Thu, 06 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;本项目是一个工位屏网页应用，基于 React 16 + TypeScript 开发。然而，项目中使用的是历史传承下来的 &lt;code&gt;@xxx-react-app/scripts&lt;/code&gt; 脚手架（基于 Webpack 4），并且依赖了许多非必要的公共子库、子包等历史遗留组件。&lt;/p&gt;
+&lt;p&gt;这套旧脚手架存在诸多问题：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;黑盒配置&lt;/strong&gt;：脚手架封装了大量 Webpack 配置，难以定制和优化&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;冗余依赖&lt;/strong&gt;：继承了历史项目的依赖包，包含许多当前项目不需要的库&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;特殊处理多&lt;/strong&gt;：为兼容老项目，脚手架内置了大量特殊逻辑：
+&lt;ul&gt;
+&lt;li&gt;复杂的 polyfill 注入逻辑&lt;/li&gt;
+&lt;li&gt;React Hot Loader 热更新方案（Webpack 5 已有更好的原生支持）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;随着项目迭代，构建性能问题日益突出：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;生产构建缓慢&lt;/strong&gt;：打包时间需要 42 秒以上&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;热更新缓慢&lt;/strong&gt;：每次修改代码后，热更新时间超过 20 秒，开发体验极差&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;开发效率低下&lt;/strong&gt;：频繁的代码修改导致大量时间浪费在等待构建上&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这些问题严重影响了开发效率和团队的开发体验。为此，我们决定进行一次彻底的构建优化：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;将构建工具从 Webpack 4 升级到 Webpack 5&lt;/li&gt;
+&lt;li&gt;精简和移除非必要的依赖&lt;/li&gt;
+&lt;li&gt;优化构建配置和策略&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;最终实现了显著的性能提升：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;✅ 构建时间从 42s 优化到 19s，提升 &lt;strong&gt;54.7%&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;✅ 热更新从 20s+ 优化到 &amp;lt; 1s，提升 &lt;strong&gt;95%+&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;排查思路&lt;/h2&gt;
+&lt;p&gt;打包缓慢问题的排查思路可以参考 &lt;a href=&quot;https://juejin.cn/post/7237053697528496184#heading-2&quot;&gt;Webpack 构建速度优化实践&lt;/a&gt;，核心步骤如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;使用 speed-measure-webpack-plugin 分析构建耗时&lt;/strong&gt;：定位最耗时的 loader 和 plugin&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;分析模块数量和依赖关系&lt;/strong&gt;：检查是否引入了不必要的依赖&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;检查 loader 配置&lt;/strong&gt;：优化 loader 的处理范围和配置&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;检查 plugin 配置&lt;/strong&gt;：移除不必要的插件，优化插件参数&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;升级构建工具版本&lt;/strong&gt;：利用新版本的性能优化&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;优化前的打包情况&lt;/h2&gt;
+&lt;p&gt;使用 &lt;code&gt;speed-measure-webpack-plugin&lt;/code&gt; 测量优化前的构建情况：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SMP  ⏱
+General output time took 42.55 secs
+
+ SMP  ⏱  Plugins
+IgnorePlugin took 8.35 secs
+TerserPlugin took 1.54 secs
+ModuleConcatenationPlugin took 0.466 secs
+Object took 0.082 secs
+HtmlWebpackPlugin took 0.066 secs
+ForkTsCheckerWebpackPlugin took 0.05 secs
+CopyPlugin took 0.008 secs
+MiniCssExtractPlugin took 0.003 secs
+CheckPlugin took 0.001 secs
+DefinePlugin took 0 secs
+
+ SMP  ⏱  Loaders
+modules with no loaders took 37.049 secs
+  module count = 3975
+thread-loader, and
+babel-loader took 15.022 secs
+  module count = 440
+thread-loader, and
+babel-loader, and
+unplugin took 12.86 secs
+  module count = 98
+css-loader, and
+postcss-loader, and
+less-loader took 10.68 secs
+  module count = 63
+@svgr/webpack took 10.055 secs
+  module count = 47
+babel-loader took 3.56 secs
+  module count = 4
+url-loader took 2.56 secs
+  module count = 19
+css-loader, and
+postcss-loader, and
+unplugin took 0.563 secs
+  module count = 1
+css-loader took 0.444 secs
+  module count = 3
+style-loader, and
+css-loader, and
+postcss-loader, and
+less-loader took 0.076 secs
+  module count = 63
+style-loader, and
+css-loader, and
+postcss-loader, and
+unplugin took 0.039 secs
+  module count = 1
+html-webpack-plugin took 0.014 secs
+  module count = 1
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;主要问题点：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;模块解析耗时长&lt;/strong&gt;：3975 个模块无 loader 处理耗时 37 秒&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;thread-loader 配置不合理&lt;/strong&gt;：虽然启用了多线程，但实际效果不佳&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;依赖包过多&lt;/strong&gt;：总模块数达到 3975 个&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;优化内容&lt;/h2&gt;
+&lt;p&gt;基于上述分析，我们制定了以下优化方案：&lt;/p&gt;
+&lt;h3&gt;1. 升级 Webpack 4 到 Webpack 5&lt;/h3&gt;
+&lt;p&gt;Webpack 5 相比 Webpack 4 带来了诸多性能提升：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;更好的持久化缓存&lt;/strong&gt;：支持文件系统级别的缓存&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;更优的 Tree Shaking&lt;/strong&gt;：减少打包体积&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;内置 Asset Modules&lt;/strong&gt;：无需 file-loader 和 url-loader&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;改进的代码生成&lt;/strong&gt;：更小的 bundle 体积&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;升级过程关键步骤：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;升级核心依赖&lt;/strong&gt;：webpack 5.88+、webpack-cli 5.x、webpack-dev-server 4.x&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;重构配置文件&lt;/strong&gt;：拆分为 common/dev/prod 三个配置文件，职责分离&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;适配 API 变化&lt;/strong&gt;：devServer.contentBase → static、移除 cache 配置项&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;升级相关插件&lt;/strong&gt;：html-webpack-plugin 5.x、terser-webpack-plugin 5.x、fork-ts-checker 8.x&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;测试验证&lt;/strong&gt;：确保开发环境和生产构建正常&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;关键配置变化：&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;依赖版本升级&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;{
+  &quot;webpack&quot;: &quot;^5.88.0&quot;,
+  &quot;webpack-cli&quot;: &quot;^5.1.4&quot;,
+  &quot;webpack-dev-server&quot;: &quot;^4.15.1&quot;,
+  &quot;babel-loader&quot;: &quot;^9.1.3&quot;,
+  &quot;css-loader&quot;: &quot;^6.8.1&quot;,
+  &quot;style-loader&quot;: &quot;^3.3.3&quot;,
+  &quot;mini-css-extract-plugin&quot;: &quot;^2.7.6&quot;,
+  &quot;html-webpack-plugin&quot;: &quot;^5.5.3&quot;,
+  &quot;fork-ts-checker-webpack-plugin&quot;: &quot;^8.0.0&quot;,
+  &quot;terser-webpack-plugin&quot;: &quot;^5.3.9&quot;,
+  &quot;@svgr/webpack&quot;: &quot;^8.1.0&quot;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;配置文件重构&lt;/h3&gt;
+&lt;p&gt;在 &lt;code&gt;script/&lt;/code&gt; 目录下创建了三个配置文件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;webpack.config.common.js&lt;/strong&gt;：公共配置(entry、output、module rules、plugins)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;webpack.config.dev.js&lt;/strong&gt;：开发环境配置(devServer、HMR)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;webpack.config.prod.js&lt;/strong&gt;：生产环境配置(优化、压缩)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;生产与开发打包的差异区分更精细：&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;配置项&lt;/th&gt;
+&lt;th&gt;开发环境&lt;/th&gt;
+&lt;th&gt;生产环境&lt;/th&gt;
+&lt;th&gt;说明&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;mode&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;development&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;production&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;影响优化策略和调试信息&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;devtool&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;cheap-module-source-map&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;开发需要源图便于调试，生产不生成以减小包体积&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;cache&lt;/td&gt;
+&lt;td&gt;启用文件系统缓存&lt;/td&gt;
+&lt;td&gt;启用文件系统缓存&lt;/td&gt;
+&lt;td&gt;两者都启用，加快重建速度&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;compress&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;N/A&lt;/td&gt;
+&lt;td&gt;开发关闭压缩减少 CPU 开销&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;minimize&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;false&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;true&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;生产环境启用代码压缩&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;drop_console&lt;/td&gt;
+&lt;td&gt;N/A&lt;/td&gt;
+&lt;td&gt;取决于 PRINT_CONSOLE&lt;/td&gt;
+&lt;td&gt;生产环境移除 console 调用&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;IgnorePlugin&lt;/td&gt;
+&lt;td&gt;无&lt;/td&gt;
+&lt;td&gt;排除 moment locale&lt;/td&gt;
+&lt;td&gt;生产环境移除 moment 国际化文件减小包体积&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;文件名哈希&lt;/td&gt;
+&lt;td&gt;无版本号&lt;/td&gt;
+&lt;td&gt;含版本号&lt;/td&gt;
+&lt;td&gt;生产环境文件名含版本号便于缓存管理&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;chunk 分割&lt;/td&gt;
+&lt;td&gt;启用&lt;/td&gt;
+&lt;td&gt;启用（更激进）&lt;/td&gt;
+&lt;td&gt;生产环境分割策略更激进以优化缓存&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;这种差异化的配置策略带来的好处：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;开发阶段&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;关闭压缩和最小化，加快构建速度&lt;/li&gt;
+&lt;li&gt;生成源映射便于调试&lt;/li&gt;
+&lt;li&gt;启用 HMR 实现秒级热更新&lt;/li&gt;
+&lt;li&gt;文件名简洁，易于定位资源&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;生产阶段&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;启用全面的代码优化和压缩&lt;/li&gt;
+&lt;li&gt;排除不必要的资源（如 moment locale）&lt;/li&gt;
+&lt;li&gt;文件名含版本号，充分利用浏览器缓存&lt;/li&gt;
+&lt;li&gt;不生成源映射，减小包体积&lt;/li&gt;
+&lt;li&gt;严格的代码分割策略提升首屏加载性能&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;启用文件系统缓存&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.prod.js
+cache: {
+  type: &apos;filesystem&apos;,
+  cacheDirectory: path.resolve(__dirname, &apos;../.webpack_cache&apos;),
+  version: packageJson.version,
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;使用 Asset Modules 替代 url-loader&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.common.js
+{
+  test: /\.(png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$/,
+  type: &apos;asset&apos;,
+  parser: {
+    dataUrlCondition: {
+      maxSize: 10 * 1024,
+    },
+  },
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;优化代码分割策略&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.prod.js
+splitChunks: {
+  chunks: &apos;all&apos;,
+  automaticNameDelimiter: &apos;.&apos;,
+  cacheGroups: {
+    common_base: {
+      test: /[\\/]node_modules[\\/](react|react-dom|mobx|mobx-react|axios|lodash|moment)[\\/]/,
+      name: &apos;common-base&apos;,
+      priority: 10,
+    },
+    common_chunk: {
+      test: /[\\/]src[\\/]/,
+      name: &apos;common-chunk&apos;,
+      minChunks: 3,
+      priority: 5,
+    },
+    vendors: {
+      test: /[\\/]node_modules[\\/]/,
+      name: &apos;vendors&apos;,
+      priority: 3,
+    },
+  },
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;2. 精简项目依赖&lt;/h3&gt;
+&lt;p&gt;通过分析依赖关系，移除了项目中不必要的公共子库和公共包依赖：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;移除了未使用的 &lt;code&gt;@xxx-react-app/scripts&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;精简了部分业务组件库的引用&lt;/li&gt;
+&lt;li&gt;优化了按需加载的配置&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这一步使模块数从 3975 个降低到 3503 个，减少了约 12%。&lt;/p&gt;
+&lt;h3&gt;4. 优化 Loader 配置&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.common.js
+{
+  test: /\.(js|jsx|ts|tsx)$/,
+  // /@xxx-touch/, /@xxx-common/ 是通过link导入的依赖
+  include: [PATH.appSrc, /@xxx-touch/, /@xxx-common/],
+  use: [
+    {
+      loader: &apos;babel-loader&apos;,
+      options: {
+        cacheDirectory: true,
+        cacheCompression: false,
+        compact: !isEnvDevelopment,
+      },
+    },
+  ],
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;关键优化点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;使用 &lt;code&gt;include&lt;/code&gt; 精确限定处理范围&lt;/li&gt;
+&lt;li&gt;启用 &lt;code&gt;cacheDirectory&lt;/code&gt; 利用缓存&lt;/li&gt;
+&lt;li&gt;关闭 &lt;code&gt;cacheCompression&lt;/code&gt; 减少压缩开销&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;6. 热更新(HMR)优化&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;优化前：&lt;/strong&gt; 每次修改代码后，界面热更新时间需要等待 20 秒以上&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;优化后：&lt;/strong&gt; 界面热更新小于 1 秒，接近秒更&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;原因分析：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;Webpack 5 改进的 HMR 机制&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Webpack 5 重写了 HMR 运行时，使用更高效的算法计算模块依赖关系&lt;/li&gt;
+&lt;li&gt;改进的模块图(Module Graph)结构，减少了热更新时的模块遍历时间&lt;/li&gt;
+&lt;li&gt;优化的 chunk 分割策略，减少了需要重新编译的模块数量&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;文件系统缓存的作用&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.dev.js
+cache: {
+  type: &apos;filesystem&apos;,
+  cacheDirectory: path.resolve(__dirname, &apos;../.webpack_cache&apos;),
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Webpack 5 的持久化缓存会缓存模块的编译结果&lt;/li&gt;
+&lt;li&gt;热更新时只需重新编译修改的模块，未修改的模块直接从缓存读取&lt;/li&gt;
+&lt;li&gt;大幅减少了重复编译的时间&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;更精确的依赖追踪&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Webpack 5 使用更精确的依赖追踪算法&lt;/li&gt;
+&lt;li&gt;修改一个文件时，只会重新编译真正依赖它的模块&lt;/li&gt;
+&lt;li&gt;Webpack 4 可能会过度编译不相关的模块&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;优化的 devServer 配置&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// webpack.config.dev.js
+devServer: {
+  compress: false,  // 开发环境关闭压缩，减少 CPU 开销
+  hot: true,        // 启用热模块替换
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;关闭 compress 减少了每次热更新时的压缩开销&lt;/li&gt;
+&lt;li&gt;Webpack 5 的 webpack-dev-server 4.x 版本性能更优&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;strong&gt;代码分割优化&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;optimization: {
+  runtimeChunk: &apos;single&apos;,
+  splitChunks: {
+    chunks: &apos;all&apos;,
+  },
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;将 runtime 代码独立出来，减少主 bundle 的更新频率&lt;/li&gt;
+&lt;li&gt;合理的 chunk 分割使得热更新影响范围更小&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;优化后的打包情况&lt;/h2&gt;
+&lt;p&gt;优化完成后，再次使用 &lt;code&gt;speed-measure-webpack-plugin&lt;/code&gt; 测量：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; SMP  ⏱
+General output time took 19.26 secs
+
+ SMP  ⏱  Plugins
+CaseSensitivePathsPlugin took 11.37 secs
+Object took 0.241 secs
+HtmlWebpackPlugin took 0.023 secs
+CopyPlugin took 0.019 secs
+DefinePlugin took 0.005 secs
+ForkTsCheckerWebpackPlugin took 0.001 secs
+
+ SMP  ⏱  Loaders
+css-loader, and
+postcss-loader, and
+less-loader took 15.88 secs
+  module count = 63
+modules with no loaders took 11.33 secs
+  module count = 3503
+babel-loader, and
+unplugin took 4.021 secs
+  module count = 98
+@svgr/webpack took 3.85 secs
+  module count = 47
+babel-loader took 3.81 secs
+  module count = 154
+css-loader, and
+postcss-loader, and
+unplugin took 0.689 secs
+  module count = 1
+css-loader took 0.278 secs
+  module count = 3
+style-loader, and
+css-loader, and
+postcss-loader, and
+less-loader took 0.047 secs
+  module count = 63
+html-webpack-plugin took 0.024 secs
+  module count = 1
+style-loader, and
+css-loader, and
+postcss-loader, and
+unplugin took 0.006 secs
+  module count = 1
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化效果：&lt;/strong&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;指标&lt;/th&gt;
+&lt;th&gt;优化前&lt;/th&gt;
+&lt;th&gt;优化后&lt;/th&gt;
+&lt;th&gt;提升&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;总构建时间&lt;/td&gt;
+&lt;td&gt;42.55s&lt;/td&gt;
+&lt;td&gt;19.26s&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;54.7%&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;热更新时间&lt;/td&gt;
+&lt;td&gt;20s+&lt;/td&gt;
+&lt;td&gt;&amp;lt; 1s&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;95%+&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;模块数量&lt;/td&gt;
+&lt;td&gt;3975&lt;/td&gt;
+&lt;td&gt;3503&lt;/td&gt;
+&lt;td&gt;减少 12%&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;TerserPlugin&lt;/td&gt;
+&lt;td&gt;1.54s&lt;/td&gt;
+&lt;td&gt;未显示 (更快)&lt;/td&gt;
+&lt;td&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;babel-loader&lt;/td&gt;
+&lt;td&gt;15.02s&lt;/td&gt;
+&lt;td&gt;3.81s&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;74.6%&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;遇到的问题与解决方案&lt;/h2&gt;
+&lt;h3&gt;问题 1：为什么不用 swc-loader 替代 babel-loader？&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;原因：&lt;/strong&gt; 项目中使用了 MobX 4，而 swc-loader 对 MobX 4 的装饰器语法支持存在兼容性问题。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;参考：&lt;/strong&gt; https://github.com/swc-project/swc/issues/3389&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;解决方案：&lt;/strong&gt; 继续使用 babel-loader，但通过以下方式优化：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;启用 &lt;code&gt;cacheDirectory&lt;/code&gt; 缓存编译结果&lt;/li&gt;
+&lt;li&gt;使用 &lt;code&gt;include&lt;/code&gt; 精确限定处理范围&lt;/li&gt;
+&lt;li&gt;升级到 babel-loader 9.x 版本&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;问题 2：为什么没有使用 thread-loader？&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;原因：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;thread-loader&lt;/code&gt; 与项目中使用的 &lt;code&gt;@unocss/webpack&lt;/code&gt; 插件存在冲突&lt;/li&gt;
+&lt;li&gt;对于中小型项目，启动线程池的开销可能超过并行编译的收益&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;解决方案：&lt;/strong&gt; 移除 &lt;code&gt;thread-loader&lt;/code&gt;，通过 Webpack 5 的文件系统缓存和其他优化手段提升速度。&lt;/p&gt;
+&lt;h3&gt;问题 3：CaseSensitivePathsPlugin 耗时较长(11.37s)&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;分析：&lt;/strong&gt; 这个插件用于检查路径大小写一致性，在大型项目中会遍历所有模块，导致耗时较长。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;权衡：&lt;/strong&gt; 虽然耗时较长，但这个插件对于跨平台开发很重要(避免 Mac/Linux 与 Windows 之间的路径问题)，因此保留。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;后续优化方向：&lt;/strong&gt; 可以考虑仅在 CI/CD 环境中启用，开发环境禁用。&lt;/p&gt;
+&lt;h2&gt;总结与展望&lt;/h2&gt;
+&lt;h3&gt;优化成果&lt;/h3&gt;
+&lt;p&gt;通过本次优化，我们实现了：&lt;/p&gt;
+&lt;p&gt;✅ 构建时间从 42.55s 降低到 19.26s，提升 &lt;strong&gt;54.7%&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;✅ 模块数量减少 12%，打包体积更小&lt;/p&gt;
+&lt;p&gt;✅ 启用文件系统缓存，二次构建更快&lt;/p&gt;
+&lt;p&gt;✅ 配置结构更清晰，易于维护&lt;/p&gt;
+&lt;p&gt;✅ 为后续迁移到 React 18 和 MobX 6 奠定基础&lt;/p&gt;
+&lt;h3&gt;技术要点回顾&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Webpack 5 升级要点&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;依赖版本升级(webpack、loader、plugin)&lt;/li&gt;
+&lt;li&gt;配置文件重构(common/dev/prod 分离)&lt;/li&gt;
+&lt;li&gt;启用文件系统缓存&lt;/li&gt;
+&lt;li&gt;使用 Asset Modules 替代 url-loader&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;性能优化技巧&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;精确使用 &lt;code&gt;include/exclude&lt;/code&gt; 限定 loader 范围&lt;/li&gt;
+&lt;li&gt;启用 babel-loader 缓存&lt;/li&gt;
+&lt;li&gt;优化代码分割策略&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;兼容性处理&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;MobX 4 装饰器语法兼容（保留 babel-loader）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;后续优化方向&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;继续减少模块数量&lt;/strong&gt;：进一步分析依赖关系，按需加载更多模块&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CaseSensitivePathsPlugin 优化&lt;/strong&gt;：仅在 CI/CD 环境启用&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;考虑升级到 MobX 6&lt;/strong&gt;：解决装饰器兼容性问题后，可以尝试 swc-loader&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;启用 Module Federation&lt;/strong&gt;：实现微前端架构，进一步提升构建效率&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;增量编译&lt;/strong&gt;：利用 Webpack 5 的增量编译能力，进一步提升二次构建速度&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;经验总结&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;性能优化要先测量再优化&lt;/strong&gt;：使用 speed-measure-webpack-plugin 定位瓶颈&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;新版本不一定都要用新特性&lt;/strong&gt;：根据项目实际情况选择(如 thread-loader)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;兼容性比性能更重要&lt;/strong&gt;：确保项目稳定运行是第一优先级&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;配置清晰比配置复杂更好&lt;/strong&gt;：分离 dev/prod 配置，便于维护&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr /&gt;
+&lt;p&gt;&lt;strong&gt;相关资源：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://webpack.js.org/migrate/5/&quot;&gt;Webpack 5 官方迁移指南&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://juejin.cn/post/7237053697528496184&quot;&gt;Webpack 构建速度优化实践&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.notion.so/WEBPACK5_MIGRATION_PROMPT.md&quot;&gt;项目 Webpack 5 迁移文档&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>网络缓存</title><link>https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;缓存命中顺序&lt;/h2&gt;
+&lt;p&gt;顺序从上往下，命中即返回缓存的内容。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Service Worker&lt;/li&gt;
+&lt;li&gt;Memory Cache&lt;/li&gt;
+&lt;li&gt;Disk Cache（HTTP Cache）&lt;/li&gt;
+&lt;li&gt;网络请求&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;Memory Cache&lt;/h2&gt;
+&lt;p&gt;内存存储空间较小，一般在Tab关闭后失效。若内存缓存的数据过多，之前的缓存可能失效。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;几乎所有的请求资源&lt;/strong&gt; 都能进入 memory cache，这里主要：&lt;code&gt;rel=&quot;preload&quot;&lt;/code&gt;与 &lt;code&gt;rel=&quot;preloader&quot;&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;!-- 预加载关键字体 --&amp;gt;
+&amp;lt;link rel=&quot;preload&quot; href=&quot;font.woff2&quot; as=&quot;font&quot; type=&quot;font/woff2&quot; crossorigin&amp;gt;
+&amp;lt;!-- 预加载首屏图片 --&amp;gt;
+&amp;lt;link rel=&quot;preload&quot; href=&quot;hero.jpg&quot; as=&quot;image&quot;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在浏览器打开网页的过程中，会先请求HTML然后解析。解析过程会从上往下扫描，遇到一个资源（js/css）就加载并解析，然后再是下一个。在解析的时候网络是空闲的，如果能一边解析一边加载下一批资源，这样就可以充分利用资源并加速加载过程。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;&amp;lt;link rel=&quot;preload&quot; /&amp;gt;&lt;/code&gt; 需要放在&lt;code&gt;&amp;lt;head&amp;gt;&lt;/code&gt;中合理的源前。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;rel&lt;/code&gt;还有其他很多取值。&lt;/strong&gt;&lt;/p&gt;
+&lt;h2&gt;Disk Cache（HTTP Cache）&lt;/h2&gt;
+&lt;p&gt;disk cache 会严格根据 HTTP 头信息中的各类字段来判定哪些资源可以缓存，哪些资源不可以缓存；哪些资源是仍然可用的，哪些资源是过时需要重新请求的。当命中缓存之后，浏览器会从硬盘中读取资源，虽然比起从内存中读取慢了一些，但比起网络请求还是快了不少的。绝大部分的缓存都来自这里&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;强缓存&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;强制缓存的含义是，当客户端请求后，会先访问缓存数据库看缓存是否存在。如果存在则直接返回；不存在则请求真的服务器，响应后再写入缓存数据库。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;强制缓存直接减少请求数，是提升最大的缓存策略。&lt;/strong&gt; 它的优化覆盖了文章开头提到过的请求数据的全部三个步骤。如果考虑使用缓存来优化网页性能的话，强制缓存应该是首先被考虑的。&lt;/p&gt;
+&lt;p&gt;可以造成强制缓存的字段是 &lt;code&gt;Cache-control&lt;/code&gt; 和 &lt;code&gt;Expires&lt;/code&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Expires: Thu, 10 Nov 2017 08:45:11 GMT&lt;/code&gt; (HTTP/1.0)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;HTTP 1.0 的字段，表示缓存到期时间，是一个绝对的时间 (当前时间+缓存时间)。&lt;/p&gt;
+&lt;p&gt;缺点：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;由于是绝对时间
+&lt;ol&gt;
+&lt;li&gt;用户可能会将客户端本地的时间进行修改&lt;/li&gt;
+&lt;li&gt;时差或者误差等因素。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;格式复杂&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Cache-control: max-age=2592000&lt;/code&gt; （HTTP/1.1中，新增）优先级高于&lt;code&gt;Expires&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;max-age&lt;/code&gt; 是相对时间，Cache-control中除了&lt;code&gt;max-age&lt;/code&gt;外还有一些其他字段，完整见https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Reference/Headers/Cache-Control&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;must-revalidate&lt;/code&gt;：如果超过了 &lt;code&gt;max-age&lt;/code&gt; 的时间，浏览器必须向服务器发送请求，验证资源是否还有效。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;no-cache&lt;/code&gt;：虽然字面意思是“不要缓存”，但实际上还是要求客户端缓存内容的，只是是否使用这个内容由后续的对比来决定。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;no-store&lt;/code&gt;: 真正意义上的“不要缓存”。所有内容都不走缓存，包括强制和对比。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;public&lt;/code&gt;：所有的内容都可以被缓存 (包括客户端和代理服务器， 如 CDN)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;private&lt;/code&gt;：所有的内容只有客户端才可以缓存，代理服务器不能缓存。默认值。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;其他使用指南：https://web.dev/articles/http-cache?hl=zh-cn&lt;/p&gt;
+&lt;h3&gt;&lt;strong&gt;协商缓存&lt;/strong&gt;&lt;/h3&gt;
+&lt;p&gt;当强制缓存失效(超过规定时间)时，就需要使用对比缓存，由服务器决定缓存内容是否失效。&lt;/p&gt;
+&lt;p&gt;浏览器向服务端请求，服务端判断缓存若未失效，则返回HTTP 状态码 304 表示继续使用，浏览器直接使用本地的换，否则使用返回的响应。&lt;/p&gt;
+&lt;p&gt;没强缓存只有协商缓存的资源，每次都会向服务器发请求，但每次响应可能是‘HTTP 状态码 304’也可能是新的资源。优点在于节省响应内容。&lt;/p&gt;
+&lt;p&gt;在实际中都是强缓存与协商缓存一起使用的。&lt;/p&gt;
+&lt;p&gt;协商缓存相关请求头：&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;Last-Modified&lt;/code&gt; &amp;amp; &lt;code&gt;If-Modified-Since&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;服务器通过 &lt;code&gt;Last-Modified&lt;/code&gt; 字段告知客户端，资源最后一次被修改的时间，例如&lt;code&gt;Last-Modified: Mon, 10 Nov 2018 09:10:11 GMT&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;浏览器将这个值和内容一起记录在缓存数据库中。&lt;/li&gt;
+&lt;li&gt;下一次请求相同资源时时，浏览器从自己的缓存中找出“不确定是否过期的”缓存。因此在请求头中将上次的 &lt;code&gt;Last-Modified&lt;/code&gt; 的值写入到请求头的 &lt;code&gt;If-Modified-Since&lt;/code&gt; 字段&lt;/li&gt;
+&lt;li&gt;服务器会将 &lt;code&gt;If-Modified-Since&lt;/code&gt; 的值与 &lt;code&gt;Last-Modified&lt;/code&gt; 字段进行对比。如果相等，则表示未修改，响应 304；反之，则表示修改了，响应 200 状态码，并返回数据。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;但是他还是有一定缺陷的：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;如果资源更新的速度是秒以下单位，那么该缓存是不能被使用的，因为它的时间单位最低是秒。&lt;/li&gt;
+&lt;li&gt;如果文件是通过服务器动态生成的，那么该方法的更新时间永远是生成的时间，尽管文件可能没有变化，所以起不到缓存的作用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;Etag&lt;/code&gt; &amp;amp; &lt;code&gt;If-None-Match&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;为了解决上述问题，出现了一组新的字段 &lt;code&gt;Etag&lt;/code&gt; 和 &lt;code&gt;If-None-Match&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Etag&lt;/code&gt; 存储的是文件的特殊标识(一般都是 hash 生成的)，服务器存储着文件的 &lt;code&gt;Etag&lt;/code&gt; 字段。之后的流程和 &lt;code&gt;Last-Modified&lt;/code&gt; 一致，只是 &lt;code&gt;Last-Modified&lt;/code&gt; 字段和它所表示的更新时间改变成了 &lt;code&gt;Etag&lt;/code&gt; 字段和它所表示的文件 hash，把 &lt;code&gt;If-Modified-Since&lt;/code&gt; 变成了 &lt;code&gt;If-None-Match&lt;/code&gt;。服务器同样进行比较，命中返回 304, 不命中返回新资源和 200。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&lt;code&gt;Etag&lt;/code&gt; 的优先级高于 &lt;code&gt;Last-Modified&lt;/code&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;h2&gt;Service Worker&lt;/h2&gt;
+&lt;p&gt;上述的缓存策略以及缓存/读取/失效的动作都是由浏览器内部判断。&lt;/p&gt;
+&lt;p&gt;Service Worker中可以通过&lt;code&gt;cache&lt;/code&gt; 来实现缓存。在devTools中的Application -&amp;gt; Cache Storage 可以找到。&lt;/p&gt;
+&lt;p&gt;场景：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;缓存静态资源&lt;/li&gt;
+&lt;li&gt;特殊场景的动态内容：文章等&lt;/li&gt;
+&lt;li&gt;优化首屏加载速度：立即返回缓存（如有），同时后台更新最新数据到缓存，下次进入即为最新，或者通过postMessage通知界面更新&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;缓存失效：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;手动调用 API &lt;code&gt;cache.delete(resource)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;容量超过限制&lt;/li&gt;
+&lt;li&gt;浏览器全部清空&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Service Worker的特点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;独立于主JavaScript线程&lt;/li&gt;
+&lt;li&gt;设计完全异步,大量使用Promise&lt;/li&gt;
+&lt;li&gt;不能访问DOM，不能使用XHR和localStorage&lt;/li&gt;
+&lt;li&gt;Service Worker只能由HTTPS承载(出于安全考虑)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用步骤&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;通过&lt;code&gt;navigator.serviceWorker.register(&apos;/sw.js&apos;)&lt;/code&gt; 注册Service Wroker&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sw.js&lt;/code&gt; 中通过&lt;code&gt;cache&lt;/code&gt;对象管理缓存
+&lt;ol&gt;
+&lt;li&gt;可以在 &lt;code&gt;self.addEventListener(&apos;install&apos;, event =&amp;gt; { .. })&lt;/code&gt; 事件中主动缓存一些资源&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;sw.js&lt;/code&gt; 中通过&lt;code&gt;self.addEventListener(&apos;fetch&apos;, event =&amp;gt; { .. })&lt;/code&gt; 事件拦截请求，判断缓存是否存在且有效，若有效则返回缓存内容，若无效则放行请求，并在请求成功后加入缓存。&lt;/li&gt;
+&lt;/ol&gt;
+</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
+&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
+&lt;h2&gt;实现&lt;/h2&gt;
+&lt;p&gt;创建axios实例&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
+const request = axios.create({ baseURL: &apos;/api&apos; })
+
+// 拦截请求
+request.interceptors.request.use(
+  (option) =&amp;gt; {
+    if (option.headers.authorization === undefined) {
+      // 补充身份验证字段
+      option.headers.authorization = xxxx;
+    }
+    // 打印请求信息
+    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
+    return option
+  }
+)
+
+// 拦截响应
+request.interceptors.response.use(
+  async (response) =&amp;gt; {
+    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
+    const data = response.data as Resp&amp;lt;any&amp;gt;;
+    if (data.code === 101) {
+      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
+      // 刷新token、重新发起请求，注意避免嵌套！无限递归
+      if (
+        response.config.params.___retry !== undefined
+        || !refreshToken
+        || response.config.url?.includes(URL_REFRESH_TOKEN)
+      ) {
+        return Promise.reject(response)
+      }
+
+      // 刷新token
+      const { access_token, refresh_token } = await refreshTokenApi(
+        refreshToken,
+      )
+      localStorage.setItem(STORAGE_TOKEN, access_token)
+      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
+
+      // 重新请求
+      const opts = _.cloneDeep(response.config)
+      opts.headers.authorization = `Bearer ${access_token}`
+      // 标记为重试
+      if (!opts.params) {
+        opts.params = {}
+      }
+      opts.params.___retry = true;
+      return request(opts)
+    }
+    // 成功响应
+    else if (data.code === 200 || data.code === 0) {
+      return response
+    } else if (data.failData) {
+      return response
+    }
+    return Promise.reject(response)
+  },
+  (err) =&amp;gt; {
+    // 响应拦截器逻辑 - 错误响应
+    if (err instanceof AxiosError) {
+      const { response, config } = err
+      if (config.params?.___checkLogin) {
+        goLogin()
+        return Promise.reject(err)
+      }
+      console.debug(
+        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
+        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
+      )
+      if ([401, 424].includes(err.status!)) {
+        message.error(&apos;登录过期&apos;)
+        goLogin()
+      } else if ([404].includes(err.status!)) {
+        message.error(&apos;网络环境差，请稍后重试&apos;)
+        goLogin()
+      } else {
+        message.error(`网络错误[${err.status}] ${err.message}]`)
+      }
+    } else if (err instanceof Error) {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    } else {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    }
+    return Promise.reject(err)
+  },
+)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/**
+ * 统一的响应格式
+ */
+type Resp&amp;lt;T&amp;gt; = {
+  code: number
+  msg: string
+  data: T
+}
+interface SelectNameResult {
+  name: string
+}
+
+interface SelectNameRequest {
+  id: number
+}
+
+async function go() {
+  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
+    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
+  /*
+  response类型：
+  {
+    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
+    status: number
+    statusText: string
+    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
+    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
+    request?: any
+  }
+  */
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;扩展&lt;/h2&gt;
+&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
+&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
+&lt;ul&gt;
+&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const api = {
+  getUri(config?: AxiosRequestConfig) {
+    return request.getUri(config)
+  },
+  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
+  },
+  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
+    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
+  },
+  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  }
+}
+
+/**
+ * 将结果扁平化
+ */
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
+  const res = await this;
+  if (level === 1) {
+    return res.data;
+  }
+  return res.data?.data;
+}
+
+function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
+  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
+  newPromise.flat = flat;
+  return newPromise;
+}
+
+export default api;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再看看效果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;async function go() {
+  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
+}
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>网络安全</title><link>https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;JWT Token&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;JWT(JSON Web Token)是一个开放标准(RFC 7519)，它定义了一种紧凑且自包含的方式，以JSON对象的形式在各方之间安全地传输信息。&lt;/li&gt;
+&lt;li&gt;JWT是一个数字签名，生成的信息是可以验证并被信任的。&lt;/li&gt;
+&lt;li&gt;使用密钥(使用&lt;a href=&quot;https://zhida.zhihu.com/search?content_id=123285803&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=HMAC%E7%AE%97%E6%B3%95&amp;amp;zd_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ6aGlkYV9zZXJ2ZXIiLCJleHAiOjE3NjYxMDg0MjUsInEiOiJITUFD566X5rOVIiwiemhpZGFfc291cmNlIjoiZW50aXR5IiwiY29udGVudF9pZCI6MTIzMjg1ODAzLCJjb250ZW50X3R5cGUiOiJBcnRpY2xlIiwibWF0Y2hfb3JkZXIiOjEsInpkX3Rva2VuIjpudWxsfQ.e4KdD0sHXyCgRGMIBAGKmHLawuntGTyX3azCPlUmyjw&amp;amp;zhida_source=entity&quot;&gt;HMAC算法&lt;/a&gt;)或使用&lt;a href=&quot;https://zhida.zhihu.com/search?content_id=123285803&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=RSA&amp;amp;zd_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ6aGlkYV9zZXJ2ZXIiLCJleHAiOjE3NjYxMDg0MjUsInEiOiJSU0EiLCJ6aGlkYV9zb3VyY2UiOiJlbnRpdHkiLCJjb250ZW50X2lkIjoxMjMyODU4MDMsImNvbnRlbnRfdHlwZSI6IkFydGljbGUiLCJtYXRjaF9vcmRlciI6MSwiemRfdG9rZW4iOm51bGx9.VLLoehaLY2qYClqbkokEqlExWOSGP2V0CSGyqS8f3Iw&amp;amp;zhida_source=entity&quot;&gt;RSA&lt;/a&gt;或&lt;a href=&quot;https://zhida.zhihu.com/search?content_id=123285803&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=ECDSA&amp;amp;zd_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ6aGlkYV9zZXJ2ZXIiLCJleHAiOjE3NjYxMDg0MjUsInEiOiJFQ0RTQSIsInpoaWRhX3NvdXJjZSI6ImVudGl0eSIsImNvbnRlbnRfaWQiOjEyMzI4NTgwMywiY29udGVudF90eXBlIjoiQXJ0aWNsZSIsIm1hdGNoX29yZGVyIjoxLCJ6ZF90b2tlbiI6bnVsbH0.7PDfH_aW1uc9Op948uY9hsSYN_ZG0Axjk82ufmPuCDU&amp;amp;zhida_source=entity&quot;&gt;ECDSA&lt;/a&gt;的公钥/私钥对JWT进行签名。&lt;/li&gt;
+&lt;li&gt;JWT是目前最流行的跨域认证解决方案&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;SON Web令牌以紧凑的形式由三部分组成，这些部分由点（.）分隔（&lt;code&gt;Header.Payload.Signature&lt;/code&gt;），分别是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;Header：base64编码的&lt;code&gt;json&lt;/code&gt;串：&lt;code&gt;{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;alg&lt;/code&gt; : 加密方式&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;type&lt;/code&gt; : 令牌类型&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Payload：base64编码的&lt;code&gt;json&lt;/code&gt;串：&lt;code&gt;{....}&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;以下约定都是非强制性的，一般不建议存放敏感信息&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;注册声明字段：
+&lt;ul&gt;
+&lt;li&gt;iss（JWT的签发者）&lt;/li&gt;
+&lt;li&gt;exp（expires,到期时间）&lt;/li&gt;
+&lt;li&gt;sub（主题）&lt;/li&gt;
+&lt;li&gt;aud（JWT接收者）&lt;/li&gt;
+&lt;li&gt;iat(issued at，签发时间)&lt;/li&gt;
+&lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;公开声明：公共的声明可以添加任何的信息，一般添加用户的相关信息或其他业务需要的&lt;/li&gt;
+&lt;li&gt;私有声明：私有声明是提供者和消费者所共同定义的声明&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;Signature：&lt;code&gt;HMACSHA256(base64UrlEncode(header) + &quot;.&quot; + base64UrlEncode(payload), secret)&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;HTTP1/1.1/2.0/3.0&lt;/h2&gt;
+&lt;h2&gt;网络安全&lt;/h2&gt;
+&lt;h3&gt;&lt;code&gt;XSS&lt;/code&gt;（跨站脚本攻击）&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;攻击者脚本&lt;/code&gt; 嵌入 &lt;code&gt;被攻击网站&lt;/code&gt;，获取用户cookie等隐私信息。&lt;/p&gt;
+&lt;p&gt;原因：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;将不可信的字符串当作html片段输出
+&lt;ul&gt;
+&lt;li&gt;innerHTML&lt;/li&gt;
+&lt;li&gt;document.write&lt;/li&gt;
+&lt;li&gt;…&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;href属性&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;a href=&quot;USER_INPUT&quot;&amp;gt;Link&amp;lt;/a&amp;gt;
+&amp;lt;!-- 攻击：USER_INPUT = javascript:alert(document.cookie) --&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;直接拼接html字符串&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;!-- 危险 --&amp;gt;
+&amp;lt;input value=USER_INPUT&amp;gt;
+&amp;lt;!-- 攻击：USER_INPUT = &quot; onfocus=&quot;alert(1)&quot; autofocus=&quot; --&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;防范：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;输出编码（Output Encoding）&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;HTML 上下文：&lt;code&gt;&amp;lt;&lt;/code&gt; → &lt;code&gt;&amp;amp;lt;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;JS 上下文：使用 &lt;code&gt;JSON.stringify()&lt;/code&gt; 而非拼接&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;CSP（Content Security Policy）&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Content-Security-Policy: default-src &apos;self&apos;; script-src &apos;nonce-xxx’&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;设置 Cookie 的 &lt;code&gt;HttpOnly&lt;/code&gt;&lt;/strong&gt;（防 JS 窃取）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;避免直接使用 &lt;code&gt;innerHTML&lt;/code&gt; / &lt;code&gt;eval()&lt;/code&gt; / &lt;code&gt;document.write()&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;XSS攻击可以分为3类：存储型（持久型）、反射型（非持久型）、基于DOM。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;存储型：数据在上传到服务器时未做转义处理，在H5中也未转义就输出（innertHTMl\href等）。&lt;/li&gt;
+&lt;li&gt;反射型：直接从用户端获取的输入（地址了、用户输入内容）未转义，就输出。&lt;/li&gt;
+&lt;li&gt;基于DOM：直接修改HTML内容，注入恶意脚本&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;前两个对内容进行转义后保存或输出即可。最后一个则需要通过CSP协议来避免浏览器侧自动加载不可信来源的脚本、请求、图片等&lt;/p&gt;
+&lt;h3&gt;&lt;code&gt;CSRF&lt;/code&gt;（跨站请求伪造&lt;/h3&gt;
+&lt;p&gt;用户已登录 &lt;code&gt;bank.com&lt;/code&gt;，同时访问了恶意网站 &lt;code&gt;evil.com&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;evil.com&lt;/code&gt; 诱导浏览器向 &lt;code&gt;bank.com/transfer&lt;/code&gt; 发起请求（如自动提交表单），&lt;strong&gt;浏览器自动带上 bank.com 的 Cookie&lt;/strong&gt;，服务器误以为是用户自愿操作。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;⚠️ 关键：浏览器同源策略不阻止“发送请求”，只阻止“读取响应”。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;解决方案：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;Anti-CSRF Token&lt;/strong&gt;（最有效）&lt;/th&gt;
+&lt;th&gt;表单/请求头中加入随机 token，服务端校验&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;SameSite Cookie 属性&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;Set-Cookie: session=xxx; SameSite=Lax&lt;/code&gt;（推荐）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;请求来源：检查 &lt;code&gt;Origin&lt;/code&gt; / &lt;code&gt;Referer&lt;/code&gt; 头&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;拒绝非同源请求（但可被伪造或缺失）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;敏感操作二次验证&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;如短信验证码、密码确认&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;攻击方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;通过&lt;code&gt;&amp;lt;img src=&apos;恶意链接&apos; /&amp;gt;&lt;/code&gt; 发起&lt;code&gt;get&lt;/code&gt;请求&lt;/li&gt;
+&lt;li&gt;通过&lt;code&gt;&amp;lt;form&amp;gt;&lt;/code&gt; 表单发起&lt;code&gt;post&lt;/code&gt; 请求&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;&amp;lt;form id= &apos;hacker-form&apos; action=&quot;https://time.geekbang.org/sendcoin&quot; method=POST&amp;gt;
+  &amp;lt;input type=&quot;hidden&quot; name=&quot;userll&quot; value=&quot;hacker&quot; /&amp;gt;
+  &amp;lt;input type=&quot;hidden&quot; name=&quot;numberll&quot; value=&quot;100&quot; /&amp;gt;
+&amp;lt;/form&amp;gt;
+&amp;lt;script&amp;gt; document.getElementById (&apos;hacker-form&apos;).submit(); &amp;lt;/script&amp;gt; 
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;引诱用户点击链接：&lt;code&gt;&amp;lt;a href=&quot;[https://](https://time.geekbang.org/sendcoin?user=hacker&amp;amp;number=100)xxxx&quot; taget=&quot;xxx&quot; &amp;gt;领取福利&amp;lt;/a&amp;gt;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;iframe&lt;/h3&gt;
+&lt;p&gt;攻击方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;嵌入的&lt;code&gt;iframe&lt;/code&gt;被劫持或出现问题&lt;/p&gt;
+&lt;p&gt;解决：为 **&lt;code&gt;iframe&lt;/code&gt;&lt;strong&gt;设置&lt;/strong&gt;&lt;code&gt;sandbox&lt;/code&gt;&lt;strong&gt;属性，通过它可以对&lt;/strong&gt;&lt;code&gt;iframe&lt;/code&gt;**的行为进行各种限制，充分实现“最小权限“原则
+默认情况下，如果只写 &lt;code&gt;&amp;lt;iframe sandbox src=&quot;...&quot;&amp;gt;&lt;/code&gt;，则会启用所有限制&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;code&gt;allow-same-origin&lt;/code&gt;&lt;/th&gt;
+&lt;th&gt;允许内容保留其真实来源（而非被视作唯一源），可访问 cookies、IndexedDB 等&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-scripts&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许执行 JavaScript&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-forms&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许提交表单&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-popups&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许打开新窗口/标签页（如 &lt;code&gt;window.open()&lt;/code&gt;）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-top-navigation&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许 iframe 导航顶层页面（&lt;strong&gt;危险！慎用&lt;/strong&gt;）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-top-navigation-by-user-activation&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;仅在用户交互（如点击）后允许导航顶层页面&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-downloads&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许触发下载（如 &lt;code&gt;a[download]&lt;/code&gt; 或 &lt;code&gt;Blob&lt;/code&gt; 下载）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-modals&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许使用 &lt;code&gt;alert()&lt;/code&gt;, &lt;code&gt;confirm()&lt;/code&gt; 等模态对话框&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-pointer-lock&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许使用 Pointer Lock API&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-orientation-lock&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许锁定屏幕方向&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-presentation&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许使用 Presentation API&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;allow-popups-to-escape-sandbox&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许弹出窗口&lt;strong&gt;不受沙箱限制&lt;/strong&gt;（例如新窗口可运行脚本）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;点击劫持，外部网页通过&lt;code&gt;iframe&lt;/code&gt;嵌入被攻击的网页，通过修改样式效果诱导用户点击。&lt;/p&gt;
+&lt;p&gt;解决：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;设置响应头：&lt;code&gt;X-Frame-Options&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;X-Frame-Options&lt;/code&gt; 是一个 HTTP 响应头，用于控制当前页面是否可以被嵌入到 &lt;code&gt;&amp;lt;frame&amp;gt;&lt;/code&gt;、&lt;code&gt;&amp;lt;iframe&amp;gt;&lt;/code&gt;、&lt;code&gt;&amp;lt;embed&amp;gt;&lt;/code&gt; 或 &lt;code&gt;&amp;lt;object&amp;gt;&lt;/code&gt; 中，从而防止 点击劫持（Clickjacking）&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;值&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;含义&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;兼容性&lt;/strong&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;DENY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;页面&lt;strong&gt;不能&lt;/strong&gt;在任何 frame/iframe 中显示&lt;/td&gt;
+&lt;td&gt;所有现代浏览器支持&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;SAMEORIGIN&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;页面&lt;strong&gt;只能&lt;/strong&gt;在&lt;strong&gt;同源&lt;/strong&gt;的 frame/iframe 中显示&lt;/td&gt;
+&lt;td&gt;所有现代浏览器支持&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;ALLOW-FROM uri&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;页面可以在指定来源的 frame 中显示&lt;/td&gt;
+&lt;td&gt;❌ &lt;strong&gt;已被废弃，多数浏览器不支持&lt;/strong&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;ul&gt;
+&lt;li&gt;更现代的替代方案：&lt;code&gt;Content-Security-Policy: frame-ancestors&lt;/code&gt;，优先级高于 &lt;code&gt;X-Frame-Options&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;例如：&lt;code&gt;Content-Security-Policy: frame-ancestors &apos;self&apos;;&lt;/code&gt;&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;strong&gt;&lt;code&gt;frame-ancestors&lt;/code&gt;&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;含义&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;是否允许嵌套&lt;/strong&gt;&lt;/th&gt;
+&lt;th&gt;&lt;strong&gt;示例场景&lt;/strong&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&apos;none&apos;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;禁止任何页面将当前页面嵌入 &lt;code&gt;&amp;lt;iframe&amp;gt;&lt;/code&gt;、&lt;code&gt;&amp;lt;frame&amp;gt;&lt;/code&gt; 等&lt;/td&gt;
+&lt;td&gt;❌ 完全禁止&lt;/td&gt;
+&lt;td&gt;敏感页面（如银行登录页）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&apos;self&apos;&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;仅允许&lt;strong&gt;同源&lt;/strong&gt;页面嵌套（协议 + 域名 + 端口一致）&lt;/td&gt;
+&lt;td&gt;✅ 仅同源&lt;/td&gt;
+&lt;td&gt;同站内嵌管理面板&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;https://trusted.example.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;仅允许指定来源嵌套（必须是完整 URI，含协议）&lt;/td&gt;
+&lt;td&gt;✅ 仅该域名&lt;/td&gt;
+&lt;td&gt;第三方合作站点嵌入小部件&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;https://*.example.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许 example.com 的所有子域嵌套&lt;/td&gt;
+&lt;td&gt;✅ 所有子域&lt;/td&gt;
+&lt;td&gt;多租户 SaaS 平台&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;&apos;self&apos; https://partner.com&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许多个来源：同源 + 指定外部域名&lt;/td&gt;
+&lt;td&gt;✅ 同源或 partner.com&lt;/td&gt;
+&lt;td&gt;内部系统 + 外部合作伙伴&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;code&gt;*&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;允许&lt;strong&gt;任意来源&lt;/strong&gt;嵌套（⚠️ 极度危险）&lt;/td&gt;
+&lt;td&gt;✅ 任意网站&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;不推荐使用&lt;/strong&gt;（易遭点击劫持）&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;（未设置 &lt;code&gt;frame-ancestors&lt;/code&gt;）&lt;/td&gt;
+&lt;td&gt;默认行为：若设置了其他 CSP 指令，则默认为 &lt;code&gt;*&lt;/code&gt;；但若同时存在 &lt;code&gt;X-Frame-Options&lt;/code&gt;，则由其控制&lt;/td&gt;
+&lt;td&gt;取决于浏览器和其它头&lt;/td&gt;
+&lt;td&gt;不安全，应显式设置&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;SQL注入&lt;/h3&gt;
+&lt;p&gt;来自用户的输入、其他前端的数据输入的数据直接参与后端的数据库查询时的SQL语句拼接时。&lt;/p&gt;
+&lt;p&gt;例如下面的SQL语句拼接：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;&quot;SELECT * FROM users WHERE username = &apos;&quot;+ userName + &quot;&apos; and password = &apos;&quot; + psw + &quot;&apos;&quot;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;若&lt;code&gt;userName&lt;/code&gt;为&lt;code&gt;admin&apos;—&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;SELECT * FROM users WHERE username = &apos;admin&apos;--&apos; AND password = &apos;anything&apos;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;预防：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;前端：
+&lt;ul&gt;
+&lt;li&gt;校验不允许输出特殊字符串与引号等&lt;/li&gt;
+&lt;li&gt;对输入内容进行转义&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;后端：
+&lt;ul&gt;
+&lt;li&gt;避免使用字符串拼接的方式生成SQL语句，改用&lt;code&gt;?&lt;/code&gt;占位符编译的方式、或者对不可信来源的内容进行转义&lt;/li&gt;
+&lt;li&gt;避免将SQL错误消息直接返回给前端（会帮助入侵者分析）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;OS命令劫持&lt;/h3&gt;
+&lt;p&gt;OS命令注⼊和SQL注⼊差不多，只不过SQL注⼊是针对数据库的，⽽OS命令注⼊是针对操作系统的。&lt;/p&gt;
+&lt;p&gt;例如的nodejs的服务中，会根据前端的提交的表单内容克隆特定的仓库：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;exec(`git clone ${params.repo} /some/path`);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;若&lt;code&gt;params.repo&lt;/code&gt; 为[&lt;code&gt;https://github.com/xx/xx.git](https://github.com/xx/xx.git) &amp;amp;&amp;amp; rm -rf /* &amp;amp;&amp;amp;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;则命令就会变为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;exec(`git clone https://github.com/xx/xx.git &amp;amp;&amp;amp; rm -rf /* &amp;amp;&amp;amp; /some/path`);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;正确的做法：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const repo = encode(params.repo) // 对 repo 中的 &quot; 转义
+exec(`git clone &quot;${repo}&quot; /some/path`);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;DNS劫持&lt;/h3&gt;
+&lt;h3&gt;DDOS攻击&lt;/h3&gt;
+</content:encoded></item><item><title>Taro-语言识别的hook</title><link>https://fuwari.vercel.app/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
+&lt;li&gt;使用
+&lt;ul&gt;
+&lt;li&gt;status: 当前在那个阶段&lt;/li&gt;
+&lt;li&gt;originText：语音转换后的原文本&lt;/li&gt;
+&lt;li&gt;cancel：取消录音&lt;/li&gt;
+&lt;li&gt;convertAction：执行 originText 转业务数据逻辑，然后触发 onAddRows&lt;/li&gt;
+&lt;li&gt;start：开始录音&lt;/li&gt;
+&lt;li&gt;invalidInput：convertAction 每次转换后，剩余的无效文本&lt;/li&gt;
+&lt;li&gt;setInvalidInput：可编辑invalidInput 后，再此通过convertAction转换，…&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;  const {
+    status, originText, cancel,
+    convertAction, start, invalidInput, setInvalidInput
+  } = useAudio2Order({
+    onAddRows: onSuccess,
+    onStop: () =&amp;gt; setVisible(false)
+  })
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;useAudio2Order.ts&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;import {useCallback, useState} from &quot;react&quot;;
+import useRequest from &quot;@taro-hooks/use-request&quot;;
+import {textParse} from &quot;@/modules/preOrder/services&quot;;
+import Taro from &quot;@tarojs/taro&quot;;
+import useRecorderManager from &quot;@/shared/hooks/useRecorderManager&quot;;
+
+export enum Status {
+  // 音频输入中
+  audioInput,
+  // 转换文本中
+  convertText,
+  // 转换文本成功
+  invalid
+}
+
+export default ({onAddRows, onStop}: {
+  onAddRows?: (data: PreOrder.PreOrderAddProductDTO[]) =&amp;gt; void,
+  onStop?: VoidFunction
+}) =&amp;gt; {
+  const [originText, setOriginText] = useState(&apos;&apos;);
+  const [invalidInput, setInvalidInput] = useState(&apos;&apos;)
+  const [status, setStatus] = useState&amp;lt;Status | null&amp;gt;(null)
+
+  const {runAsync: textParseAsyncAction, loading: textParseLoading} = useRequest(
+    textParse, { manual: true }
+  )
+
+  const doParseText = useCallback(async (text: string) =&amp;gt; {
+    if (textParseLoading) {
+      return;
+    }
+    if (!text) {
+      Taro.showToast({
+        title: &apos;没有可识别的文本&apos;,
+        icon: &apos;none&apos;,
+      })
+      return
+    }
+    const result = (await textParseAsyncAction(text)) as PreOrder.TextParseVO;
+    if (!result) {
+      Taro.showToast({
+        title: &apos;未能识别，请重试&apos;,
+        icon: &apos;none&apos;,
+      })
+      return
+    }
+    let data = result
+    let hasData = data.parseRespList &amp;amp;&amp;amp; data.parseRespList.length &amp;gt; 0
+    if (hasData) {
+      onAddRows?.(data.parseRespList as PreOrder.PreOrderAddProductDTO[])
+    }
+    return data.badInput ?? &apos;&apos;;
+  }, [textParseLoading, textParseAsyncAction, onAddRows]);
+
+  const {startRecord, stopRecording} = useRecorderManager({
+    onRecognitionResult: setOriginText,
+    onStop: () =&amp;gt; convertAction(false)
+  })
+
+  const convertAction = async (st = true) =&amp;gt; {
+    if (status === Status.audioInput) {
+      setStatus(Status.convertText)
+      st &amp;amp;&amp;amp; stopRecording()
+      const otherText = await doParseText(originText)
+      setOriginText(&apos;&apos;);
+      if (otherText) {
+        setInvalidInput(otherText)
+        setStatus(Status.invalid)
+        return Status.invalid;
+      }
+      setStatus(null)
+      onStop?.();
+      return null;
+    }
+
+    if (status === Status.invalid) {
+      if (!invalidInput) {
+        setStatus(null)
+        return null;
+      }
+      const otherText = await doParseText(invalidInput)
+      if (otherText) {
+        setInvalidInput(otherText)
+        return Status.invalid;
+      }
+      setStatus(null)
+      onStop?.();
+      return null;
+    }
+  }
+
+  return {
+    start: async () =&amp;gt; {
+      setOriginText(&apos;&apos;);
+      setInvalidInput(&apos;&apos;);
+      setStatus(Status.audioInput)
+      await startRecord()
+    },
+    convertAction: () =&amp;gt; convertAction(),
+    cancel: async () =&amp;gt; {
+      await stopRecording()
+    },
+    originText,
+    invalidInput,
+    status,
+    setInvalidInput,
+    doParseText,
+    loading: textParseLoading,
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;使用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;  const {startRecord, stopRecording} = useRecorderManager({
+    onRecognitionResult: setOriginText,
+  })
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;useRecorderManager 实现&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;import {
+  authorizePermissions,
+  createSocketConnection,
+  handleMessageData,
+  remainingTimeInterval,
+  toBase64,
+} from &apos;@/shared/hooks/useRecorderManager/utils&apos;
+
+import Taro from &apos;@tarojs/taro&apos;
+import {useCallback, useRef, useState} from &apos;react&apos;
+
+export interface UseRecorderManagerProps {
+  /**
+   * 语音录入时间，单位毫秒，最长60000毫秒
+   * 默认也是60000毫秒
+   */
+  remainingTime?: number
+  /**
+   * 识别结果的回调
+   * @param value
+   */
+  onRecognitionResult?: (value: string) =&amp;gt; void
+  /**
+   * 剩余时间变化触发的方法 返回是秒
+   * @param value
+   */
+  onRemainingTimeChange?: (value: number) =&amp;gt; void
+  onStop?: () =&amp;gt; void
+}
+
+const propsWithDefault = (props: UseRecorderManagerProps) =&amp;gt; {
+  if (!props.remainingTime) {
+    props.remainingTime = 60 * 1000;
+  }
+  return props;
+}
+
+export default function useRecorderManager(props: UseRecorderManagerProps) {
+
+  const propsRef = useRef&amp;lt;UseRecorderManagerProps&amp;gt;(props);
+  propsRef.current = propsWithDefault(props);
+
+  // 是否在录音中
+  const [isRecording, _setRecording] = useState(false);
+  const isRecordingRef = useRef&amp;lt;boolean&amp;gt;(isRecording);
+  const setRecording = useCallback((v) =&amp;gt; {
+    isRecordingRef.current = v;
+    _setRecording(v);
+  }, [])
+
+  // remainingTime 倒计时的 interval 的返回值
+  const intervalTimer = useRef&amp;lt;any&amp;gt;()
+
+  // 解析缓存
+  const voiceResultMapRef = useRef&amp;lt;Map&amp;lt;number, any&amp;gt;&amp;gt;(new Map())
+
+  // ws连接
+  const socketConnection = useRef&amp;lt;Taro.SocketTask | null&amp;gt;(null)
+
+  /**
+   * 停止录音
+   */
+  const stopRecording = useCallback(() =&amp;gt; {
+    setRecording(false)
+    clearInterval(intervalTimer.current)
+    // 完整清理，关闭所有连接与状态
+    try {
+      Taro.getRecorderManager().stop()
+    } catch {
+    }
+    try {
+      socketConnection.current?.close({code: 1})
+    } catch {
+    }
+    // 事件会调
+    propsRef.current.onStop?.()
+    // ws连接
+    socketConnection.current = null
+    // 解析缓存
+    voiceResultMapRef.current = new Map()
+  }, [])
+
+  /**
+   * 暂停录音
+   */
+  const pauseRecording = useCallback(() =&amp;gt; {
+    if (!isRecordingRef.current) {
+      return;
+    }
+    Taro.getRecorderManager().pause()
+    setRecording(false)
+  }, [])
+
+  /**
+   * 继续录音
+   */
+  const resumeRecording = useCallback(() =&amp;gt; {
+    if (isRecordingRef.current) {
+      return;
+    }
+    Taro.getRecorderManager().resume()
+    setRecording(true)
+  }, [])
+
+  // 处理识别结果
+  const onMessage = useCallback((res: string) =&amp;gt; {
+    if (!res) {
+      return
+    }
+
+    // 解析讯飞的数据包
+    try {
+      const jsonData = JSON.parse(res)
+      if (jsonData.data &amp;amp;&amp;amp; jsonData.data.result) {
+        const resultText = handleMessageData(jsonData.data.result, voiceResultMapRef.current)
+        propsRef.current.onRecognitionResult?.(resultText)
+      }
+      if (jsonData.code === 0 &amp;amp;&amp;amp; jsonData.data.status === 2) {
+        stopRecording()
+      }
+      if (jsonData.code !== 0) {
+        stopRecording()
+        Taro.showToast({
+          title: `讯飞调用失败:${jsonData.code}`,
+          icon: &apos;none&apos;,
+        })
+      }
+    } catch (err) {
+      console.error(&apos;语音解析异常&apos;, err)
+      stopRecording()
+      Taro.showToast({
+        title: `语音解析异常`,
+        icon: &apos;none&apos;,
+      })
+    }
+  }, [])
+
+  const startRecord = useCallback(async () =&amp;gt; {
+    if (isRecordingRef.current) return
+    setRecording(true)
+
+    try {
+      await authorizePermissions()
+
+      const recorder = Taro.getRecorderManager()
+      recorder.onStart(() =&amp;gt; {
+        clearInterval(intervalTimer.current)
+        // 是否需要等待最后一个片段完成（ws 收到消息后关闭）？
+        intervalTimer.current = remainingTimeInterval(
+          propsRef.current.remainingTime!,
+          v =&amp;gt; propsRef.current.onRemainingTimeChange?.(v),
+          stopRecording
+        )
+      })
+
+      recorder.onError?.((error) =&amp;gt; {
+        console.error(&apos;录音失败，请重试&apos;, JSON.stringify(error));
+        Taro.showToast({title: &apos;录音失败，请重试&apos;, icon: &apos;none&apos;})
+      })
+
+      const duration = Math.min(Math.max(propsRef.current.remainingTime!, 0), 60000)
+      recorder.start({
+        duration,
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        frameSize: 2,
+        format: &apos;pcm&apos; as any,
+      })
+
+      recorder.onFrameRecorded(({frameBuffer, isLastFrame}) =&amp;gt; {
+        if (!isRecordingRef.current) {
+          return;
+        }
+        const u8Arr = new Uint8Array(frameBuffer)
+        socketConnection.current?.send({
+          data: JSON.stringify({
+            data: {
+              status: isLastFrame ? 2 : 1,
+              format: &apos;audio/L16;rate=16000&apos;,
+              encoding: &apos;raw&apos;,
+              audio: toBase64(u8Arr),
+            },
+          }),
+          fail: (err) =&amp;gt; {
+            console.error(&apos;音频发送失败&apos;, err)
+            Taro.showToast({title: &apos;音频发送失败&apos;, icon: &apos;none&apos;})
+          },
+        })
+      })
+
+      // ws连接
+      socketConnection.current = await createSocketConnection();
+      socketConnection.current!.onMessage((e) =&amp;gt; onMessage(e.data))
+      socketConnection.current!.onError?.(() =&amp;gt; Taro.showToast({title: &apos;语音服务异常&apos;, icon: &apos;none&apos;}))
+    } catch (err) {
+      console.error(&apos;连接语音服务失败&apos;, err)
+      Taro.showToast({title: &apos;连接语音服务失败&apos;, icon: &apos;none&apos;})
+      stopRecording()
+    }
+  }, [])
+  return {
+    startRecord,
+    pauseRecording,
+    resumeRecording,
+    isRecording,
+    stopRecording,
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;utils&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;import Taro from &quot;@tarojs/taro&quot;;
+
+export const toBase64 = (buffer: Uint8Array) =&amp;gt; {
+   ...
+}
+
+export const handleMessageData = (data: any, map: Map&amp;lt;number, any&amp;gt;) =&amp;gt; {
+  let sn = data.sn
+  let pgs = data.pgs
+  if (sn &amp;amp;&amp;amp; pgs) {
+    map.set(sn, data)
+    if (pgs == &apos;rpl&apos;) {
+      let rg = data.rg
+      if (rg != null &amp;amp;&amp;amp; rg.length == 2) {
+        for (let key = rg[0]; key &amp;lt;= rg[1]; key++) {
+          map.delete(key)
+        }
+      }
+    }
+  }
+  // 将Map的entries转换为数组并按键排序
+  const sortedEntries = Array.from(map.entries()).sort(
+    (a, b) =&amp;gt; a[0] - b[0],
+  )
+  // 使用reduce累积拼接文本，模拟StringBuffer的行为
+  return sortedEntries.reduce((stringBuffer, [, cur]) =&amp;gt; {
+    const ws = cur.ws
+
+    // 如果ws为空，返回之前的累积结果
+    if (!ws) {
+      return stringBuffer
+    }
+
+    // 遍历词组列表，拼接每个词组的第一个候选词
+    for (let i = 0; i &amp;lt; ws.length; i++) {
+      const cw = ws[i].cw
+      if (cw) {
+        stringBuffer += cw[0].w
+      }
+    }
+    return stringBuffer
+  }, &apos;&apos;)
+}
+
+export const createSocketConnection = async () =&amp;gt; {
+  const connect = await Taro.connectSocket({url: &apos;讯飞音频转换ws服务地址&apos; })
+  await new Promise&amp;lt;void&amp;gt;((resolve, reject) =&amp;gt; {
+    connect.onOpen(() =&amp;gt; {
+      connect.send({
+        data: &apos;配置&apos;,
+        fail: () =&amp;gt; {
+          Taro.showToast({title: &apos;语音服务握手失败&apos;, icon: &apos;none&apos;})
+        },
+      })
+      resolve();
+    })
+    connect.onError?.((err) =&amp;gt; {
+      console.error(&apos;语音服务异常&apos;, err)
+      Taro.showToast({title: &apos;语音服务异常&apos;, icon: &apos;none&apos;});
+      reject(err)
+    })
+  })
+  return connect!;
+}
+
+export const authorizePermissions = () =&amp;gt; {
+  return new Promise((resolve, reject) =&amp;gt; {
+    Taro.authorize({
+      scope: &apos;scope.record&apos;,
+      fail: (err) =&amp;gt; {
+        Taro.showModal({
+          title: &apos;提示&apos;,
+          content: &apos;您未授权录音，功能将无法使用&apos;,
+          confirmColor: &apos;#06AE56&apos;,
+          cancelColor: &apos;#000000&apos;,
+          confirmText: &apos;去授权&apos;,
+          success: ({confirm}) =&amp;gt; {
+            confirm &amp;amp;&amp;amp; Taro.openSetting()
+          },
+        })
+        reject(err)
+      },
+      success: resolve,
+    })
+  })
+}
+
+export const remainingTimeInterval = (remainingTime, onRemainingTimeChange, stopRecording) =&amp;gt; {
+  let currentRemaining = Math.min(Math.max(remainingTime!, 0), 60000)
+  onRemainingTimeChange?.(currentRemaining / 1000)
+  const timer = setInterval(() =&amp;gt; {
+    currentRemaining -= 500
+    if (currentRemaining &amp;lt;= 0) {
+      clearInterval(timer)
+      stopRecording()
+      onRemainingTimeChange?.(0)
+      return
+    }
+    onRemainingTimeChange?.(currentRemaining / 1000)
+  }, 500)
+  return timer;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>React调度器在打印任务中的应用</title><link>https://fuwari.vercel.app/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</guid><pubDate>Mon, 03 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;在分拣管理系统中，用户可批量选择数百个订单并提交打印请求。直接将所有打印命令一次性发送至打印机会导致：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;🔥 &lt;strong&gt;缓冲溢出&lt;/strong&gt;：打印机硬件缓冲通常为 KB 级别，海量命令会超出容量&lt;/li&gt;
+&lt;li&gt;❌ &lt;strong&gt;命令丢失或混乱&lt;/strong&gt;：打印机无法及时处理，部分命令丢失或顺序错乱&lt;/li&gt;
+&lt;li&gt;⏸️ &lt;strong&gt;UI 冻结&lt;/strong&gt;：主线程被 I/O 操作阻塞，用户交互无响应&lt;/li&gt;
+&lt;li&gt;🖨️ &lt;strong&gt;设备崩溃&lt;/strong&gt;：极端情况下打印机会重启&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为此需要一个&lt;strong&gt;任务调度系统&lt;/strong&gt;，将批量打印任务分片顺序执行。&lt;/p&gt;
+&lt;h2&gt;概述&lt;/h2&gt;
+&lt;p&gt;基于 React Scheduler 思想实现的轻量级任务调度器，专用于打印任务的顺序执行管理。通过时间分片和异步调度，防止长任务阻塞渲染。&lt;/p&gt;
+&lt;h2&gt;核心设计&lt;/h2&gt;
+&lt;h3&gt;Scheduler 类结构&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;任务队列 → 调度引擎 → 帧时间检测 → 任务执行
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;关键特性：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;MessageChannel 优先调度&lt;/strong&gt;：利用 MessageChannel 的微任务特性实现高效调度，无可用时降级到 setTimeout&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;时间分片&lt;/strong&gt;：每批任务执行限制在 5ms 内，超时则暂停并重新调度，保持 UI 响应性&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Promise 支持&lt;/strong&gt;：任务可返回 Promise，调度器会等待异步完成后继续下一个任务&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;任务取消&lt;/strong&gt;：支持按 ID 取消已队列的任务&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;执行流程&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;scheduleTask() → _taskQueue.push() → _requestHostCallback()
+                                           ↓
+                                   MessageChannel.postMessage()
+                                           ↓
+                                    _flushWork() 开始处理
+                                           ↓
+                                      _workLoop()
+                                      循环执行任务
+                                      检测 5ms 超时
+                                           ↓
+                                    任务队列非空时重新调度
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;应用场景：标签打印&lt;/h2&gt;
+&lt;h3&gt;打印流程&lt;/h3&gt;
+&lt;p&gt;在 &lt;code&gt;useLabelPrint&lt;/code&gt; 中的应用：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 1. 构建打印参数
+const params = {
+  saleOrderDetailIdList: products.map(p =&amp;gt; p.saleOrderDetailId),
+  isPrintItem: true,
+  isPrintItemNew: true
+}
+
+// 2. 查询打印命令
+const commands = await queryLabelPrintCommandApi(params)
+
+// 3. 逐个调度打印任务
+commands.forEach(command =&amp;gt; {
+  scheduler.scheduleTask(() =&amp;gt; {
+    if (bluetooth.connectedPrinterDevice?.source === &apos;usb&apos;) {
+      bridge.printer.usbPrintLabel(command)
+    } else {
+      bridge.printer.bluetoothPrintLabel(address, command)
+    }
+  })
+})
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;实现策略&lt;/h3&gt;
+&lt;p&gt;调度器采用 &lt;strong&gt;时间分片 + 消息队列&lt;/strong&gt; 模式：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;[100+ 打印命令] → [Scheduler] → [消息队列]
+                            ↓
+                        每 5ms 执行 1 条
+                            ↓
+                    打印机处理完成
+                            ↓
+                        下一条命令
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优势：&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;✅ 打印机有充足时间处理每条命令（平均间隔 5ms）&lt;/li&gt;
+&lt;li&gt;✅ UI 线程保持响应（每 5ms 检查一次超时）&lt;/li&gt;
+&lt;li&gt;✅ 系统资源均衡利用，无峰值压力&lt;/li&gt;
+&lt;li&gt;✅ 支持中途取消任务&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;关键优化点&lt;/h2&gt;
+&lt;h3&gt;1. 状态标志隔离&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;_isScheduled    // 是否已请求调度
+_isPerformingWork  // 是否正在处理任务
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;防止重复调度和竞态条件。&lt;/p&gt;
+&lt;h3&gt;2. 自适应降级&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;if (typeof MessageChannel !== &apos;undefined&apos;) {
+  // 现代浏览器：MessageChannel 微任务调度
+} else {
+  // 兼容模式：setTimeout 宏任务调度
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3. 错误隔离&lt;/h3&gt;
+&lt;p&gt;单个任务失败不影响队列中其他任务的执行。&lt;/p&gt;
+&lt;h2&gt;性能指标&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;调度延迟&lt;/strong&gt;：&amp;lt; 1ms（MessageChannel）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;帧内执行时间&lt;/strong&gt;：5ms&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;支持队列深度&lt;/strong&gt;：无限制&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;内存占用&lt;/strong&gt;：O(n)，n 为队列任务数&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;总结&lt;/h2&gt;
+&lt;p&gt;Scheduler 以最小化的代码复杂度实现了 React 级别的任务调度能力，特别适合：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;大量串行 I/O 操作（打印、上传等）&lt;/li&gt;
+&lt;li&gt;需要保持 UI 响应性的后台任务&lt;/li&gt;
+&lt;li&gt;设备集成场景的命令下发&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;核心价值在于 &lt;strong&gt;时间分片 + 优先级调度 + 异步支持&lt;/strong&gt; 的有机结合。&lt;/p&gt;
+&lt;h2&gt;Schduler 代码&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;/** 调度任务接口 */
+interface Task {
+  /** 任务唯一标识 */
+  id: number
+  /** 任务执行函数，支持同步和异步 */
+  callback: () =&amp;gt; void | Promise&amp;lt;void&amp;gt;
+}
+
+/**
+ * 任务调度器 - 基于时间分片的轻量级调度实现
+ */
+export default class Scheduler {
+  /** 待执行任务队列 */
+  private _taskQueue: Task[] = []
+  /** 任务计数器，用于生成唯一 ID */
+  private _taskIdCounter = 0
+  /** 标志：是否已请求调度（防止重复调度） */
+  private _isScheduled = false
+  /** 标志：是否正在处理任务（防止并发执行） */
+  private _isPerformingWork = false
+  /** 当前执行的任务 */
+  private _currentTask: Task | null = null
+  /** 帧时间限制，单位 ms。每个时间分片最多执行 5ms 的任务 */
+  private _frameDeadline = 5
+  /** MessageChannel 实例，用于高效的微任务调度 */
+  private _channel: MessageChannel | null = null
+  /** 调度方式：优先级 MessageChannel &amp;gt; requestIdleCallback &amp;gt; setTimeout */
+  private _scheduleStrategy: &apos;messageChannel&apos; | &apos;idleCallback&apos; | &apos;timeout&apos; = &apos;timeout&apos;
+
+  /**
+   * 初始化调度器
+   * 
+   * 自动检测 MessageChannel、requestIdleCallback、setTimeout 可用性
+   */
+  constructor() {
+    if (typeof MessageChannel !== &apos;undefined&apos;) {
+      try {
+        this._channel = new MessageChannel()
+        // port2 接收消息时触发调度
+        this._channel.port2.onmessage = () =&amp;gt; {
+          this._flushWork()
+        }
+        this._scheduleStrategy = &apos;messageChannel&apos;
+      } catch (e) {
+        // MessageChannel 创建失败，降级到下一个方案
+        console.warn(&apos;MessageChannel initialization failed, fallback to next strategy&apos;)
+        this._channel = null
+      }
+    }
+
+    // 如果 MessageChannel 不可用，检查 requestIdleCallback
+    if (!this._channel &amp;amp;&amp;amp; typeof requestIdleCallback !== &apos;undefined&apos;) {
+      this._scheduleStrategy = &apos;idleCallback&apos;
+    } else if (!this._channel) {
+      // 最终降级到 setTimeout（所有环境都支持）
+      this._scheduleStrategy = &apos;timeout&apos;
+    }
+  }
+
+  /**
+   * 添加任务到调度队列
+   * 
+   * @param callback 任务函数
+   * @returns 任务 ID
+   */
+  scheduleTask(callback: () =&amp;gt; void | Promise&amp;lt;void&amp;gt;): number {
+    const task: Task = {
+      id: ++this._taskIdCounter,
+      callback,
+    }
+
+    this._taskQueue.push(task)
+
+    // 保证仅在有必要时调度
+    if (!this._isScheduled &amp;amp;&amp;amp; !this._isPerformingWork) {
+      this._isScheduled = true
+      this._requestHostCallback()
+    }
+
+    return task.id
+  }
+
+  /**
+   * 取消指定的任务
+   * 
+   * @param taskId 任务 ID
+   * @returns 成功返回 true
+   */
+  cancelTask(taskId: number): boolean {
+    const index = this._taskQueue.findIndex((task) =&amp;gt; task.id === taskId)
+    if (index !== -1) {
+      this._taskQueue.splice(index, 1)
+      return true
+    }
+    return false
+  }
+
+  /**
+   * 请求调度回调
+   * 
+   * 根据浏览器能力选择不同策略
+   */
+  private _requestHostCallback() {
+    switch (this._scheduleStrategy) {
+      case &apos;messageChannel&apos;:
+        // MessageChannel 微任务
+        if (this._channel) {
+          this._channel.port1.postMessage(null)
+        } else {
+          // 降级到 setTimeout
+          this._scheduleStrategy = &apos;timeout&apos;
+          setTimeout(() =&amp;gt; this._flushWork(), 0)
+        }
+        break
+
+      case &apos;idleCallback&apos;:
+        // requestIdleCallback 空闲回调
+        requestIdleCallback(() =&amp;gt; this._flushWork(), { timeout: 1000 })
+        break
+
+      case &apos;timeout&apos;:
+      default:
+        // setTimeout 宏任务
+        setTimeout(() =&amp;gt; this._flushWork(), 0)
+        break
+    }
+  }
+
+  /**
+   * 刷新调度队列
+   */
+  private async _flushWork() {
+    // 防止并发
+    if (this._isPerformingWork) {
+      return
+    }
+
+    this._isScheduled = false
+    this._isPerformingWork = true
+
+    try {
+      await this._workLoop()
+    } catch (error) {
+      console.error(&apos;Scheduler error:&apos;, error)
+    } finally {
+      this._isPerformingWork = false
+      this._currentTask = null
+
+      if (this._taskQueue.length &amp;gt; 0) {
+        this._isScheduled = true
+        this._requestHostCallback()
+      }
+    }
+  }
+
+  /**
+   * 时间分片工作循环
+   * 
+   * 每次执行后检测是否超过 5ms 时间预算
+   */
+  private async _workLoop() {
+    const startTime = performance.now()
+
+    while (this._taskQueue.length &amp;gt; 0) {
+      this._currentTask = this._taskQueue.shift()!
+
+      try {
+        const result = this._currentTask.callback()
+
+        // 支持异步任务
+        if (result instanceof Promise) {
+          await result
+        }
+      } catch (error) {
+        // 单个任务失败不影响后续任务
+        console.error(`Task ${this._currentTask.id} failed:`, error)
+      }
+
+      this._currentTask = null
+
+      // 检查是否超过时间预算
+      if (this._shouldYieldToHost(startTime)) {
+        break
+      }
+    }
+  }
+
+  /**
+   * 判断是否应该让出执行权
+   * 
+   * @param startTime 时间分片的开始时间
+   * @returns 若执行时间 &amp;gt;= 5ms，返回 true
+   */
+  private _shouldYieldToHost(startTime: number): boolean {
+    const elapsed = performance.now() - startTime
+    return elapsed &amp;gt;= this._frameDeadline
+  }
+
+  /**
+   * 获取待执行任务数
+   */
+  getQueueLength(): number {
+    return this._taskQueue.length
+  }
+
+  /**
+   * 清空所有任务
+   */
+  clearQueue(): void {
+    this._taskQueue = []
+    this._currentTask = null
+  }
+
+  /**
+   * 获取当前调度策略
+   */
+  getScheduleStrategy(): string {
+    return this._scheduleStrategy
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>React 性能优化实战：解决低配设备上大列表渲染卡顿问题</title><link>https://fuwari.vercel.app/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</guid><pubDate>Sun, 02 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;一、背景&lt;/h2&gt;
+&lt;h3&gt;1.1 硬件环境&lt;/h3&gt;
+&lt;p&gt;在工位屏嵌入式平板设备（供应商定制一体机）上运行的第一版分拣系统在测试阶段发现存在严重的性能问题：
+小霸王都比这机器流畅。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;CPU&lt;/strong&gt;：未知型号（性能较弱）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;内存&lt;/strong&gt;：4GB 总内存，实际可用约 2GB&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;WebView 内核&lt;/strong&gt;：腾讯 X5&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;1.2 问题描述&lt;/h3&gt;
+&lt;p&gt;当分拣任务列表中的卡片数量较多时（≥121 个），界面出现明显的响应延迟：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;场景 1&lt;/strong&gt;：点击左侧订单 Tab 后，右侧分拣区域的卡片渲染耗时 &lt;strong&gt;&amp;gt;3 秒&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;场景 2&lt;/strong&gt;：打开批量操作弹窗加载所有项时，同样存在 &lt;strong&gt;&amp;gt;3 秒左右&lt;/strong&gt;的卡顿&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;用户体验&lt;/strong&gt;：点击后响应缓慢，严重影响分拣效率&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;二、问题分析&lt;/h2&gt;
+&lt;hr /&gt;
+&lt;h3&gt;2.1 性能瓶颈定位&lt;/h3&gt;
+&lt;p&gt;问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;全量渲染&lt;/strong&gt;：所有卡片（121+ 个）同时渲染，大量 DOM 节点创建&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;重复渲染&lt;/strong&gt;：组件更新 3 次才完成（理想情况应为 1 次）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;函数重建&lt;/strong&gt;：每次渲染都创建新的回调函数，导致子组件无效更新&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;状态依赖过度&lt;/strong&gt;：组件监听了整个 Store 而非具体字段&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;2.2 根本原因&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;缺少虚拟化&lt;/strong&gt;：未使用虚拟列表技术，可视区外的元素也被渲染&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;缺少 Memoization&lt;/strong&gt;：未使用 &lt;code&gt;React.memo&lt;/code&gt;、&lt;code&gt;useMemo&lt;/code&gt;、&lt;code&gt;useCallback&lt;/code&gt; 优化&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Props 不稳定&lt;/strong&gt;：内联函数和对象导致 props 引用变化&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;全局状态滥用&lt;/strong&gt;：不必要的全局状态订阅导致级联更新&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h2&gt;三、优化方案&lt;/h2&gt;
+&lt;h3&gt;3.1 引入虚拟列表/虚拟网格&lt;/h3&gt;
+&lt;h3&gt;3.1.1 使用的库&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;react-window&lt;/strong&gt;：轻量级虚拟滚动库，支持固定和可变尺寸的列表/网格&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;react-virtualized-auto-sizer&lt;/strong&gt;：自动计算容器尺寸，适配不同屏幕&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;pnpm add react-window react-virtualized-auto-sizer
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.1.2 左侧订单列表优化&lt;/h3&gt;
+&lt;p&gt;使用 &lt;code&gt;VariableSizeList&lt;/code&gt; 实现可变高度的虚拟列表：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import { VariableSizeList } from &apos;react-window&apos;
+import AutoSizer from &apos;react-virtualized-auto-sizer&apos;
+
+const LeftTaskList = () =&amp;gt; {
+  const itemSize = useCallback((index) =&amp;gt; {
+    return 120 // 根据实际卡片高度计算
+  }, [])
+
+  const renderRow = useCallback(({ index, style }) =&amp;gt; (
+    &amp;lt;div style={style}&amp;gt;
+      &amp;lt;OrderCard value={data[index]} /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  ), [data])
+
+  return (
+    &amp;lt;AutoSizer&amp;gt;
+      {({ height, width }) =&amp;gt; (
+        &amp;lt;VariableSizeList
+          height={height}
+          width={width}
+          itemCount={data.length}
+          itemSize={itemSize}
+        &amp;gt;
+          {renderRow}
+        &amp;lt;/VariableSizeList&amp;gt;
+      )}
+    &amp;lt;/AutoSizer&amp;gt;
+  )
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化效果&lt;/strong&gt;：仅渲染可见区域的 6-8 个卡片，而非全部 121 个。&lt;/p&gt;
+&lt;h3&gt;3.1.3 右侧分拣网格优化&lt;/h3&gt;
+&lt;p&gt;使用 &lt;code&gt;FixedSizeGrid&lt;/code&gt; 实现二维虚拟网格：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import { FixedSizeGrid } from &apos;react-window&apos;
+
+const TaskCategoryGrid = ({ items }) =&amp;gt; {
+  const columnCount = 3 // 每行 3 列
+  const rowCount = Math.ceil(items.length / columnCount)
+
+  const renderCell = useCallback(({ columnIndex, rowIndex, style }) =&amp;gt; {
+    const index = rowIndex * columnCount + columnIndex
+    if (index &amp;gt;= items.length) return null
+
+    return (
+      &amp;lt;div style={style}&amp;gt;
+        &amp;lt;TaskCard value={items[index]} /&amp;gt;
+      &amp;lt;/div&amp;gt;
+    )
+  }, [items, columnCount])
+
+  return (
+    &amp;lt;AutoSizer&amp;gt;
+      {({ height, width }) =&amp;gt; (
+        &amp;lt;FixedSizeGrid
+          height={height}
+          width={width}
+          columnCount={columnCount}
+          rowCount={rowCount}
+          columnWidth={width / columnCount}
+          rowHeight={200}
+        &amp;gt;
+          {renderCell}
+        &amp;lt;/FixedSizeGrid&amp;gt;
+      )}
+    &amp;lt;/AutoSizer&amp;gt;
+  )
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;关键点&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;避免在 &lt;code&gt;VariableSizeList&lt;/code&gt; 的 &lt;code&gt;renderItem&lt;/code&gt; 中嵌套 &lt;code&gt;AutoSizer&lt;/code&gt; + &lt;code&gt;FixedSizeGrid&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;这会导致滚动时频繁重新计算布局，引发严重性能问题&lt;/li&gt;
+&lt;li&gt;推荐将二维网格结构扁平化为一维列表&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;3.1.4 优化滚动时的白屏现象&lt;/h3&gt;
+&lt;p&gt;使用虚拟列表后，滚动时用户可能先看到空白区域，然后卡片才出现。这是因为虚拟列表默认仅渲染可见区域。为了优化这个体验，可以使用 &lt;code&gt;overscanCount&lt;/code&gt; 参数增加提前渲染的行数：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ✅ 预渲染更多行，消除滚动白屏
+&amp;lt;VariableSizeList
+  height={height}
+  width={width}
+  itemCount={items.length}
+  itemSize={itemSize}
+  overscanCount={2}
+&amp;gt;
+  {renderItem}
+&amp;lt;/VariableSizeList&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;参数说明&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;overscanCount&lt;/code&gt;：在可见区域上下各预渲染的行数&lt;/li&gt;
+&lt;li&gt;默认值为 &lt;code&gt;1&lt;/code&gt;，增大该值可以减少滚动白屏，但会增加渲染负担&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;优化效果&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;✅ 快速滚动时无白屏&lt;/li&gt;
+&lt;li&gt;✅ 列表响应流畅，体验更好&lt;/li&gt;
+&lt;li&gt;⚠️ 多渲染 5-10 个额外的 DOM 节点，但仍远小于全量渲染&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h3&gt;3.2 优化状态管理&lt;/h3&gt;
+&lt;h3&gt;3.2.1 使用 &lt;code&gt;useCallback&lt;/code&gt; 包裹回调函数&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;问题代码&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 每次渲染都创建新函数
+&amp;lt;TaskCard
+  onClick={() =&amp;gt; handleClick(item)}
+  onAction={(val) =&amp;gt; handleAction(val)}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化后&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ✅ 使用 useCallback 缓存函数引用
+const handleClick = useCallback((item) =&amp;gt; {
+  // ...
+}, [])
+
+const handleAction = useCallback((val) =&amp;gt; {
+  // ...
+}, [])
+
+&amp;lt;TaskCard
+  onClick={handleClick}
+  onAction={handleAction}
+/&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.2.2 使用 &lt;code&gt;useMemo&lt;/code&gt; 缓存计算结果&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;问题代码&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 每次渲染都重新计算
+const filteredItems = items.filter(item =&amp;gt; item.status === &apos;active&apos;)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化后&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ✅ 仅在依赖变化时重新计算
+const filteredItems = useMemo(
+  () =&amp;gt; items.filter(item =&amp;gt; item.status === &apos;active&apos;),
+  [items]
+)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.2.3 最小化全局状态依赖&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;问题代码&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 监听整个 Store，任何字段变化都会触发更新
+const settings = useStore(settingsStore)
+const rowCount = settings.rowCount
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化后&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// ✅ 仅订阅需要的字段
+const rowCount = useStore(settingsStore, state =&amp;gt; state.rowCount)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h3&gt;3.3 使用 &lt;code&gt;React.memo&lt;/code&gt; 优化子组件&lt;/h3&gt;
+&lt;h3&gt;3.3.1 包裹纯展示组件&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 未优化的组件
+const TaskCard = ({ value, onClick }) =&amp;gt; {
+  return &amp;lt;div onClick={() =&amp;gt; onClick(value)}&amp;gt;...&amp;lt;/div&amp;gt;
+}
+
+// ✅ 使用 React.memo + 自定义比较函数
+const TaskCard = React.memo(({ value, onClick }) =&amp;gt; {
+  return &amp;lt;div onClick={() =&amp;gt; onClick(value)}&amp;gt;...&amp;lt;/div&amp;gt;
+}, (prevProps, nextProps) =&amp;gt; {
+  // 仅在 value.id 和 value.status 变化时重新渲染
+  return prevProps.value.id === nextProps.value.id &amp;amp;&amp;amp;
+         prevProps.value.status === nextProps.value.status
+})
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.3.2 配合 &lt;code&gt;useCallback&lt;/code&gt; 稳定 props&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const ParentComponent = () =&amp;gt; {
+  // ✅ 确保 onClick 引用稳定
+  const handleCardClick = useCallback((item) =&amp;gt; {
+    console.log(item)
+  }, [])
+
+  return &amp;lt;TaskCard value={item} onClick={handleCardClick} /&amp;gt;
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h3&gt;3.4 使用 &lt;code&gt;why-did-you-render&lt;/code&gt; 诊断无效渲染&lt;/h3&gt;
+&lt;h3&gt;3.4.1 安装和配置&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;pnpm add @welldone-software/why-did-you-render
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在项目入口文件（如 &lt;code&gt;src/wdyr.ts&lt;/code&gt;）中配置：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import React from &apos;react&apos;
+
+if (process.env.NODE_ENV === &apos;development&apos;) {
+  const whyDidYouRender = require(&apos;@welldone-software/why-did-you-render&apos;)
+  whyDidYouRender(React, {
+    trackAllPureComponents: true, // 追踪所有 memo 组件
+    trackHooks: true, // 追踪 Hooks
+    logOnDifferentValues: true, // 记录不同值
+    collapseGroups: true, // 折叠日志组
+  })
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在主入口文件（&lt;code&gt;src/index.tsx&lt;/code&gt;）最顶部引入：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import &apos;./wdyr&apos; // ⚠️ 必须在 React 引入之前
+import React from &apos;react&apos;
+import ReactDOM from &apos;react-dom&apos;
+// ...
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.4.2 标记需要监控的组件&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const TaskCard = React.memo(({ value, onClick }) =&amp;gt; {
+  // ...
+})
+
+// 标记组件以便 WDYR 追踪
+TaskCard.whyDidYouRender = true
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;3.4.3 控制台日志格式解读&lt;/h3&gt;
+&lt;p&gt;WDYR 会在控制台输出以下格式的日志：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;TaskCard:
+  Re-rendered because of props changes:
+
+  different objects that are equal by value:
+    onClick: {
+      prev: function() {}
+      next: function() {}
+    } (functions)
+
+  different objects that are equal by value:
+    value: {
+      prev: { id: 1, name: &apos;商品A&apos;, status: &apos;active&apos; }
+      next: { id: 1, name: &apos;商品A&apos;, status: &apos;active&apos; }
+    }
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;日志解读&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Re-rendered because of props changes&lt;/strong&gt;：因为 props 变化而重新渲染&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;different objects that are equal by value&lt;/strong&gt;：虽然值相同，但引用不同（需要优化）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;onClick: prev/next&lt;/strong&gt;：回调函数引用变化（需要用 &lt;code&gt;useCallback&lt;/code&gt; 包裹）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;value: prev/next&lt;/strong&gt;：对象引用变化但内容相同（可能需要 &lt;code&gt;useMemo&lt;/code&gt; 或自定义 &lt;code&gt;memo&lt;/code&gt; 比较函数）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;3.4.4 实战案例&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;问题发现&lt;/strong&gt;：点击左侧订单 Tab 时，右侧分拣区域更新了 &lt;strong&gt;3 次&lt;/strong&gt;，而理想情况应为 &lt;strong&gt;1 次&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;通过 WDYR 日志发现：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;第 1 次更新&lt;/strong&gt;：&lt;code&gt;data&lt;/code&gt; 状态变化（正常）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;第 2 次更新&lt;/strong&gt;：&lt;code&gt;renderCard&lt;/code&gt; 函数引用变化（需要 &lt;code&gt;useCallback&lt;/code&gt;）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;第 3 次更新&lt;/strong&gt;：&lt;code&gt;categoryOptions&lt;/code&gt; 对象引用变化（需要 &lt;code&gt;useMemo&lt;/code&gt;）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;解决方案&lt;/strong&gt;：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 使用 useCallback 稳定 renderCard
+const renderCard = useCallback(({ task, onAction }) =&amp;gt; (
+  &amp;lt;TaskCard value={task} onAction={onAction} /&amp;gt;
+), [])
+
+// 使用 useMemo 稳定 categoryOptions
+const categoryOptions = useMemo(
+  () =&amp;gt; categories.map(c =&amp;gt; ({ label: c.name, value: c.code })),
+  [categories]
+)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;优化后&lt;/strong&gt;：仅更新 &lt;strong&gt;1 次&lt;/strong&gt;，减少了 66% 的无效渲染。&lt;/p&gt;
+&lt;hr /&gt;
+&lt;h2&gt;四、其他优化技巧&lt;/h2&gt;
+&lt;h3&gt;4.1 延迟加载非关键内容&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;const HeavyComponent = React.lazy(() =&amp;gt; import(&apos;./HeavyComponent&apos;))
+
+&amp;lt;Suspense fallback={&amp;lt;Loading /&amp;gt;}&amp;gt;
+  &amp;lt;HeavyComponent /&amp;gt;
+&amp;lt;/Suspense&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4.2 使用 &lt;code&gt;key&lt;/code&gt; 优化列表渲染&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 使用 index 作为 key
+items.map((item, index) =&amp;gt; &amp;lt;Card key={index} {...item} /&amp;gt;)
+
+// ✅ 使用唯一 ID 作为 key
+items.map(item =&amp;gt; &amp;lt;Card key={item.id} {...item} /&amp;gt;)
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4.3 避免在渲染函数中创建对象/数组&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;// ❌ 每次渲染都创建新对象
+&amp;lt;Component style={{ padding: 10 }} /&amp;gt;
+
+// ✅ 提取到常量
+const cardStyle = { padding: 10 }
+&amp;lt;Component style={cardStyle} /&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4.4 使用 &lt;code&gt;useTransition&lt;/code&gt; 降低优先级&lt;/h3&gt;
+&lt;pre&gt;&lt;code&gt;import { useTransition } from &apos;react&apos;
+
+const [isPending, startTransition] = useTransition()
+
+const handleTabClick = (tab) =&amp;gt; {
+  startTransition(() =&amp;gt; {
+    setActiveTab(tab) // 低优先级更新，不阻塞用户交互
+  })
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;五、优化效果&lt;/h2&gt;
+&lt;h3&gt;5.1 性能指标对比&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;指标&lt;/th&gt;
+&lt;th&gt;优化前&lt;/th&gt;
+&lt;th&gt;优化后&lt;/th&gt;
+&lt;th&gt;提升&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;首次渲染时间&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;~3000ms&lt;/td&gt;
+&lt;td&gt;~200ms&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;93%&lt;/strong&gt; ↓&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;DOM 节点数量&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;121+ 个卡片&lt;/td&gt;
+&lt;td&gt;6-8 个可见卡片&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;95%&lt;/strong&gt; ↓&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;组件更新次数&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;3 次&lt;/td&gt;
+&lt;td&gt;1 次&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;66%&lt;/strong&gt; ↓&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;内存占用&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;~180MB&lt;/td&gt;
+&lt;td&gt;~80MB&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;55%&lt;/strong&gt; ↓&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;strong&gt;点击响应延迟&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;明显卡顿&lt;/td&gt;
+&lt;td&gt;无感知&lt;/td&gt;
+&lt;td&gt;&lt;strong&gt;流畅&lt;/strong&gt; ✓&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h3&gt;5.2 用户体验提升&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;✅ 点击订单 Tab 后，分拣区域 &lt;strong&gt;立即响应&lt;/strong&gt;（&amp;lt;200ms）&lt;/li&gt;
+&lt;li&gt;✅ 批量操作弹窗打开 &lt;strong&gt;无卡顿&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;✅ 滚动列表 &lt;strong&gt;丝滑流畅&lt;/strong&gt;，无掉帧&lt;/li&gt;
+&lt;li&gt;✅ 低配设备上运行 &lt;strong&gt;稳定可靠&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h2&gt;六、总结与最佳实践&lt;/h2&gt;
+&lt;h3&gt;6.1 核心优化原则&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;虚拟化优先&lt;/strong&gt;：大列表必须使用虚拟滚动（react-window）&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Memoization 三件套&lt;/strong&gt;：&lt;code&gt;React.memo&lt;/code&gt; + &lt;code&gt;useMemo&lt;/code&gt; + &lt;code&gt;useCallback&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;最小化依赖&lt;/strong&gt;：仅订阅需要的状态字段&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;稳定引用&lt;/strong&gt;：避免内联函数和对象&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;工具辅助&lt;/strong&gt;：使用 WDYR、React DevTools 持续监控&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;6.2 性能优化 Checklist&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;[ ]  大列表（&amp;gt;20 项）是否使用虚拟滚动？&lt;/li&gt;
+&lt;li&gt;[ ]  回调函数是否用 &lt;code&gt;useCallback&lt;/code&gt; 包裹？&lt;/li&gt;
+&lt;li&gt;[ ]  计算结果是否用 &lt;code&gt;useMemo&lt;/code&gt; 缓存？&lt;/li&gt;
+&lt;li&gt;[ ]  纯展示组件是否用 &lt;code&gt;React.memo&lt;/code&gt; 包裹？&lt;/li&gt;
+&lt;li&gt;[ ]  全局状态订阅是否最小化？&lt;/li&gt;
+&lt;li&gt;[ ]  列表 &lt;code&gt;key&lt;/code&gt; 是否使用唯一 ID？&lt;/li&gt;
+&lt;li&gt;[ ]  是否避免在渲染时创建新对象/数组？&lt;/li&gt;
+&lt;li&gt;[ ]  是否使用 WDYR 检测无效渲染？&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;6.3 注意事项&lt;/h3&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;避免过度优化&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不是所有组件都需要 &lt;code&gt;React.memo&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;小列表（&amp;lt;20 项）不必使用虚拟滚动&lt;/li&gt;
+&lt;li&gt;简单组件的 &lt;code&gt;useMemo&lt;/code&gt; 可能得不偿失&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;虚拟列表陷阱&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;不要在 &lt;code&gt;VariableSizeList&lt;/code&gt; 的 &lt;code&gt;renderItem&lt;/code&gt; 中嵌套 &lt;code&gt;AutoSizer&lt;/code&gt; + &lt;code&gt;FixedSizeGrid&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;确保 &lt;code&gt;renderItem&lt;/code&gt; 用 &lt;code&gt;useCallback&lt;/code&gt; 包裹&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;itemSize&lt;/code&gt; 函数需要稳定引用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;⚠️ &lt;strong&gt;WDYR 使用建议&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;仅在开发环境启用&lt;/li&gt;
+&lt;li&gt;聚焦关键性能瓶颈组件&lt;/li&gt;
+&lt;li&gt;修复后及时移除 &lt;code&gt;whyDidYouRender&lt;/code&gt; 标记&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+&lt;h2&gt;七、参考资源&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://react-window.vercel.app/&quot;&gt;react-window 官方文档&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/welldone-software/why-did-you-render&quot;&gt;why-did-you-render GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://react.dev/learn/render-and-commit&quot;&gt;React 性能优化指南&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://react.dev/learn/react-developer-tools&quot;&gt;React DevTools Profiler 使用教程&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;hr /&gt;
+</content:encoded></item><item><title>Taro-微信小程序 navigateBack 回传参数</title><link>https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</guid><pubDate>Sat, 01 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;使用 事件订阅的形式 实现数据的传递。&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;import Taro from &quot;@tarojs/taro&quot;;
+
+/** 创建跳转页面选择辅助函数 */
+export const createChooseHelperEvents = &amp;lt;T, F extends Record&amp;lt;string | number, any&amp;gt;&amp;gt;({url, name}: {
+  /** url 参数 */
+  url: string;
+  /** 监听器名称 */
+  name: string;
+}): {
+  /** 选择页面函数 */
+  choose: (data: T) =&amp;gt; void;
+  /** 跳转到选择页面函数 */
+  toChoose: (params: F) =&amp;gt; Promise&amp;lt;T&amp;gt;;
+} =&amp;gt; {
+  return {
+    choose: (data) =&amp;gt; {
+      const pages = Taro.getCurrentPages();
+      const currentPage = pages[pages.length - 1];
+      const eventChannel = currentPage.getOpenerEventChannel();
+      eventChannel.emit(name, data);
+    },
+    toChoose: (params: Record&amp;lt;string | number, any&amp;gt;) =&amp;gt; {
+      return new Promise&amp;lt;T&amp;gt;((resolve, reject) =&amp;gt; {
+        Taro.navigateTo({
+          url: `${url}?${jsonToUrlParams(params)}`,
+          events: {
+            [name]: (data: T) =&amp;gt; {
+              data ? resolve(data) : reject();
+            }
+          }
+        });
+      });
+    }
+  };
+};
+
+// jsonToUrlParams 实现省略
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;使用&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;export const dishedOrderChooseHelper = createChooseHelperEvents&amp;lt;
+  PreOrder.PreOrderAddProductDTO[],
+  {}
+&amp;gt;({
+  url: &apos;/pages/placeAnOrder/subPages/dishesOrder/index&apos;,
+  name: &apos;chooseDishesOrder&apos;
+});
+
+// 获取数据的调用方（父界面）
+const data = await dishedOrderChooseHelper.toChoose({});
+
+// dishesOrder子界面中
+dishedOrderChooseHelper.choose(selectData);
+&lt;/code&gt;&lt;/pre&gt;
+</content:encoded></item><item><title>微信小程序软键盘界面适配</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</guid><pubDate>Thu, 30 Oct 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;底部的蓝色的输入框获取焦点时，软键盘弹出，会将整个界面上推，导致绿色的部分不可见。期望绿色的部分一直看见。&lt;/p&gt;
+&lt;h2&gt;解决&lt;/h2&gt;
+&lt;p&gt;监听软键盘的弹出与收起，动态修改蓝色滚动区域的高度，并判断当前获取焦点的输入框是否在可见区域内，若不在则，滚动到当前输入框的位置。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;1.webp&quot; alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;通过&lt;code&gt;onKeyboardHeightChange&lt;/code&gt; 事件监听软键盘的出现（高度&amp;gt;0)与隐藏（高度===0）。
+根据&lt;code&gt;e.detail.height&lt;/code&gt; 高度，动态适配界面。&lt;/p&gt;
+&lt;h2&gt;实现&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;// 当前键盘的高度，界面中根据此状态，调整界面布局高度等
+const [keyboardHeight, setKeyboardHeight] = useState&amp;lt;number&amp;gt;(0)
+// 传递给 scrool-view 的 scrollTop。也可以直接获取 scrool-view 的实例，调用scrollTop函数
+const [scrollTop, setScrollTop] = useState&amp;lt;number&amp;gt;(0)
+const keyboardEvent = useCallback((height: number, index: number) =&amp;gt; {
+  const eventHeight = height
+  if (eventHeight === 0) {
+    return;
+  }
+  Taro.createSelectorQuery()
+	  // 底部的 tabbar
+    .select(`#bottom-bar-wrapper`).boundingClientRect()
+    // 滚动区域
+    .select(`#scroll-wrapper-inner`).boundingClientRect()
+    .select(`#scroll-wrapper-inner`).scrollOffset()
+    // 当前输入框
+    .select(`#row-${index}`).boundingClientRect()
+    .exec((res) =&amp;gt; {
+      const [bottomBar, container, offset, row] = res as any[]
+      const nextKeyboardHeight = eventHeight - bottomBar.height
+      if (nextKeyboardHeight &amp;gt;= 0 &amp;amp;&amp;amp; keyboardHeight !== nextKeyboardHeight) {
+        setKeyboardHeight(nextKeyboardHeight)
+      }
+
+      if (!container || !row) {
+        return
+      }
+
+      const visibleTop = container.top
+      const visibleBottom = container.bottom - eventHeight - bottomBar.height
+      const currentScrollTop = offset?.scrollTop || 0
+
+      // 已完全可见则不滚动
+      if (row.top &amp;gt;= visibleTop &amp;amp;&amp;amp; row.bottom &amp;lt;= visibleBottom) {
+        return
+      }
+
+      let delta = 0
+      if (row.bottom &amp;gt; visibleBottom) {
+        // 需要向下滚动
+        delta = row.bottom - visibleBottom + 8
+      } else if (row.top &amp;lt; visibleTop) {
+        // 需要向上滚动
+        delta = row.top - visibleTop - 8
+      }
+
+      if (delta !== 0) {
+        const nextTop = Math.max(0, currentScrollTop + delta)
+        setScrollTop(nextTop)
+      }
+    })
+
+}, [])
+
+// 注意：若导致键盘收起的操作不是来自输入框，则不会触发输入框的onKeyboardHeightChange 。所以需要监听全局的会调兜底
+useEffect(() =&amp;gt; {
+  const func = ({ height }) =&amp;gt; {
+    if (height === 0) {
+      setKeyboardHeight(0);
+    }
+  }
+  Taro.onKeyboardHeightChange(func)
+  return () =&amp;gt; {
+    Taro.offKeyboardHeightChange(func);
+  }
+}, [])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;&lt;code&gt;input&lt;/code&gt;中的&lt;code&gt;placeholder&lt;/code&gt; 不跟随滚动的问题解决：&lt;/h2&gt;
+&lt;p&gt;设置 &lt;code&gt;mixedRenderComponents&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  // app.config.ts
+  window: {
+    // 有可能导致 scroll view 中的 input 的 blur 事件触发多次。不推荐。
+    mixedRenderComponents: [&apos;input&apos;], 
+  },
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;或者移除 index.config 中的 &lt;code&gt;disableScroll: true&lt;/code&gt;&lt;/p&gt;
+</content:encoded></item></channel></rss>
