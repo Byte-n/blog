@@ -9,7 +9,7 @@ export default defineConfig({
     theme: {
         site: {
             title: 'Byte.n',
-            subtitle: 'Demo Site',
+            subtitle: 'hl',
             lang: 'zh_CN', // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
             themeColor: {
                 hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
@@ -59,7 +59,7 @@ export default defineConfig({
         profile: {
             avatar: 'https://avatars.githubusercontent.com/u/65855612?v=4', // Relative to the /src directory. Relative to the /public directory if it starts with '/'
             name: 'Byte.n',
-            bio: 'Byte.n Byte.n Byte.n',
+            bio: '编程执念',
             links: [
                 {
                     name: 'GitHub',
