@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte.n</title><description>Demo Site</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>InjectVConsolePlugin自动注入vConsole</title><link>https://fuwari.vercel.app/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</guid><pubDate>Sat, 15 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;const HtmlWebpackPlugin = require(&apos;html-webpack-plugin&apos;)
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte.n</title><description>Demo Site</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>InjectVConsolePlugin自动注入vConsole</title><link>https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</guid><pubDate>Sat, 15 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;const HtmlWebpackPlugin = require(&apos;html-webpack-plugin&apos;)
 
 // 启用 speed-measure-webpack-plugin 时此插件不能正常工作
 class InjectVConsolePlugin {
@@ -43,7 +43,7 @@ class InjectVConsolePlugin {
 module.exports = InjectVConsolePlugin
 
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>微信扫码登录统一封装</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 12 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;微信扫描登录&lt;/h2&gt;
+</content:encoded></item><item><title>微信扫码登录统一封装</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E6%89%AB%E7%A0%81%E7%99%BB%E5%BD%95%E7%BB%9F%E4%B8%80%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 12 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;微信扫描登录&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&quot;https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html&quot;&gt;微信官方文档&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;在网页中嵌入微信的登录二维码，会在&lt;code&gt;login_container&lt;/code&gt; 下嵌入一个&lt;code&gt;iframe&lt;/code&gt; ，&lt;code&gt;iframe&lt;/code&gt; 的地址其实就是 “https://open.weixin.qq.com/connect/qrconnect?&lt;code&gt;appid&lt;/code&gt;=APPID&amp;amp;&lt;code&gt;redirect_uri&lt;/code&gt;=REDIRECT_URI&amp;amp;&lt;code&gt;response_type&lt;/code&gt;=code&amp;amp;&lt;code&gt;scope&lt;/code&gt;=SCOPE&amp;amp;&lt;code&gt;state&lt;/code&gt;=STATE#wechat_redirect” ，URL中对应的参数就是&lt;code&gt;WxLogin&lt;/code&gt;的构造参数。&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;var obj = new WxLogin({
@@ -179,7 +179,7 @@ module.exports = InjectVConsolePlugin
   }, [])
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&quot;img.png&quot; alt=&quot;img.png&quot; /&gt;&lt;/p&gt;
-</content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
+</content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;const req = require.context(&apos;@/pages&apos;, true, __AUTO_ROUTER_REG__, &apos;lazy&apos;)&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;路由组件都动态导入，路由的&lt;code&gt;component&lt;/code&gt; 设置为&lt;code&gt;Loadable({ loader, loading: Loading })&lt;/code&gt;&lt;/p&gt;
 &lt;ul&gt;
@@ -203,7 +203,7 @@ function App() {
   );
 }
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>Antd-ext Sheet 组件的来源与创建历程</title><link>https://fuwari.vercel.app/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
+</content:encoded></item><item><title>Antd-ext Sheet 组件的来源与创建历程</title><link>https://fuwari.vercel.app/blog/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/antd-ext/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
 &lt;p&gt;在开发订单创建页面时，我们需要处理商品条目的录入。这是一个典型的“大量数据录入”场景，表格列中包含了多种输入组件（Input、Select、Picker 等）。&lt;/p&gt;
 &lt;p&gt;业务与产品团队提出了以下核心需求：&lt;/p&gt;
 &lt;ul&gt;
@@ -561,7 +561,7 @@ const App = () =&amp;gt; {
 &lt;li&gt;&lt;strong&gt;校验时机&lt;/strong&gt;：Sheet 默认在 &lt;code&gt;change&lt;/code&gt; 时触发校验。如果数据量极大，可考虑防抖或仅在提交时调用 &lt;code&gt;ref.current.validate()&lt;/code&gt;。&lt;/li&gt;
 &lt;li&gt;&lt;strong&gt;样式定制&lt;/strong&gt;：尽量使用 &lt;code&gt;layout&lt;/code&gt; 属性（&lt;code&gt;w-full&lt;/code&gt;, &lt;code&gt;inline&lt;/code&gt;）来控制组件宽度，避免写硬编码的 style，以保持响应式能力。&lt;/li&gt;
 &lt;/ol&gt;
-</content:encoded></item><item><title>js ES6</title><link>https://fuwari.vercel.app/posts/js/es6/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/js/es6/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;新增的对象、函数等&lt;/h2&gt;
+</content:encoded></item><item><title>js ES6</title><link>https://fuwari.vercel.app/blog/posts/js/es6/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/js/es6/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;新增的对象、函数等&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;Map&lt;/code&gt;, &lt;code&gt;Set&lt;/code&gt; ,&lt;code&gt;WeakMap&lt;/code&gt;, &lt;code&gt;WeakSet&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;放射与代理&lt;code&gt;Reflect&lt;/code&gt;、&lt;code&gt;Proxy&lt;/code&gt;&lt;/li&gt;
@@ -842,7 +842,7 @@ async function* countAsync() {
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;async/await/Promise&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</content:encoded></item><item><title>Antd-ext Select 组件的来源与创建历程</title><link>https://fuwari.vercel.app/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
+</content:encoded></item><item><title>Antd-ext Select 组件的来源与创建历程</title><link>https://fuwari.vercel.app/blog/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/antd-ext/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
 &lt;p&gt;在实际项目中，我们几乎所有页面都会用到 &lt;code&gt;Select&lt;/code&gt;：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;简单场景下，它只是一个 key/value 下拉框；&lt;/li&gt;
@@ -1360,7 +1360,7 @@ const ResponsiveDemo: React.FC = () =&amp;gt; {
 &lt;li&gt;结合 TypeScript 的泛型参数（&lt;code&gt;V&lt;/code&gt;/&lt;code&gt;D&lt;/code&gt;/&lt;code&gt;M&lt;/code&gt;），在定义组件时就把值类型与业务数据结构声明清楚，可以显著减少后续 bug；&lt;/li&gt;
 &lt;li&gt;下拉扩展时，尽量把“新增/编辑”操作放在 &lt;code&gt;popupRender&lt;/code&gt; 中完成，并在操作结束后调用 &lt;code&gt;close()&lt;/code&gt;，保持交互的一致性。&lt;/li&gt;
 &lt;/ul&gt;
-</content:encoded></item><item><title>微信小程序maxLength在IOS拼音输入法下异常</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</guid><pubDate>Sat, 08 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;使用自定义的高阶函数在onInput会调中手动限制长度&lt;/p&gt;
+</content:encoded></item><item><title>微信小程序maxLength在IOS拼音输入法下异常</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</guid><pubDate>Sat, 08 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;使用自定义的高阶函数在onInput会调中手动限制长度&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;import {BaseEventOrig, CommonEventFunction} from &quot;@tarojs/components/types/common&quot;;
 import {InputProps} from &quot;@tarojs/components&quot;;
 
@@ -1376,7 +1376,7 @@ export const onInputMaxLength = (
 }
 
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>Taro-微信小程序自定义状态栏适配</title><link>https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</guid><pubDate>Fri, 07 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+</content:encoded></item><item><title>Taro-微信小程序自定义状态栏适配</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%87%AA%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E6%A0%8F%E9%80%82%E9%85%8D/</guid><pubDate>Fri, 07 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;navBarHeight&lt;/code&gt;使用的是&lt;code&gt;statusBarHeight || 44&lt;/code&gt; 像素，在安卓的部分机型上，与小程序菜单按钮上下间距不一致或与菜单按钮重叠。在IOS上则一切正常。&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;动态计算合适的 navBar高度&lt;/li&gt;
@@ -1532,7 +1532,7 @@ export default function NavBar({
 }
 
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>Webpack 4 到 Webpack 5 打包优化实战：构建时间从 42s 优化到 19s</title><link>https://fuwari.vercel.app/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</guid><pubDate>Thu, 06 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+</content:encoded></item><item><title>Webpack 4 到 Webpack 5 打包优化实战：构建时间从 42s 优化到 19s</title><link>https://fuwari.vercel.app/blog/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/webpack/webpack-4-%E5%88%B0-webpack-5-%E6%89%93%E5%8C%85%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E6%9E%84%E5%BB%BA%E6%97%B6%E9%97%B4%E4%BB%8E-42s-%E4%BC%98%E5%8C%96%E5%88%B0-19s/</guid><pubDate>Thu, 06 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;本项目是一个工位屏网页应用，基于 React 16 + TypeScript 开发。然而，项目中使用的是历史传承下来的 &lt;code&gt;@xxx-react-app/scripts&lt;/code&gt; 脚手架（基于 Webpack 4），并且依赖了许多非必要的公共子库、子包等历史遗留组件。&lt;/p&gt;
 &lt;p&gt;这套旧脚手架存在诸多问题：&lt;/p&gt;
 &lt;ul&gt;
@@ -2074,7 +2074,7 @@ unplugin took 0.006 secs
 &lt;li&gt;&lt;a href=&quot;https://juejin.cn/post/7237053697528496184&quot;&gt;Webpack 构建速度优化实践&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://www.notion.so/WEBPACK5_MIGRATION_PROMPT.md&quot;&gt;项目 Webpack 5 迁移文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</content:encoded></item><item><title>网络缓存</title><link>https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;缓存命中顺序&lt;/h2&gt;
+</content:encoded></item><item><title>网络缓存</title><link>https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;缓存命中顺序&lt;/h2&gt;
 &lt;p&gt;顺序从上往下，命中即返回缓存的内容。&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;Service Worker&lt;/li&gt;
@@ -2179,7 +2179,7 @@ unplugin took 0.006 secs
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;sw.js&lt;/code&gt; 中通过&lt;code&gt;self.addEventListener(&apos;fetch&apos;, event =&amp;gt; { .. })&lt;/code&gt; 事件拦截请求，判断缓存是否存在且有效，若有效则返回缓存内容，若无效则放行请求，并在请求成功后加入缓存。&lt;/li&gt;
 &lt;/ol&gt;
-</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
 &lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
 &lt;h2&gt;实现&lt;/h2&gt;
@@ -2388,7 +2388,7 @@ export default api;
   const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
 }
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>网络安全</title><link>https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;JWT Token&lt;/h2&gt;
+</content:encoded></item><item><title>网络安全</title><link>https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;JWT Token&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;JWT(JSON Web Token)是一个开放标准(RFC 7519)，它定义了一种紧凑且自包含的方式，以JSON对象的形式在各方之间安全地传输信息。&lt;/li&gt;
 &lt;li&gt;JWT是一个数字签名，生成的信息是可以验证并被信任的。&lt;/li&gt;
@@ -2710,7 +2710,7 @@ exec(`git clone &quot;${repo}&quot; /some/path`);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h3&gt;DNS劫持&lt;/h3&gt;
 &lt;h3&gt;DDOS攻击&lt;/h3&gt;
-</content:encoded></item><item><title>Taro-语言识别的hook</title><link>https://fuwari.vercel.app/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
+</content:encoded></item><item><title>Taro-语言识别的hook</title><link>https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
 &lt;li&gt;使用
 &lt;ul&gt;
 &lt;li&gt;status: 当前在那个阶段&lt;/li&gt;
@@ -3173,7 +3173,7 @@ export const remainingTimeInterval = (remainingTime, onRemainingTimeChange, stop
 }
 
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>React调度器在打印任务中的应用</title><link>https://fuwari.vercel.app/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</guid><pubDate>Mon, 03 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+</content:encoded></item><item><title>React调度器在打印任务中的应用</title><link>https://fuwari.vercel.app/blog/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E7%B1%BBreact%E8%B0%83%E5%BA%A6%E5%99%A8%E5%9C%A8%E6%89%93%E5%8D%B0%E4%BB%BB%E5%8A%A1%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8/</guid><pubDate>Mon, 03 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;在分拣管理系统中，用户可批量选择数百个订单并提交打印请求。直接将所有打印命令一次性发送至打印机会导致：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;🔥 &lt;strong&gt;缓冲溢出&lt;/strong&gt;：打印机硬件缓冲通常为 KB 级别，海量命令会超出容量&lt;/li&gt;
@@ -3508,7 +3508,7 @@ export default class Scheduler {
 }
 
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>React 性能优化实战：解决低配设备上大列表渲染卡顿问题</title><link>https://fuwari.vercel.app/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</guid><pubDate>Sun, 02 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;一、背景&lt;/h2&gt;
+</content:encoded></item><item><title>React 性能优化实战：解决低配设备上大列表渲染卡顿问题</title><link>https://fuwari.vercel.app/blog/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/react-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96%E5%AE%9E%E6%88%98%E8%A7%A3%E5%86%B3%E4%BD%8E%E9%85%8D%E8%AE%BE%E5%A4%87%E4%B8%8A%E5%A4%A7%E5%88%97%E8%A1%A8%E6%B8%B2%E6%9F%93%E5%8D%A1%E9%A1%BF%E9%97%AE%E9%A2%98/</guid><pubDate>Sun, 02 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;一、背景&lt;/h2&gt;
 &lt;h3&gt;1.1 硬件环境&lt;/h3&gt;
 &lt;p&gt;在工位屏嵌入式平板设备（供应商定制一体机）上运行的第一版分拣系统在测试阶段发现存在严重的性能问题：
 小霸王都比这机器流畅。&lt;/p&gt;
@@ -3960,7 +3960,7 @@ const handleTabClick = (tab) =&amp;gt; {
 &lt;li&gt;&lt;a href=&quot;https://react.dev/learn/react-developer-tools&quot;&gt;React DevTools Profiler 使用教程&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;hr /&gt;
-</content:encoded></item><item><title>Taro-微信小程序 navigateBack 回传参数</title><link>https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</guid><pubDate>Sat, 01 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;使用 事件订阅的形式 实现数据的传递。&lt;/h2&gt;
+</content:encoded></item><item><title>Taro-微信小程序 navigateBack 回传参数</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/taro-%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F-navigateback-%E5%9B%9E%E4%BC%A0%E5%8F%82%E6%95%B0/</guid><pubDate>Sat, 01 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;使用 事件订阅的形式 实现数据的传递。&lt;/h2&gt;
 &lt;pre&gt;&lt;code&gt;import Taro from &quot;@tarojs/taro&quot;;
 
 /** 创建跳转页面选择辅助函数 */
@@ -4015,7 +4015,7 @@ const data = await dishedOrderChooseHelper.toChoose({});
 // dishesOrder子界面中
 dishedOrderChooseHelper.choose(selectData);
 &lt;/code&gt;&lt;/pre&gt;
-</content:encoded></item><item><title>微信小程序软键盘界面适配</title><link>https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</guid><pubDate>Thu, 30 Oct 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+</content:encoded></item><item><title>微信小程序软键盘界面适配</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E8%BD%AF%E9%94%AE%E7%9B%98%E7%95%8C%E9%9D%A2%E9%80%82%E9%85%8D/</guid><pubDate>Thu, 30 Oct 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;底部的蓝色的输入框获取焦点时，软键盘弹出，会将整个界面上推，导致绿色的部分不可见。期望绿色的部分一直看见。&lt;/p&gt;
 &lt;h2&gt;解决&lt;/h2&gt;
 &lt;p&gt;监听软键盘的弹出与收起，动态修改蓝色滚动区域的高度，并判断当前获取焦点的输入框是否在可见区域内，若不在则，滚动到当前输入框的位置。&lt;/p&gt;
