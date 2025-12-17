@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@byte.n/fuwari':
-        specifier: 0.0.3
-        version: 0.0.3(@types/node@25.0.3)(jiti@1.21.7)(prettier@3.7.4)(rollup@2.79.2)(terser@5.44.1)(yaml@2.8.2)
+        specifier: 0.0.5
+        version: 0.0.5(@types/node@25.0.3)(jiti@1.21.7)(prettier@3.7.4)(rollup@2.79.2)(terser@5.44.1)(yaml@2.8.2)
 
 packages:
 
@@ -645,8 +645,8 @@ packages:
     resolution: {integrity: sha512-qQ5m48eI/MFLQ5PxQj4PFaprjyCTLI37ElWMmNs0K8Lk3dVeOdNpB3ks8jc7yM5CDmVC73eMVk/trk3fgmrUpA==}
     engines: {node: '>=6.9.0'}
 
-  '@byte.n/fuwari@0.0.3':
-    resolution: {integrity: sha512-J45pyvqh1Sqh9HlV09IMr8qtEu3dMK4CoPnqKIAxclQl3iWfi87kOpBS3FJepWVQHFcHNOOUeTAb6OM3rqgtlQ==}
+  '@byte.n/fuwari@0.0.5':
+    resolution: {integrity: sha512-eMBnchsxp+PU4Z4ZMw6vE8kb++QMPZKzyEwagiN8TR306FvCJD/hWr2dPMgJjhcEvv1AxRqHF47mtxLf+aMVag==}
     hasBin: true
 
   '@capsizecss/unpack@2.4.0':
@@ -5550,7 +5550,7 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
-  '@byte.n/fuwari@0.0.3(@types/node@25.0.3)(jiti@1.21.7)(prettier@3.7.4)(rollup@2.79.2)(terser@5.44.1)(yaml@2.8.2)':
+  '@byte.n/fuwari@0.0.5(@types/node@25.0.3)(jiti@1.21.7)(prettier@3.7.4)(rollup@2.79.2)(terser@5.44.1)(yaml@2.8.2)':
     dependencies:
       '@astrojs/check': 0.9.6(prettier@3.7.4)(typescript@5.9.3)
       '@astrojs/rss': 4.0.14

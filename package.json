@@ -13,6 +13,6 @@
   "license": "ISC",
   "packageManager": "pnpm@10.19.0",
   "dependencies": {
-    "@byte.n/fuwari": "0.0.3"
+    "@byte.n/fuwari": "0.0.5"
   }
 }

@@ -4,6 +4,7 @@ export default defineConfig({
     astroConfig: {
         outDir: 'dist',
         postsDir: 'content',
+        specDir: 'spec',
         base: '/blog/',
     },
     theme: {
