@@ -15,5 +15,8 @@
   "packageManager": "pnpm@10.19.0",
   "dependencies": {
     "@byte.n/fuwari": "0.0.5"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0"
   }
 }
