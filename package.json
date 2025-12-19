@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "fuwari dev",
+    "build-gh": "cross-env BASE=/blog/ fuwari build",
     "build": "fuwari build",
     "preview": "fuwari preview"
   },

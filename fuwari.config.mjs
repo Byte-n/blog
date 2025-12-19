@@ -5,7 +5,7 @@ export default defineConfig({
         outDir: 'dist',
         postsDir: 'content',
         specDir: 'spec',
-        base: '/blog/',
+        base: process.env.BASE ?? '/',
     },
     theme: {
         site: {
