@@ -9,8 +9,8 @@ export default defineConfig({
     },
     theme: {
         site: {
-            title: 'Byte.n',
-            subtitle: 'hl',
+            title: 'Byte的独立内容站',
+            subtitle: '',
             lang: 'zh_CN', // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
             themeColor: {
                 hue: 250, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
