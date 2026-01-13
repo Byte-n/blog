@@ -38,6 +38,10 @@ export default defineConfig({
                 //   sizes: '32x32',              // (Optional) Size of the favicon, set only if you have favicons of different sizes
                 // }
             ],
+            icp: {
+                id: '粤ICP备2026002147号',
+                href: 'https://beian.miit.gov.cn/'
+            },
         },
         navBar: {
             links: [
