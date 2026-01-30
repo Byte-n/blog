@@ -3,7 +3,7 @@ This is the demo site for [Fuwari](https://github.com/saicaca/fuwari).
 
 This is the demo site for [Fuwari-cli](https://github.com/byte-n/fuwari-cli).
 
-::github{repo="saicaca/fuwari"}
+::github{repo="byte-n/async-modal-render"}
 
 ::github{repo="byte-n/wc-renderer-markdown"}
 
@@ -14,6 +14,8 @@ This is the demo site for [Fuwari-cli](https://github.com/byte-n/fuwari-cli).
 ::github{repo="byte-n/scroll-frame-canvas"}
 
 ::github{repo="byte-n/source-map-visualization-react"}
+
+::github{repo="byte-n/wc-renderer-markdown"}
 
 > ### Sources of images used in this site
 > - [Unsplash](https://unsplash.com/)
