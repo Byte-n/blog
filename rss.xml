@@ -1,4 +1,326 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>InjectVConsolePlugin自动注入vConsole</title><link>https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</guid><pubDate>Sat, 15 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;const HtmlWebpackPlugin = require(&apos;html-webpack-plugin&apos;)
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>从N个 useXxxModal 到 async-modal-render：让弹窗也能被 `await`</title><link>https://fuwari.vercel.app/blog/posts/react/%E4%BB%8En%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E4%BB%8En%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</guid><pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h1&gt;从N个 useXxxModal 到 async-modal-render：让弹窗也能被 &lt;code&gt;await&lt;/code&gt;&lt;/h1&gt;
+&lt;h2&gt;背景：从回调地狱到线性流程&lt;/h2&gt;
+&lt;p&gt;在 React 里，传统的弹窗调用方式通常长这样：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;组件里用 &lt;code&gt;useState&lt;/code&gt; 维护 &lt;code&gt;visible&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;点击按钮时把 &lt;code&gt;visible&lt;/code&gt; 置为 &lt;code&gt;true&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;把业务逻辑塞进 &lt;code&gt;Modal&lt;/code&gt; 的 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 回调&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;看起来很正常，但一旦业务变复杂，问题就开始暴露：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;业务流程被拆散在多个回调里，阅读代码时需要在文件里来回跳转&lt;/li&gt;
+&lt;li&gt;状态管理和副作用交织在一起，出错时不好排查&lt;/li&gt;
+&lt;li&gt;多步交互（比如表单校验 → 二次确认 → 提交接口）会被拆成一堆嵌套回调&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;更现实一点的例子是：在一个中大型的后台项目里，你会发现到处都是 &lt;code&gt;XxxxModal&lt;/code&gt; 组件，每个组件旁边都配套一个 &lt;code&gt;useXxxxModal&lt;/code&gt; Hook，把弹窗的展示和回调逻辑内聚进去。&lt;/p&gt;
+&lt;p&gt;这种模式有它的好处：调用方只需要 &lt;code&gt;const { open } = useXxxxModal()&lt;/code&gt;，然后在按钮点击的时候 &lt;code&gt;open()&lt;/code&gt; 即可，业务逻辑相对集中在这个 Hook 里。&lt;/p&gt;
+&lt;p&gt;但当项目里有一百个弹窗，就意味着有一百个 &lt;code&gt;useXxxxModal&lt;/code&gt;。你打开目录，全是 &lt;code&gt;useXxxModal.ts&lt;/code&gt;，看着非常难受——难受到某一天，一怒之下先难受了一下，然后冷静下来想：既然是我难受，那就本着“谁难受谁解决”的原则，把这套模式抽象成一个通用的库。&lt;/p&gt;
+&lt;p&gt;于是，有了 async-modal-render。&lt;/p&gt;
+&lt;h2&gt;反思：为什么一定要自己写一百个 Hook？&lt;/h2&gt;
+&lt;p&gt;回头看业务代码里的弹窗，实际上都有几个明显的共同点：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;UI 形态差不多：都是一个 Modal/Dialog，只是内容不同&lt;/li&gt;
+&lt;li&gt;行为类似：都是“确定 / 取消”两条路径，要么得到一个结果，要么放弃&lt;/li&gt;
+&lt;li&gt;展示方式统一：组件通常叫 &lt;code&gt;XxxxModal&lt;/code&gt;，配套一个 &lt;code&gt;useXxxxModal&lt;/code&gt;，由 Hook 内部负责挂载和卸载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;换句话说，我们其实是在重复造同一种轮子：每个业务弹窗都在自己实现“把回调封装成一个 Promise 的返回值”。只不过，这个 Promise 包在了各自的 &lt;code&gt;useXxxxModal&lt;/code&gt; 里。&lt;/p&gt;
+&lt;p&gt;如果我们把视角从“一个个业务 Hook”提升到“弹窗这个交互模式”，会发现这件事完全可以交给一个公共库来做：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;弹窗组件只负责展示和触发 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt;，不关心调用方式&lt;/li&gt;
+&lt;li&gt;调用方用 &lt;code&gt;async/await&lt;/code&gt; 写线性的业务代码，不需要自己管理状态&lt;/li&gt;
+&lt;li&gt;中间这层“把回调 Promise 化、负责任务收尾”的脏活累活，全部交给库来完成&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;于是我给这个库定了几个原则：对业务代码“零侵入”“高复用”，让“写一个弹窗”这件事从“再写一个 Hook”变成“用一行 &lt;code&gt;await&lt;/code&gt;”。&lt;/p&gt;
+&lt;h2&gt;设计：从几个具体痛点倒推出来的架构&lt;/h2&gt;
+&lt;p&gt;当时给自己列了这样一份 checklist：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;能够以极低的成本调用 n 个已有的业务弹窗&lt;/li&gt;
+&lt;li&gt;API 方式要简单，调用者只看到 &lt;code&gt;await&lt;/code&gt; 和返回值&lt;/li&gt;
+&lt;li&gt;高内聚、低耦合：弹窗组件完全不知道自己会被这个库调用&lt;/li&gt;
+&lt;li&gt;有一套友好的说明文档、示例和对比说明&lt;/li&gt;
+&lt;li&gt;兼容 React 16+ 的所有版本，对构建工具选择足够谨慎（选 dumi 2）&lt;/li&gt;
+&lt;li&gt;稳定：核心分支都要被用例覆盖，测试框架选 vitest 4&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;围绕这些目标，逐步演化出了现在的几个核心设计。&lt;/p&gt;
+&lt;h3&gt;1. Promise 化的调用：一个入口，多种形态&lt;/h3&gt;
+&lt;p&gt;最顶层只有一个核心能力：&lt;strong&gt;把“弹窗的生命周期”变成一个可 &lt;code&gt;await&lt;/code&gt; 的 Promise&lt;/strong&gt;。在实现上拆成了三种使用姿势：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;函数式调用：&lt;code&gt;asyncModalRender(Component, props, container?, options?)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Hook 模式：&lt;code&gt;const { render, holder } = useAsyncModalRender()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Context 模式：&lt;code&gt;&amp;lt;AsyncModalRenderProvider&amp;gt;&lt;/code&gt; + &lt;code&gt;useAsyncModalRenderContext()&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;无论哪种方式，调用者看到的都是统一的形态：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const data = await render(MyModal, props, options)
+// 或者
+const data = await asyncModalRender(MyModal, props, container, { quiet })
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;内部则通过一个统一的实现 &lt;code&gt;asyncModalRenderImp&lt;/code&gt; 来处理：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;负责把组件的 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 包装成 Promise 的 &lt;code&gt;resolve&lt;/code&gt; / &lt;code&gt;reject&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 之后调用 &lt;code&gt;options.onClose&lt;/code&gt; 做收尾（卸载、隐藏等）&lt;/li&gt;
+&lt;li&gt;在 Quiet 模式下，把“取消”改造成 &lt;code&gt;resolve(undefined)&lt;/code&gt; 而不是 &lt;code&gt;reject&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这样做的好处是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;所有渲染路径（static / hook / context）只在“挂载方式”上有差异&lt;/li&gt;
+&lt;li&gt;“业务逻辑 → Promise → 组件交互”这一条链路只有一个实现，便于测试和演进&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;2. 高内聚、低耦合：弹窗组件保持“纯”&lt;/h3&gt;
+&lt;p&gt;一个重要的设计目标是：&lt;strong&gt;弹窗组件本身对 async-modal-render 无感&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;也就是说，业务侧写的组件只是一个普通的 React 组件：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;接收 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 这两个回调&lt;/li&gt;
+&lt;li&gt;在用户操作时自己选择何时调用它们&lt;/li&gt;
+&lt;li&gt;不需要引入任何特定 Hook 或上下文&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这样一来：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;组件可以独立存在，被页面直接用 &lt;code&gt;&amp;lt;XxxxModal /&amp;gt;&lt;/code&gt; 的方式挂进去也完全没问题&lt;/li&gt;
+&lt;li&gt;如果业务里已经有成熟的弹窗组件，只要把回调签名适配成 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 即可&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为了解决“现有组件的回调名不统一”的问题，库里额外提供了一个 &lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;比如已有组件用的是 &lt;code&gt;onFinished&lt;/code&gt; / &lt;code&gt;onClose&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;通过 &lt;code&gt;withAsyncModalPropsMapper(Comp, [&apos;onFinished&apos;, &apos;onClose&apos;])&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;就能生成一个“标准化后的组件”，直接交给 &lt;code&gt;render&lt;/code&gt; 使用&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这一层映射逻辑做成了 HOC 的形式，并对持久化场景做了缓存和引用检查，避免因为组件引用变化导致 React 状态丢失。&lt;/p&gt;
+&lt;h3&gt;3. 兼容 React 16+ 的静态渲染：staticRender 把坑踩了一遍&lt;/h3&gt;
+&lt;p&gt;为了让 &lt;code&gt;asyncModalRender&lt;/code&gt; 能在“任何地方”被调用（不依赖 Hook/Context），必须有一套&lt;strong&gt;可靠的静态渲染方案&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;在 React 16/17 时代用 &lt;code&gt;ReactDOM.render&lt;/code&gt; / &lt;code&gt;unmountComponentAtNode&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;在 React 18 用 &lt;code&gt;createRoot(container).render(element)&lt;/code&gt; + &lt;code&gt;root.unmount()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;在 React 19+（移除了 &lt;code&gt;ReactDOM.render&lt;/code&gt;）只能走 &lt;code&gt;react-dom/client&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;staticRender&lt;/code&gt; 做的事情就是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;动态按需加载 &lt;code&gt;react-dom&lt;/code&gt; / &lt;code&gt;react-dom/client&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;根据版本号判断走哪条分支&lt;/li&gt;
+&lt;li&gt;在容器节点上复用 &lt;code&gt;__reactCompatRoot&lt;/code&gt;，避免重复创建 Root&lt;/li&gt;
+&lt;li&gt;返回一个统一的卸载函数，用于在弹窗关闭时清理 DOM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这块踩过几个坑：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;早期版本在 React 19 下会因为直接调用 &lt;code&gt;ReactDOM.render&lt;/code&gt; 报错&lt;/li&gt;
+&lt;li&gt;React 18 的 Root 管理如果不做复用，很容易在文档站/热更新场景下出现重复挂载&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;最后把这些细节都收敛在 &lt;code&gt;staticRender&lt;/code&gt; 里面，业务调用方只需要知道：“给我一个 DOM 容器，我负责把弹窗挂上去并在结束时卸载掉”。&lt;/p&gt;
+&lt;h3&gt;4. Hook + Context：复用一份能力，覆盖不同场景&lt;/h3&gt;
+&lt;p&gt;业务里已经有大量的“用 Hook 控制弹窗”的惯性，完全抛弃 Hook 体验并不现实，因此在 &lt;code&gt;asyncModalRender&lt;/code&gt; 之外，还设计了：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;useAsyncModalRender&lt;/code&gt;：在组件内部通过 Hook 管理弹窗&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsyncModalRenderProvider&lt;/code&gt; + &lt;code&gt;useAsyncModalRenderContext&lt;/code&gt;：在应用根部注入能力&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这两者本质上都是对同一套实现的不同包装：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;useAsyncModalRender&lt;/code&gt; 内部通过一个 &lt;code&gt;ElementsHolder&lt;/code&gt; 组件，把所有弹窗元素挂在一个统一容器里&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsyncModalRenderProvider&lt;/code&gt; 简单地在 Context 中暴露 Hook 返回的那些方法，并把 &lt;code&gt;holder&lt;/code&gt; 一并渲染出来&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为了解决“谁来负责销毁”的问题，Context 还多了一层 &lt;code&gt;destroyStrategy&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;hook&lt;/code&gt;：跟随消费方组件的卸载自动清理&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;context&lt;/code&gt;：不随组件卸载，适合全局控制场景，需要显式调用 &lt;code&gt;destroy&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这部分的逻辑在 &lt;code&gt;AsyncModalRenderContext&lt;/code&gt; 里做了统一封装，并通过测试确保：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Provider 卸载时，不会留下孤儿弹窗 DOM&lt;/li&gt;
+&lt;li&gt;多次调用 &lt;code&gt;destroyModal&lt;/code&gt; 是幂等的&lt;/li&gt;
+&lt;li&gt;在未注入 Provider 的情况下调用，会抛出清晰的错误提示&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;5. 持久化和销毁：把“状态留在弹窗里”&lt;/h3&gt;
+&lt;p&gt;在日常业务里，有不少弹窗需要“关掉以后再打开还能保留内部状态”，比如：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;复杂表单&lt;/li&gt;
+&lt;li&gt;富文本编辑器&lt;/li&gt;
+&lt;li&gt;多步骤导入向导&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;如果每次都销毁组件，再重新挂载，就意味着内部状态全部丢失。于是引入了两个关键配置：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;persistent&lt;/code&gt;: 标识某个弹窗实例的“持久化 key”，支持 string / number / symbol&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;openField&lt;/code&gt;: 指定组件 props 中负责控制显隐的那个 boolean 字段，比如 &lt;code&gt;open&lt;/code&gt; / &lt;code&gt;visible&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在持久化模式下：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;第一次打开时挂载组件，并把 &lt;code&gt;openField&lt;/code&gt; 置为 &lt;code&gt;true&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;关闭时不销毁组件，而是 &lt;code&gt;cloneElement&lt;/code&gt; 一份，把 &lt;code&gt;openField&lt;/code&gt; 改成 &lt;code&gt;false&lt;/code&gt; 再 patch 回去&lt;/li&gt;
+&lt;li&gt;下次用同一个 &lt;code&gt;persistent&lt;/code&gt; key 打开，拿到的是同一个组件实例，内部状态自然能被保留&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;对应地，还提供了一个 &lt;code&gt;destroy&lt;/code&gt; 方法，用来：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;按 &lt;code&gt;persistent&lt;/code&gt; 定位并销毁某个持久化弹窗&lt;/li&gt;
+&lt;li&gt;可选地按可见性筛选（仅销毁 visible / hidden 的实例）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为了防止误用，在实现里加了一个 &lt;code&gt;PersistentComponentConflictError&lt;/code&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;同一个 &lt;code&gt;persistent&lt;/code&gt; key 如果对应了不同的组件构造器，会直接抛错&lt;/li&gt;
+&lt;li&gt;避免出现“你以为是同一个弹窗，其实已经换了组件，导致 React 状态错乱”的隐性 bug&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;6. Quiet 模式：给调用方一个“不吵闹”的选择&lt;/h3&gt;
+&lt;p&gt;在很多场景里，“用户取消”本质上并不是一个错误：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用户点了“取消”，业务上通常认为是一个正常分支&lt;/li&gt;
+&lt;li&gt;如果每次都 &lt;code&gt;reject&lt;/code&gt;，调用方就必须在 &lt;code&gt;catch&lt;/code&gt; 里区分取消和真实错误&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;为此抽象出了 Quiet 模式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;普通模式：&lt;code&gt;onCancel&lt;/code&gt; → &lt;code&gt;reject AsyncModalRenderCancelError&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Quiet 模式：&lt;code&gt;onCancel&lt;/code&gt; → &lt;code&gt;resolve(undefined)&lt;/code&gt;，不再抛错&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;在 API 层面有两种写法：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;renderQuiet&lt;/code&gt; / &lt;code&gt;renderQuietFactory&lt;/code&gt;：已经帮你把 &lt;code&gt;quiet: true&lt;/code&gt; 填好了&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;render&lt;/code&gt; / &lt;code&gt;renderFactory&lt;/code&gt;：通过 &lt;code&gt;options.quiet&lt;/code&gt; 手动开启&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这样调用方可以根据场景选择：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;严肃的业务流程（必须区分“用户取消”和“接口出错”）用普通模式 + &lt;code&gt;try/catch&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;轻量交互（比如一个输入弹窗，用户不想填就直接关掉）用 Quiet 模式，按返回值是否为 &lt;code&gt;undefined&lt;/code&gt; 分支即可&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;7. 类型系统：把“错误的使用方式”尽量挡在编译期&lt;/h3&gt;
+&lt;p&gt;既然是一个强依赖 &lt;code&gt;async/await&lt;/code&gt; 的库，类型系统就非常关键，尤其是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;asyncModalRender&lt;/code&gt; / &lt;code&gt;render&lt;/code&gt; 的返回值类型应该能自动推导自组件的 &lt;code&gt;onOk&lt;/code&gt; 入参&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;persistent&lt;/code&gt; + &lt;code&gt;openField&lt;/code&gt; 的组合要有一定的约束，避免传错字段名&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;renderPersistent&lt;/code&gt; 这类 API 应该在类型层面强制要求参数完整&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这部分主要通过一系列类型体操来完成：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;利用条件类型从 &lt;code&gt;D[&apos;onOk&apos;]&lt;/code&gt; 中提取返回值 &lt;code&gt;R&lt;/code&gt;，自动推导 Promise 的 &lt;code&gt;resolve&lt;/code&gt; 类型&lt;/li&gt;
+&lt;li&gt;用 &lt;code&gt;ExtractBooleanKeys&amp;lt;D&amp;gt;&lt;/code&gt; 拿到所有 boolean 类型的 prop 名，约束 &lt;code&gt;openField&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;在 Quiet 模式下通过 &lt;code&gt;ComputeQuiet&amp;lt;Quiet, R&amp;gt;&lt;/code&gt; 把返回值包装成 &lt;code&gt;R | undefined&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;可见的效果是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;业务侧几乎不需要手写泛型，IDE 就能给出正确的返回值提示&lt;/li&gt;
+&lt;li&gt;很多“潜在的误用”在写代码时就会被 TS 报出来，而不是等到运行时踩坑&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;8. 文档与测试：让“库”和“业务项目”都心里有数&lt;/h3&gt;
+&lt;p&gt;为了让这个库在真实项目里可用，而不是“我自己能看懂”，当时专门做了两件事：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;文档系统选了 dumi 2：既能承载 markdown 文档，又能跑 demo 组件&lt;/li&gt;
+&lt;li&gt;测试框架选 vitest 4：和 Vite 生态相对契合，性能也足够&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;围绕核心能力写了一整套用例，包括但不限于：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;asyncModalRender&lt;/code&gt; 的基本行为（挂载、卸载、resolve/reject）&lt;/li&gt;
+&lt;li&gt;Hook 模式的 &lt;code&gt;render&lt;/code&gt; / &lt;code&gt;renderFactory&lt;/code&gt; / &lt;code&gt;destroy&lt;/code&gt; 以及幂等性&lt;/li&gt;
+&lt;li&gt;持久化模式下的状态保留、按 key 销毁、数字和 symbol Key 支持&lt;/li&gt;
+&lt;li&gt;Context 模式下的 Provider 生命周期、销毁策略、错误提示&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt; 的行为和缓存策略&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这些用例并不追求“形式上的 100% 覆盖率”，而是尽量覆盖所有分支和边界条件，让库的行为在不同 React 版本、不同调用路径下都保持一致。&lt;/p&gt;
+&lt;h2&gt;实现过程：从 0.0.1 到 0.0.6 之前&lt;/h2&gt;
+&lt;p&gt;回顾 0.0.6 之前的版本，大致可以分成几步。&lt;/p&gt;
+&lt;h3&gt;0.0.1：最小可用版本&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;抽出统一的“回调 → Promise” 实现，提供 &lt;code&gt;asyncModalRender&lt;/code&gt; 静态函数&lt;/li&gt;
+&lt;li&gt;定义最小的 &lt;code&gt;AsyncModalProps&lt;/code&gt; 接口，只约定 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;把几个典型业务弹窗迁移到 Promise 链路上，验证写法与边界行为&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;0.0.2：适配存量组件&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;发现业务里回调命名五花八门（如 &lt;code&gt;onFinished&lt;/code&gt; / &lt;code&gt;onClose&lt;/code&gt; 等）&lt;/li&gt;
+&lt;li&gt;抽象出 &lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt;，以 HOC 方式统一映射到 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;顺带整理了相关文档和类型导出，作为这一版的核心改动&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;0.0.3：补齐测试与静态渲染&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;解决 &lt;code&gt;asyncModalRender&lt;/code&gt; 卸载不干净、残留 DOM 的问题&lt;/li&gt;
+&lt;li&gt;为 React 18/19 重写 &lt;code&gt;staticRender&lt;/code&gt;，加入版本探测与 &lt;code&gt;createRoot&lt;/code&gt; 复用&lt;/li&gt;
+&lt;li&gt;补齐从挂载到卸载的集成测试，让静态渲染行为收敛、可验证&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;0.0.4：工具链与类型体验&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;处理 dumi 2 携带的 React 版本与项目依赖冲突，修正文档构建问题&lt;/li&gt;
+&lt;li&gt;调整构建和文档配置，优化类型导出与导入方式&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;0.0.5 及之后：持久化能力与细节打磨&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;引入 &lt;code&gt;persistent&lt;/code&gt; / &lt;code&gt;openField&lt;/code&gt; 与 &lt;code&gt;destroy&lt;/code&gt; API，将持久化能力变成一等特性&lt;/li&gt;
+&lt;li&gt;补充测试：验证多次打开状态保留、不同 key 的隔离，以及各种销毁组合&lt;/li&gt;
+&lt;li&gt;为持久化场景增加 &lt;code&gt;PersistentComponentConflictError&lt;/code&gt;，防止相同 key 绑定不同组件&lt;/li&gt;
+&lt;li&gt;在文档中补充与 NiceModal、传统写法的对比说明，讲清楚设计取舍&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;后知后觉：遇见 NiceModal 之后&lt;/h2&gt;
+&lt;p&gt;做到这一步之后，我才后知后觉地发现：社区里其实已经有了一个类似的库——&lt;code&gt;@ebay/nice-modal-react&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;第一次看 NiceModal 的文档时，心情大概是：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一方面“啊，原来大家都在为弹窗这件事头疼”&lt;/li&gt;
+&lt;li&gt;另一方面“还好我走的路线跟它不完全一样”&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;更重要的是，NiceModal 确实给了我不少启发，尤其是在两个点上：&lt;/p&gt;
+&lt;h3&gt;1. 持久化：让弹窗更像“页面的一部分”&lt;/h3&gt;
+&lt;p&gt;NiceModal 里很早就有“隐藏而不卸载”的设计，这和我后来做的 &lt;code&gt;persistent&lt;/code&gt; 能力在理念上非常契合：&lt;strong&gt;弹窗不一定是一次性的，它可以像页面一样长期存在，只是偶尔被展示出来&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;这也从侧面印证了当初在业务里感受到的那种“不想每次都重置状态”的痛点是普遍存在的。于是我也更加坚定地把：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;persistent&lt;/code&gt; / &lt;code&gt;openField&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;destroy&lt;/code&gt; API&lt;/li&gt;
+&lt;li&gt;以及相关的错误保护&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;当成库的一等公民来维护，而不是“某个高级用法”。&lt;/p&gt;
+&lt;h3&gt;2. 取消不一定是错误：Quiet 模式的诞生&lt;/h3&gt;
+&lt;p&gt;另一个被 NiceModal 强化的直觉是：&lt;strong&gt;onCancel 不一定非得走 &lt;code&gt;reject&lt;/code&gt;&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;很多时候，“用户取消”只是业务流程里的一个正常分支：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;用户点了“关闭”按钮&lt;/li&gt;
+&lt;li&gt;用户按了 ESC&lt;/li&gt;
+&lt;li&gt;用户在某一步操作中选择“算了”&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;如果统一走 &lt;code&gt;reject&lt;/code&gt;，调用方就不得不在 &lt;code&gt;catch&lt;/code&gt; 里区分“正常取消”和“真正的错误”，不仅增加了心智负担，还容易在不小心的时候吞掉异常。&lt;/p&gt;
+&lt;p&gt;因此在 async-modal-render 里我引入了 Quiet 模式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;通过 &lt;code&gt;renderQuiet&lt;/code&gt; / &lt;code&gt;renderQuietFactory&lt;/code&gt;，把“取消”转化为 &lt;code&gt;resolve(undefined)&lt;/code&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;调用方只需要写：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const result = await renderQuiet(MyModal, props)
+if (result === undefined) {
+  // 用户取消
+} else {
+  // 用户确认，拿着 result 继续走
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这种写法在语义上更贴近“分支逻辑”，也减少了对异常通道的滥用。&lt;/p&gt;
+&lt;h3&gt;3. 保持“零侵入”的坚持&lt;/h3&gt;
+&lt;p&gt;NiceModal 带来的另一个重要思考是：&lt;strong&gt;如何在借鉴功能的同时，保持自己的设计哲学&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;NiceModal 的一个取舍是：UI 组件内部需要显式引入 &lt;code&gt;useModal&lt;/code&gt;、依赖自身的全局状态管理。这在很多场景下很方便，但同时也让组件和库之间形成了强耦合。&lt;/p&gt;
+&lt;p&gt;而 async-modal-render 从一开始就坚持：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;弹窗组件不需要知道自己是被谁调用的&lt;/li&gt;
+&lt;li&gt;最终导出的组件仍然是一个“普通的 React 组件”&lt;/li&gt;
+&lt;li&gt;如果哪天不用这个库了，组件本身不需要重写&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;所以在借鉴 NiceModal 的同时，我没有改变这条原则，而是把：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;持久化&lt;/li&gt;
+&lt;li&gt;Quiet 模式&lt;/li&gt;
+&lt;li&gt;上下文渲染&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;等能力全部放在调用层来实现，尽量让业务组件保持“纯净”。&lt;/p&gt;
+&lt;h2&gt;尾声：从“谁难受谁解决”到“让别人不再难受”&lt;/h2&gt;
+&lt;p&gt;回头看 async-modal-render 的这段演进，其实就是从一个很朴素的动机出发：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;一开始只是因为自己被“一百个 useXxxxModal”恶心到了&lt;/li&gt;
+&lt;li&gt;然后想把这套模式抽象出来，至少先让自己不再重复造轮子&lt;/li&gt;
+&lt;li&gt;接着在项目里试用、打磨、填坑，把行为收敛成一个稳定的库&lt;/li&gt;
+&lt;li&gt;最后再参考社区方案（比如 NiceModal），把一些成熟的思路吸收进来&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;如果你现在也正被“到处都是回调的弹窗逻辑”困扰，希望这篇文章能给你一点启发：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;把弹窗当成一个“可 await 的过程”，而不是一个“到处都是回调的组件”&lt;/li&gt;
+&lt;li&gt;把通用的部分交给库，业务代码只关注“用户点了确定之后要做什么”&lt;/li&gt;
+&lt;li&gt;在设计自己的基础库时，从真实的痛点出发，再结合社区现有方案，会走得更稳&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;而对我来说，async-modal-render 也还在继续演进中：React 自己的更新、UI 库的变化、业务场景的新需求，都会推动这个库不断调整设计。但至少有一点不会变——&lt;strong&gt;让写弹窗这件事，尽量不要再让人难受&lt;/strong&gt;。&lt;/p&gt;
+&lt;h2&gt;规划&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;先在业务项目小组内推广试用，等到线上项目稳定运行并获得足够的正向反馈后，再以“新增一个 Hook 能力”的方式集成到统一组件库中。&lt;/li&gt;
+&lt;li&gt;持续根据业务和实际使用情况修复、扩展功能，同时保持测试用例同步跟进，尽量维持核心逻辑 100% 覆盖率。&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>InjectVConsolePlugin自动注入vConsole</title><link>https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/webpack/injectvconsoleplugin%E8%87%AA%E5%8A%A8%E6%B3%A8%E5%85%A5vconsole/</guid><pubDate>Sat, 15 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;pre&gt;&lt;code&gt;const HtmlWebpackPlugin = require(&apos;html-webpack-plugin&apos;)
 
 // 启用 speed-measure-webpack-plugin 时此插件不能正常工作
 class InjectVConsolePlugin {
@@ -2179,215 +2501,6 @@ unplugin took 0.006 secs
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;sw.js&lt;/code&gt; 中通过&lt;code&gt;self.addEventListener(&apos;fetch&apos;, event =&amp;gt; { .. })&lt;/code&gt; 事件拦截请求，判断缓存是否存在且有效，若有效则返回缓存内容，若无效则放行请求，并在请求成功后加入缓存。&lt;/li&gt;
 &lt;/ol&gt;
-</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
-&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
-&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
-&lt;h2&gt;实现&lt;/h2&gt;
-&lt;p&gt;创建axios实例&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
-const request = axios.create({ baseURL: &apos;/api&apos; })
-
-// 拦截请求
-request.interceptors.request.use(
-  (option) =&amp;gt; {
-    if (option.headers.authorization === undefined) {
-      // 补充身份验证字段
-      option.headers.authorization = xxxx;
-    }
-    // 打印请求信息
-    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
-    return option
-  }
-)
-
-// 拦截响应
-request.interceptors.response.use(
-  async (response) =&amp;gt; {
-    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
-    const data = response.data as Resp&amp;lt;any&amp;gt;;
-    if (data.code === 101) {
-      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
-      // 刷新token、重新发起请求，注意避免嵌套！无限递归
-      if (
-        response.config.params.___retry !== undefined
-        || !refreshToken
-        || response.config.url?.includes(URL_REFRESH_TOKEN)
-      ) {
-        return Promise.reject(response)
-      }
-
-      // 刷新token
-      const { access_token, refresh_token } = await refreshTokenApi(
-        refreshToken,
-      )
-      localStorage.setItem(STORAGE_TOKEN, access_token)
-      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
-
-      // 重新请求
-      const opts = _.cloneDeep(response.config)
-      opts.headers.authorization = `Bearer ${access_token}`
-      // 标记为重试
-      if (!opts.params) {
-        opts.params = {}
-      }
-      opts.params.___retry = true;
-      return request(opts)
-    }
-    // 成功响应
-    else if (data.code === 200 || data.code === 0) {
-      return response
-    } else if (data.failData) {
-      return response
-    }
-    return Promise.reject(response)
-  },
-  (err) =&amp;gt; {
-    // 响应拦截器逻辑 - 错误响应
-    if (err instanceof AxiosError) {
-      const { response, config } = err
-      if (config.params?.___checkLogin) {
-        goLogin()
-        return Promise.reject(err)
-      }
-      console.debug(
-        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
-        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
-      )
-      if ([401, 424].includes(err.status!)) {
-        message.error(&apos;登录过期&apos;)
-        goLogin()
-      } else if ([404].includes(err.status!)) {
-        message.error(&apos;网络环境差，请稍后重试&apos;)
-        goLogin()
-      } else {
-        message.error(`网络错误[${err.status}] ${err.message}]`)
-      }
-    } else if (err instanceof Error) {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    } else {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    }
-    return Promise.reject(err)
-  },
-)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;/**
- * 统一的响应格式
- */
-type Resp&amp;lt;T&amp;gt; = {
-  code: number
-  msg: string
-  data: T
-}
-interface SelectNameResult {
-  name: string
-}
-
-interface SelectNameRequest {
-  id: number
-}
-
-async function go() {
-  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
-    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
-  /*
-  response类型：
-  {
-    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
-    status: number
-    statusText: string
-    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
-    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
-    request?: any
-  }
-  */
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;扩展&lt;/h2&gt;
-&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
-&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
-&lt;ul&gt;
-&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;const api = {
-  getUri(config?: AxiosRequestConfig) {
-    return request.getUri(config)
-  },
-  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
-  },
-  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
-    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
-  },
-  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  }
-}
-
-/**
- * 将结果扁平化
- */
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
-  const res = await this;
-  if (level === 1) {
-    return res.data;
-  }
-  return res.data?.data;
-}
-
-function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
-  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
-  newPromise.flat = flat;
-  return newPromise;
-}
-
-export default api;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;再看看效果：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;async function go() {
-  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
-}
-&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>网络安全</title><link>https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;JWT Token&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;JWT(JSON Web Token)是一个开放标准(RFC 7519)，它定义了一种紧凑且自包含的方式，以JSON对象的形式在各方之间安全地传输信息。&lt;/li&gt;
@@ -2710,6 +2823,215 @@ exec(`git clone &quot;${repo}&quot; /some/path`);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h3&gt;DNS劫持&lt;/h3&gt;
 &lt;h3&gt;DDOS攻击&lt;/h3&gt;
+</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
+&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
+&lt;h2&gt;实现&lt;/h2&gt;
+&lt;p&gt;创建axios实例&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
+const request = axios.create({ baseURL: &apos;/api&apos; })
+
+// 拦截请求
+request.interceptors.request.use(
+  (option) =&amp;gt; {
+    if (option.headers.authorization === undefined) {
+      // 补充身份验证字段
+      option.headers.authorization = xxxx;
+    }
+    // 打印请求信息
+    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
+    return option
+  }
+)
+
+// 拦截响应
+request.interceptors.response.use(
+  async (response) =&amp;gt; {
+    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
+    const data = response.data as Resp&amp;lt;any&amp;gt;;
+    if (data.code === 101) {
+      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
+      // 刷新token、重新发起请求，注意避免嵌套！无限递归
+      if (
+        response.config.params.___retry !== undefined
+        || !refreshToken
+        || response.config.url?.includes(URL_REFRESH_TOKEN)
+      ) {
+        return Promise.reject(response)
+      }
+
+      // 刷新token
+      const { access_token, refresh_token } = await refreshTokenApi(
+        refreshToken,
+      )
+      localStorage.setItem(STORAGE_TOKEN, access_token)
+      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
+
+      // 重新请求
+      const opts = _.cloneDeep(response.config)
+      opts.headers.authorization = `Bearer ${access_token}`
+      // 标记为重试
+      if (!opts.params) {
+        opts.params = {}
+      }
+      opts.params.___retry = true;
+      return request(opts)
+    }
+    // 成功响应
+    else if (data.code === 200 || data.code === 0) {
+      return response
+    } else if (data.failData) {
+      return response
+    }
+    return Promise.reject(response)
+  },
+  (err) =&amp;gt; {
+    // 响应拦截器逻辑 - 错误响应
+    if (err instanceof AxiosError) {
+      const { response, config } = err
+      if (config.params?.___checkLogin) {
+        goLogin()
+        return Promise.reject(err)
+      }
+      console.debug(
+        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
+        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
+      )
+      if ([401, 424].includes(err.status!)) {
+        message.error(&apos;登录过期&apos;)
+        goLogin()
+      } else if ([404].includes(err.status!)) {
+        message.error(&apos;网络环境差，请稍后重试&apos;)
+        goLogin()
+      } else {
+        message.error(`网络错误[${err.status}] ${err.message}]`)
+      }
+    } else if (err instanceof Error) {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    } else {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    }
+    return Promise.reject(err)
+  },
+)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/**
+ * 统一的响应格式
+ */
+type Resp&amp;lt;T&amp;gt; = {
+  code: number
+  msg: string
+  data: T
+}
+interface SelectNameResult {
+  name: string
+}
+
+interface SelectNameRequest {
+  id: number
+}
+
+async function go() {
+  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
+    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
+  /*
+  response类型：
+  {
+    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
+    status: number
+    statusText: string
+    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
+    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
+    request?: any
+  }
+  */
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;扩展&lt;/h2&gt;
+&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
+&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
+&lt;ul&gt;
+&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const api = {
+  getUri(config?: AxiosRequestConfig) {
+    return request.getUri(config)
+  },
+  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
+  },
+  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
+    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
+  },
+  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  }
+}
+
+/**
+ * 将结果扁平化
+ */
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
+  const res = await this;
+  if (level === 1) {
+    return res.data;
+  }
+  return res.data?.data;
+}
+
+function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
+  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
+  newPromise.flat = flat;
+  return newPromise;
+}
+
+export default api;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再看看效果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;async function go() {
+  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
+}
+&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>Taro-语言识别的hook</title><link>https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
 &lt;li&gt;使用
 &lt;ul&gt;
