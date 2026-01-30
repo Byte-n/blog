@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>从N个 useXxxModal 到 async-modal-render：让弹窗也能被 `await`</title><link>https://fuwari.vercel.app/blog/posts/react/%E4%BB%8En%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E4%BB%8En%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</guid><pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h1&gt;从N个 useXxxModal 到 async-modal-render：让弹窗也能被 &lt;code&gt;await&lt;/code&gt;&lt;/h1&gt;
-&lt;h2&gt;背景：从回调地狱到线性流程&lt;/h2&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>从 N 个 useXxxModal 到 async-modal-render：让弹窗也能被 await</title><link>https://fuwari.vercel.app/blog/posts/react/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</guid><pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景：从回调地狱到线性流程&lt;/h2&gt;
 &lt;p&gt;在 React 里，传统的弹窗调用方式通常长这样：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;组件里用 &lt;code&gt;useState&lt;/code&gt; 维护 &lt;code&gt;visible&lt;/code&gt;&lt;/li&gt;
@@ -14,9 +13,9 @@
 &lt;/ul&gt;
 &lt;p&gt;更现实一点的例子是：在一个中大型的后台项目里，你会发现到处都是 &lt;code&gt;XxxxModal&lt;/code&gt; 组件，每个组件旁边都配套一个 &lt;code&gt;useXxxxModal&lt;/code&gt; Hook，把弹窗的展示和回调逻辑内聚进去。&lt;/p&gt;
 &lt;p&gt;这种模式有它的好处：调用方只需要 &lt;code&gt;const { open } = useXxxxModal()&lt;/code&gt;，然后在按钮点击的时候 &lt;code&gt;open()&lt;/code&gt; 即可，业务逻辑相对集中在这个 Hook 里。&lt;/p&gt;
-&lt;p&gt;但当项目里有一百个弹窗，就意味着有一百个 &lt;code&gt;useXxxxModal&lt;/code&gt;。你打开目录，全是 &lt;code&gt;useXxxModal.ts&lt;/code&gt;，看着非常难受——难受到某一天，一怒之下先难受了一下，然后冷静下来想：既然是我难受，那就本着“谁难受谁解决”的原则，把这套模式抽象成一个通用的库。&lt;/p&gt;
+&lt;p&gt;但当项目里有N个弹窗，就意味着有N个 &lt;code&gt;useXxxxModal&lt;/code&gt;。你打开目录，全是 &lt;code&gt;useXxxModal.ts&lt;/code&gt;，看着非常难受——难受到某一天，一怒之下先难受了一下，然后冷静下来想：既然是我难受，那就本着“谁难受谁解决”的原则，把这套模式抽象成一个通用的库。&lt;/p&gt;
 &lt;p&gt;于是，有了 async-modal-render。&lt;/p&gt;
-&lt;h2&gt;反思：为什么一定要自己写一百个 Hook？&lt;/h2&gt;
+&lt;h2&gt;反思：为什么一定要自己写N个 Hook？&lt;/h2&gt;
 &lt;p&gt;回头看业务代码里的弹窗，实际上都有几个明显的共同点：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;UI 形态差不多：都是一个 Modal/Dialog，只是内容不同&lt;/li&gt;
@@ -303,7 +302,7 @@ if (result === undefined) {
 &lt;h2&gt;尾声：从“谁难受谁解决”到“让别人不再难受”&lt;/h2&gt;
 &lt;p&gt;回头看 async-modal-render 的这段演进，其实就是从一个很朴素的动机出发：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;一开始只是因为自己被“一百个 useXxxxModal”恶心到了&lt;/li&gt;
+&lt;li&gt;一开始只是因为自己被“N个 useXxxxModal”恶心到了&lt;/li&gt;
 &lt;li&gt;然后想把这套模式抽象出来，至少先让自己不再重复造轮子&lt;/li&gt;
 &lt;li&gt;接着在项目里试用、打磨、填坑，把行为收敛成一个稳定的库&lt;/li&gt;
 &lt;li&gt;最后再参考社区方案（比如 NiceModal），把一些成熟的思路吸收进来&lt;/li&gt;
