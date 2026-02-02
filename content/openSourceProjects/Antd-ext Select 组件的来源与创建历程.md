@@ -1,8 +1,8 @@
 ---
 title: Antd-ext Select 组件的来源与创建历程
 published: 2025-11-10
-tags: []
-category: antd-ext
+tags: ['ant-design', 'react', 'antd-ext']
+category: 开源
 draft: false
 ---
 ## 1. 背景

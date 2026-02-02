@@ -1,8 +1,8 @@
 ---
 title: 从 N 个 useXxxModal 到 async-modal-render：让弹窗也能被 await
 published: 2026-01-30
-tags: [开源项目]
-category: react
+tags: ['react', 'hook', 'async/await', 'promise']
+category: 开源
 draft: false
 ---
 ## 背景：从回调地狱到线性流程

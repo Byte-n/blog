@@ -2,7 +2,7 @@
 title: 基于文件系统的自动路由（哈希）AutoRouter
 published: 2025-11-10
 tags: [路由]
-category: React
+category: react
 draft: false
 ---
 
