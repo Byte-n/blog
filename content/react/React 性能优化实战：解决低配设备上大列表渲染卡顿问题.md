@@ -1,7 +1,7 @@
 ---
 title: React 性能优化实战：解决低配设备上大列表渲染卡顿问题
 published: 2025-11-02
-tags: []
+tags: ['性能优化']
 category: react
 draft: false
 ---
