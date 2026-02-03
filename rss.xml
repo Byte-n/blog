@@ -1,4 +1,80 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>从 N 个 useXxxModal 到 async-modal-render：让弹窗也能被 await</title><link>https://fuwari.vercel.app/blog/posts/opensourceprojects/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/opensourceprojects/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</guid><pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景：从回调地狱到线性流程&lt;/h2&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>Ant design Table 多选卡顿性能优化</title><link>https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid><pubDate>Tue, 03 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;在OMS项目中有一个展示销售订单的表格（基于 Ant design Table），表格有36列，包含基础的字符、自定义组件、操作列等。在表格每页展示100行数据的时候，表格也能较快的完成渲染。但在点击表格全选按钮（或取消全选）时会非常卡顿，整个界面都会进入短暂的不可交互状态。&lt;/p&gt;
+&lt;h2&gt;问题分析&lt;/h2&gt;
+&lt;p&gt;借助浏览器的控制台工具中的性能板块，可以查看、录制一段时间内的代码运行、渲染等耗时时间。其中 &lt;a href=&quot;https://web.dev/articles/inp?hl=zh-cn&quot;&gt;INP&lt;/a&gt; 指标在每一次点击时都会自动记录。&lt;/p&gt;
+&lt;p&gt;INP指标 &amp;gt; 1s&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;良好的 INP 值为 200 毫秒或更短&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;&lt;img src=&quot;INP-1.png&quot; alt=&quot;INP-1.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;从下面火焰图可以看出，此点击开始到界面可再次交互时间 &amp;gt; 4s。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;处理点击，React调度，dom 变更 1.14s&lt;/li&gt;
+&lt;li&gt;过度动画本身 0.8s 左右&lt;/li&gt;
+&lt;li&gt;过度完成事件派发（React的事件系统）近 1s
+&lt;img src=&quot;HYT-1.png&quot; alt=&quot;HYT-1.png&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;主要原因：Ant design Table 的多选 Checkbox、td 的状态变化都有丰富的动画、过渡样式。
+次要原因：表格渲染的内容非常多：36 列 100 行、且部分列为自定义列&lt;/p&gt;
+&lt;h2&gt;优化方案&lt;/h2&gt;
+&lt;p&gt;针对主要原因中的样式进行优化，移除多选相关的动画、过渡效果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;.table-animation-none {
+  .ant-table-container {
+
+    .ant-table-selection-column {
+
+      .ant-checkbox-checked * {
+        animation: none !important;
+        transition: none !important;
+
+        &amp;amp;:after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    }
+
+    td {
+      transition: none !important;
+
+      &amp;amp;::after {
+        transition: none !important;
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;移除后的效果：
+首先是 INP：0.6s 左右，相比之前的 &amp;gt;1s，有很大的提升。
+&lt;img src=&quot;INP-2.png&quot; alt=&quot;INP-2.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;此下面火焰图看，时间缩短到了 1s 内。约 0.8s&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;处理点击，React调度，dom 变更 0.5 s，相比之前少了 wave 相关的内容&lt;/li&gt;
+&lt;li&gt;过度动画无&lt;/li&gt;
+&lt;li&gt;过度完成事件派发无
+另外可以看见的是 Frames 这一栏 只有白色、绿色的帧，相比之前有黄色（部分帧）、红色（丢弃帧）的。
+&lt;img src=&quot;HYT-2.png&quot; alt=&quot;HYT-2.png&quot; /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;其他方案&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;仍然使用 EnhancedTable，开启虚拟表格模式。但在滚动时会出现空白区域，且未提供相关的选项、接口来控制预渲染行。滚动时，体验不佳，且 ant v5 本身 虚拟表格写的很烂，不知道 v6 中是否有改善。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;使用一些虚拟化的表格渲染方案，主要有基于 Dom 与基于 Canvas 的两种方案，后者可以实现极致的性能，但上手难度更高。使用第三方的 Table 组件。需要适配现有的样式、兼容现有的调用方式。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于 Dom 的 Virtual Table
+&lt;ul&gt;
+&lt;li&gt;react-window 结合 react-resize ，需要手动模拟实现虚拟表格&lt;/li&gt;
+&lt;li&gt;https://github.com/yangfei4913438/react-window-table&lt;/li&gt;
+&lt;li&gt;https://rv-grid.com/guide/react&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;基于 Canvas 的 Virtual Table，优点就是可以实现极致的性能，但无法搜索表格中的文本，极致的性能需要结合canvas实现。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>从 N 个 useXxxModal 到 async-modal-render：让弹窗也能被 await</title><link>https://fuwari.vercel.app/blog/posts/opensourceprojects/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/opensourceprojects/%E4%BB%8E-n-%E4%B8%AA-usexxxmodal-%E5%88%B0-async-modal-render%E8%AE%A9%E5%BC%B9%E7%AA%97%E4%B9%9F%E8%83%BD%E8%A2%AB-await/</guid><pubDate>Fri, 30 Jan 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景：从回调地狱到线性流程&lt;/h2&gt;
 &lt;p&gt;在 React 里，传统的弹窗调用方式通常长这样：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;组件里用 &lt;code&gt;useState&lt;/code&gt; 维护 &lt;code&gt;visible&lt;/code&gt;&lt;/li&gt;
