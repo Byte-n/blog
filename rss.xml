@@ -12,33 +12,39 @@
 &lt;li&gt;处理点击，React调度，dom 变更 1.14s&lt;/li&gt;
 &lt;li&gt;过度动画本身 0.8s 左右&lt;/li&gt;
 &lt;li&gt;过度完成事件派发（React的事件系统）近 1s
+在 Frames 一栏中，在点击事件处理完成后，后续渲染的全是黄色、红色的帧。&lt;/li&gt;
+&lt;li&gt;绿色 ：流畅帧。表示该帧在目标时间内（通常是 60 FPS，约 16.6ms 内）完成渲染，用户体验流畅。&lt;/li&gt;
+&lt;li&gt;红色 ：丢帧。表示该帧耗时过长，导致严重的掉帧或卡顿，通常对应低于 30 FPS 的情况。&lt;/li&gt;
+&lt;li&gt;黄色 ：部分呈现帧。这表示虽然主线程工作延迟，但合成器线程仍生成了视觉更新（例如滚动或某些动画），这类帧未完全阻塞但性能欠佳。
 &lt;img src=&quot;HYT-1.png&quot; alt=&quot;HYT-1.png&quot; /&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;主要原因：Ant design Table 的多选 Checkbox、td 的状态变化都有丰富的动画、过渡样式。
 次要原因：表格渲染的内容非常多：36 列 100 行、且部分列为自定义列&lt;/p&gt;
 &lt;h2&gt;优化方案&lt;/h2&gt;
 &lt;p&gt;针对主要原因中的样式进行优化，移除多选相关的动画、过渡效果：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;.table-animation-none {
+&lt;pre&gt;&lt;code&gt;.table-animation-none.ant-table-wrapper {
   .ant-table-container {
 
     .ant-table-selection-column {
 
-      .ant-checkbox-checked * {
-        animation: none !important;
-        transition: none !important;
+      .ant-checkbox-checked .ant-checkbox-inner {
+        animation: none;
+        transition: none;
 
         &amp;amp;:after {
-          animation: none !important;
-          transition: none !important;
+          animation: none;
+          transition: none;
         }
       }
     }
 
-    td {
-      transition: none !important;
+    .ant-table-tbody &amp;gt; tr &amp;gt; td {
+      animation: none;
+      transition: none;
 
       &amp;amp;::after {
-        transition: none !important;
+        animation: none;
+        transition: none;
       }
     }
   }
