@@ -23,6 +23,10 @@ INP指标 > 1s
 - 处理点击，React调度，dom 变更 1.14s
 - 过度动画本身 0.8s 左右
 - 过度完成事件派发（React的事件系统）近 1s
+在 Frames 一栏中，在点击事件处理完成后，后续渲染的全是黄色、红色的帧。
+- 绿色 ：流畅帧。表示该帧在目标时间内（通常是 60 FPS，约 16.6ms 内）完成渲染，用户体验流畅。
+- 红色 ：丢帧。表示该帧耗时过长，导致严重的掉帧或卡顿，通常对应低于 30 FPS 的情况。
+- 黄色 ：部分呈现帧。这表示虽然主线程工作延迟，但合成器线程仍生成了视觉更新（例如滚动或某些动画），这类帧未完全阻塞但性能欠佳。
 ![HYT-1.png](HYT-1.png)
 
 主要原因：Ant design Table 的多选 Checkbox、td 的状态变化都有丰富的动画、过渡样式。
@@ -31,27 +35,29 @@ INP指标 > 1s
 ## 优化方案
 针对主要原因中的样式进行优化，移除多选相关的动画、过渡效果：
 ```less
-.table-animation-none {
+.table-animation-none.ant-table-wrapper {
   .ant-table-container {
 
     .ant-table-selection-column {
 
-      .ant-checkbox-checked * {
-        animation: none !important;
-        transition: none !important;
+      .ant-checkbox-checked .ant-checkbox-inner {
+        animation: none;
+        transition: none;
 
         &:after {
-          animation: none !important;
-          transition: none !important;
+          animation: none;
+          transition: none;
         }
       }
     }
 
-    td {
-      transition: none !important;
+    .ant-table-tbody > tr > td {
+      animation: none;
+      transition: none;
 
       &::after {
-        transition: none !important;
+        animation: none;
+        transition: none;
       }
     }
   }
