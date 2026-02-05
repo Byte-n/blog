@@ -112,7 +112,7 @@
 &lt;li&gt;中间这层“把回调 Promise 化、负责任务收尾”的脏活累活，全部交给库来完成&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;于是我给这个库定了几个原则：对业务代码“零侵入”“高复用”，让“写一个弹窗”这件事从“再写一个 Hook”变成“用一行 &lt;code&gt;await&lt;/code&gt;”。&lt;/p&gt;
-&lt;h2&gt;设计：从几个具体痛点倒推出来的架构&lt;/h2&gt;
+&lt;h2&gt;设计&lt;/h2&gt;
 &lt;p&gt;当时给自己列了这样一份 checklist：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;能够以极低的成本调用 n 个已有的业务弹窗&lt;/li&gt;
@@ -120,16 +120,41 @@
 &lt;li&gt;高内聚、低耦合：弹窗组件完全不知道自己会被这个库调用&lt;/li&gt;
 &lt;li&gt;有一套友好的说明文档、示例和对比说明&lt;/li&gt;
 &lt;li&gt;兼容 React 16+ 的所有版本，对构建工具选择足够谨慎（选 dumi 2）&lt;/li&gt;
-&lt;li&gt;稳定：核心分支都要被用例覆盖，测试框架选 vitest 4&lt;/li&gt;
+&lt;li&gt;稳定：核心分支都要被用例覆盖&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;围绕这些目标，逐步演化出了现在的几个核心设计。&lt;/p&gt;
 &lt;h3&gt;1. Promise 化的调用：一个入口，多种形态&lt;/h3&gt;
 &lt;p&gt;最顶层只有一个核心能力：&lt;strong&gt;把“弹窗的生命周期”变成一个可 &lt;code&gt;await&lt;/code&gt; 的 Promise&lt;/strong&gt;。在实现上拆成了三种使用姿势：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;函数式调用：&lt;code&gt;asyncModalRender(Component, props, container?, options?)&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Hook 模式：&lt;code&gt;const { render, holder } = useAsyncModalRender()&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Context 模式：&lt;code&gt;&amp;lt;AsyncModalRenderProvider&amp;gt;&lt;/code&gt; + &lt;code&gt;useAsyncModalRenderContext()&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;函数式调用：&lt;/li&gt;
 &lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;asyncModalRender(Component, props, container?, options?)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Hook 模式：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;function FC () {
+  const { render, holder } = useAsyncModalRender()
+  render(Component, props?, options?)
+  ...
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;Context 模式：&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;function FC () {
+  const { render } = useAsyncModalRenderContext()
+  render(Component, props?, options?)
+  ...
+}
+
+function App () {
+  ...
+  return &amp;lt;AsyncModalRenderProvider&amp;gt;
+    &amp;lt;FC/&amp;gt;
+  &amp;lt;/AsyncModalRenderProvider&amp;gt;
+} 
+&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;无论哪种方式，调用者看到的都是统一的形态：&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;const data = await render(MyModal, props, options)
 // 或者
@@ -137,9 +162,9 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;内部则通过一个统一的实现 &lt;code&gt;asyncModalRenderImp&lt;/code&gt; 来处理：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;负责把组件的 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 包装成 Promise 的 &lt;code&gt;resolve&lt;/code&gt; / &lt;code&gt;reject&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;在 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 之后调用 &lt;code&gt;options.onClose&lt;/code&gt; 做收尾（卸载、隐藏等）&lt;/li&gt;
-&lt;li&gt;在 Quiet 模式下，把“取消”改造成 &lt;code&gt;resolve(undefined)&lt;/code&gt; 而不是 &lt;code&gt;reject&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;将弹窗的实例化、挂载都包装到一个 Promise 中&lt;/li&gt;
+&lt;li&gt;把组件的 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 中触发 Promise 的 &lt;code&gt;resolve&lt;/code&gt; / &lt;code&gt;reject&lt;/code&gt;，同时卸载、隐藏弹窗。&lt;/li&gt;
+&lt;li&gt;在 Quiet 模式下，把 &lt;code&gt;onCancel&lt;/code&gt; 改造成 &lt;code&gt;resolve(undefined)&lt;/code&gt; 而不是 &lt;code&gt;reject&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;这样做的好处是：&lt;/p&gt;
 &lt;ul&gt;
@@ -150,16 +175,16 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 &lt;p&gt;一个重要的设计目标是：&lt;strong&gt;弹窗组件本身对 async-modal-render 无感&lt;/strong&gt;。&lt;/p&gt;
 &lt;p&gt;也就是说，业务侧写的组件只是一个普通的 React 组件：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;接收 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 这两个回调&lt;/li&gt;
+&lt;li&gt;接收 1～2 个回调，用于反馈确认、取消两个动作，可以是 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; / &lt;code&gt;onFinished&lt;/code&gt; / &lt;code&gt;onFail&lt;/code&gt;, &lt;code&gt;onConfirm&lt;/code&gt; / &lt;code&gt;onClose&lt;/code&gt; ... , 这都可以。&lt;/li&gt;
 &lt;li&gt;在用户操作时自己选择何时调用它们&lt;/li&gt;
 &lt;li&gt;不需要引入任何特定 Hook 或上下文&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;这样一来：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;组件可以独立存在，被页面直接用 &lt;code&gt;&amp;lt;XxxxModal /&amp;gt;&lt;/code&gt; 的方式挂进去也完全没问题&lt;/li&gt;
-&lt;li&gt;如果业务里已经有成熟的弹窗组件，只要把回调签名适配成 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 即可&lt;/li&gt;
+&lt;li&gt;组件可以独立存在，不强制依赖 async-modal-render&lt;/li&gt;
+&lt;li&gt;如果业务里已经有成熟的弹窗组件，只需要通过高阶函数的形式，将 特定的回调 映射到 &lt;code&gt;onOk&lt;/code&gt; / &lt;code&gt;onCancel&lt;/code&gt; 即可。&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;为了解决“现有组件的回调名不统一”的问题，库里额外提供了一个 &lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt;：&lt;/p&gt;
+&lt;p&gt;为了解决“现有组件的回调名不统一”的问题，async-modal-render 额外提供了一个 &lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt;：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;比如已有组件用的是 &lt;code&gt;onFinished&lt;/code&gt; / &lt;code&gt;onClose&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;通过 &lt;code&gt;withAsyncModalPropsMapper(Comp, [&apos;onFinished&apos;, &apos;onClose&apos;])&lt;/code&gt;&lt;/li&gt;
@@ -175,9 +200,8 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 &lt;/ul&gt;
 &lt;p&gt;&lt;code&gt;staticRender&lt;/code&gt; 做的事情就是：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;动态按需加载 &lt;code&gt;react-dom&lt;/code&gt; / &lt;code&gt;react-dom/client&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;根据版本号判断走哪条分支&lt;/li&gt;
-&lt;li&gt;在容器节点上复用 &lt;code&gt;__reactCompatRoot&lt;/code&gt;，避免重复创建 Root&lt;/li&gt;
+&lt;li&gt;根据版本号 或 动态按需加载 &lt;code&gt;react-dom&lt;/code&gt; / &lt;code&gt;react-dom/client&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;根据 react-dom 上的属性，判断是否哪一种 api （ &lt;code&gt;createRoot&lt;/code&gt; / &lt;code&gt;render&lt;/code&gt; ）&lt;/li&gt;
 &lt;li&gt;返回一个统一的卸载函数，用于在弹窗关闭时清理 DOM&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;这块踩过几个坑：&lt;/p&gt;
@@ -187,7 +211,7 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 &lt;/ul&gt;
 &lt;p&gt;最后把这些细节都收敛在 &lt;code&gt;staticRender&lt;/code&gt; 里面，业务调用方只需要知道：“给我一个 DOM 容器，我负责把弹窗挂上去并在结束时卸载掉”。&lt;/p&gt;
 &lt;h3&gt;4. Hook + Context：复用一份能力，覆盖不同场景&lt;/h3&gt;
-&lt;p&gt;业务里已经有大量的“用 Hook 控制弹窗”的惯性，完全抛弃 Hook 体验并不现实，因此在 &lt;code&gt;asyncModalRender&lt;/code&gt; 之外，还设计了：&lt;/p&gt;
+&lt;p&gt;业务里已经有大量的“用 Hook 控制弹窗”的惯性，并且需要使用一些全局配置、主题的上下文能力，Hook 的调用方式是必不可缺的，因此在 &lt;code&gt;asyncModalRender&lt;/code&gt; 之外，还设计了：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;useAsyncModalRender&lt;/code&gt;：在组件内部通过 Hook 管理弹窗&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;AsyncModalRenderProvider&lt;/code&gt; + &lt;code&gt;useAsyncModalRenderContext&lt;/code&gt;：在应用根部注入能力&lt;/li&gt;
@@ -290,7 +314,7 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 &lt;li&gt;&lt;code&gt;withAsyncModalPropsMapper&lt;/code&gt; 的行为和缓存策略&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;这些用例并不追求“形式上的 100% 覆盖率”，而是尽量覆盖所有分支和边界条件，让库的行为在不同 React 版本、不同调用路径下都保持一致。&lt;/p&gt;
-&lt;h2&gt;实现过程：从 0.0.1 到 0.0.6 之前&lt;/h2&gt;
+&lt;h2&gt;回顾实现过程：从 0.0.1 到 0.0.6 之前&lt;/h2&gt;
 &lt;p&gt;回顾 0.0.6 之前的版本，大致可以分成几步。&lt;/p&gt;
 &lt;h3&gt;0.0.1：最小可用版本&lt;/h3&gt;
 &lt;ul&gt;
