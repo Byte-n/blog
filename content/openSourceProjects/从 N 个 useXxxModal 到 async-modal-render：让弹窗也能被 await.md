@@ -45,7 +45,7 @@ draft: false
 
 于是我给这个库定了几个原则：对业务代码“零侵入”“高复用”，让“写一个弹窗”这件事从“再写一个 Hook”变成“用一行 `await`”。
 
-## 设计：从几个具体痛点倒推出来的架构
+## 设计
 
 当时给自己列了这样一份 checklist：
 
@@ -54,7 +54,7 @@ draft: false
 - 高内聚、低耦合：弹窗组件完全不知道自己会被这个库调用
 - 有一套友好的说明文档、示例和对比说明
 - 兼容 React 16+ 的所有版本，对构建工具选择足够谨慎（选 dumi 2）
-- 稳定：核心分支都要被用例覆盖，测试框架选 vitest 4
+- 稳定：核心分支都要被用例覆盖
 
 围绕这些目标，逐步演化出了现在的几个核心设计。
 
@@ -62,9 +62,33 @@ draft: false
 
 最顶层只有一个核心能力：**把“弹窗的生命周期”变成一个可 `await` 的 Promise**。在实现上拆成了三种使用姿势：
 
-- 函数式调用：`asyncModalRender(Component, props, container?, options?)`
-- Hook 模式：`const { render, holder } = useAsyncModalRender()`
-- Context 模式：`<AsyncModalRenderProvider>` + `useAsyncModalRenderContext()`
+- 函数式调用：
+```tsx
+asyncModalRender(Component, props, container?, options?)
+```
+- Hook 模式：
+```tsx
+function FC () {
+  const { render, holder } = useAsyncModalRender()
+  render(Component, props?, options?)
+  ...
+}
+```
+- Context 模式：
+```tsx
+function FC () {
+  const { render } = useAsyncModalRenderContext()
+  render(Component, props?, options?)
+  ...
+}
+
+function App () {
+  ...
+  return <AsyncModalRenderProvider>
+    <FC/>
+  </AsyncModalRenderProvider>
+} 
+```
 
 无论哪种方式，调用者看到的都是统一的形态：
 
@@ -76,9 +100,9 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 
 内部则通过一个统一的实现 `asyncModalRenderImp` 来处理：
 
-- 负责把组件的 `onOk` / `onCancel` 包装成 Promise 的 `resolve` / `reject`
-- 在 `onOk` / `onCancel` 之后调用 `options.onClose` 做收尾（卸载、隐藏等）
-- 在 Quiet 模式下，把“取消”改造成 `resolve(undefined)` 而不是 `reject`
+- 将弹窗的实例化、挂载都包装到一个 Promise 中
+- 把组件的 `onOk` / `onCancel` 中触发 Promise 的 `resolve` / `reject`，同时卸载、隐藏弹窗。
+- 在 Quiet 模式下，把 `onCancel` 改造成 `resolve(undefined)` 而不是 `reject`
 
 这样做的好处是：
 
@@ -91,16 +115,16 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 
 也就是说，业务侧写的组件只是一个普通的 React 组件：
 
-- 接收 `onOk` / `onCancel` 这两个回调
+- 接收 1～2 个回调，用于反馈确认、取消两个动作，可以是 `onOk` / `onCancel` / `onFinished` / `onFail`, `onConfirm` / `onClose` ... , 这都可以。
 - 在用户操作时自己选择何时调用它们
 - 不需要引入任何特定 Hook 或上下文
 
 这样一来：
 
-- 组件可以独立存在，被页面直接用 `<XxxxModal />` 的方式挂进去也完全没问题
-- 如果业务里已经有成熟的弹窗组件，只要把回调签名适配成 `onOk` / `onCancel` 即可
+- 组件可以独立存在，不强制依赖 async-modal-render
+- 如果业务里已经有成熟的弹窗组件，只需要通过高阶函数的形式，将 特定的回调 映射到 `onOk` / `onCancel` 即可。
 
-为了解决“现有组件的回调名不统一”的问题，库里额外提供了一个 `withAsyncModalPropsMapper`：
+为了解决“现有组件的回调名不统一”的问题，async-modal-render 额外提供了一个 `withAsyncModalPropsMapper`：
 
 - 比如已有组件用的是 `onFinished` / `onClose`
 - 通过 `withAsyncModalPropsMapper(Comp, ['onFinished', 'onClose'])`
@@ -118,9 +142,8 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 
 `staticRender` 做的事情就是：
 
-- 动态按需加载 `react-dom` / `react-dom/client`
-- 根据版本号判断走哪条分支
-- 在容器节点上复用 `__reactCompatRoot`，避免重复创建 Root
+- 根据版本号 或 动态按需加载 `react-dom` / `react-dom/client`
+- 根据 react-dom 上的属性，判断是否哪一种 api （ `createRoot` / `render` ）
 - 返回一个统一的卸载函数，用于在弹窗关闭时清理 DOM
 
 这块踩过几个坑：
@@ -132,7 +155,7 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 
 ### 4. Hook + Context：复用一份能力，覆盖不同场景
 
-业务里已经有大量的“用 Hook 控制弹窗”的惯性，完全抛弃 Hook 体验并不现实，因此在 `asyncModalRender` 之外，还设计了：
+业务里已经有大量的“用 Hook 控制弹窗”的惯性，并且需要使用一些全局配置、主题的上下文能力，Hook 的调用方式是必不可缺的，因此在 `asyncModalRender` 之外，还设计了：
 
 - `useAsyncModalRender`：在组件内部通过 Hook 管理弹窗
 - `AsyncModalRenderProvider` + `useAsyncModalRenderContext`：在应用根部注入能力
@@ -240,7 +263,7 @@ const data = await asyncModalRender(MyModal, props, container, { quiet })
 
 这些用例并不追求“形式上的 100% 覆盖率”，而是尽量覆盖所有分支和边界条件，让库的行为在不同 React 版本、不同调用路径下都保持一致。
 
-## 实现过程：从 0.0.1 到 0.0.6 之前
+## 回顾实现过程：从 0.0.1 到 0.0.6 之前
 
 回顾 0.0.6 之前的版本，大致可以分成几步。
 
