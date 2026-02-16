@@ -5,6 +5,14 @@ tags: ['智能体']
 category: AI
 draft: false
 ---
+OpenHands（原名 OpenDevin）是一个开源的 AI 软件开发平台和自主智能体（AI Agent），旨在通过人工智能模拟人类开发者的行为来自动化软件开发任务。
+它的核心功能和特点包括：
+* 自主编程能力：OpenHands 不仅仅是一个聊天机器人，它具备“动手”能力，可以自主修改代码、执行终端命令、浏览网页以及调用 API。
+* 端到端任务处理：它可以处理复杂的工程任务，如修复 Bug、生成测试用例、编写文档、进行代码重构以及解决 GitHub 上的 Issue。
+* 开源与协作：该项目在 GitHub 上以 MIT 协议开源。它支持多种主流的大语言模型（LLM），并允许开发者在受控的沙盒环境（通常基于 Docker）中运行 AI 智能体，以确保安全性。
+* 多平台支持：提供 Web 界面和 命令行工具 (CLI)，并可以通过 Chrome 插件直接在 GitHub 页面上启动任务。
+* 对标产品：它常被视为 Cognition AI 公司推出的闭源 AI 程序员 Devin 的开源替代方案。
+
 ## 安装
 
 这里使用docker的安装方式。
@@ -49,13 +57,6 @@ litellm.BadRequestError: LLM Provider NOT provided. Pass in the LLM provider you
 ## 试用
 
 有时候准备就绪了，但是项目工作目录下没有代码文件，则是远程仓库拉取失败。
-
-### 启动项目
-## 试用
-
-`npm i`时终端长时间未响应（好像 openhands 未收到输出结束符号）会认为超时，会中断重试。例如使用：“全局安装 nrm 、 pnpm ，并使用 nrm 切换为 taobao 源，然后执行 `pnpm i` 与 `pnpm run dev`”。或者使用项目级的配置文件实现。
-
-有时候准备就绪了，但是项目工作目录下没有代码文件，则是远程仓库拉取失败
 
 ### 启动项目
 
