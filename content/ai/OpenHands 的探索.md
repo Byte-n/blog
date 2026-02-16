@@ -68,7 +68,12 @@ litellm.BadRequestError: LLM Provider NOT provided. Pass in the LLM provider you
 
 https://github.com/Byte-n/flower/tree/feature/add-background-toggle
 
+![img_3.png](img_3.png)
+
+![img_4.png](img_4.png)
+
 ![img_2.png](img_2.png)
+
 
 ## 扩展
 
