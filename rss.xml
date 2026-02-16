@@ -1,4 +1,68 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>Ant design Table 多选卡顿性能优化</title><link>https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid><pubDate>Tue, 03 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>OpenHands 的探索</title><link>https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</guid><pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;安装&lt;/h2&gt;
+&lt;p&gt;这里使用docker的安装方式。&lt;/p&gt;
+&lt;p&gt;docker 命令参见：https://docs.openhands.dev/openhands/usage/run-openhands/local-setup#docker-command-click-to-expand&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;docker run -it --rm --pull=always \
+  -e AGENT_SERVER_IMAGE_REPOSITORY=ghcr.io/openhands/agent-server \
+  -e AGENT_SERVER_IMAGE_TAG=1.10.0-python \
+  -e LOG_ALL_EVENTS=true \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v ~/.openhands:/.openhands \
+  -p 3000:3000 \
+  --add-host host.docker.internal:host-gateway \
+  --name openhands-app \
+    docker.openhands.dev/openhands/openhands:1.3
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;数据存储在本地的&lt;code&gt;~/.openhands&lt;/code&gt; 下&lt;/p&gt;
+&lt;h2&gt;LLM 配置&lt;/h2&gt;
+&lt;p&gt;默认打开 &lt;a href=&quot;http://localhost:3000&quot;&gt;localhost:3000&lt;/a&gt; 的时候，会有引导窗口让你选择模型提供商，我这里选择 Qianwen 与 qwen3-coder-480b-a35b-instruct 。（&lt;a href=&quot;https://bailian.console.aliyun.com/cn-beijing/?spm=5176.29619931.J_SEsSjsNv72yRuRFS2VknO.2.136910d7H80yiX&amp;amp;tab=model#/model-market/detail/qwen3-coder-480b-a35b-instruct&quot;&gt;购买/试用链接&lt;/a&gt;，下滑有一个获取API key 的按钮，建议开启“&lt;strong&gt;免费额度用完即停&lt;/strong&gt;”，不然你会收到阿里云的欠费通知短信，别问我为什么知道。）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;这里有一个坑：&lt;/strong&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;litellm.BadRequestError: LLM Provider NOT provided. Pass in the LLM provider you are trying to call. You passed model=Qwen/Qwen3-Coder-480B-A35B-Instruct
+ Pass model as E.g. For &apos;Huggingface&apos; inference endpoints pass in `completion(model=&apos;huggingface/starcoder&apos;,..)` Learn more: https://docs.litellm.ai/docs/providers
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;因为它自动生成的模型名称为：&lt;code&gt;qianwen/qwen3-coder-480b-a35b-instruct&lt;/code&gt; 。这个是错误的，需要到设置的LLM中修改：&lt;/p&gt;
+&lt;p&gt;模型：dashscope/qwen3-coder-480b-a35b-instruct&lt;/p&gt;
+&lt;p&gt;基础URL： https://dashscope.aliyuncs.com/compatible-mode/v1
+&lt;img src=&quot;img.png&quot; alt=&quot;img.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;修改LLM后，仅对新增的会话有效，不影响已有的会话，所以需要重开一个会话验证。&lt;/p&gt;
+&lt;h2&gt;试用&lt;/h2&gt;
+&lt;p&gt;有时候准备就绪了，但是项目工作目录下没有代码文件，则是远程仓库拉取失败。&lt;/p&gt;
+&lt;h3&gt;启动项目&lt;/h3&gt;
+&lt;h2&gt;试用&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;npm i&lt;/code&gt;时终端长时间未响应（好像 openhands 未收到输出结束符号）会认为超时，会中断重试。例如使用：“全局安装 nrm 、 pnpm ，并使用 nrm 切换为 taobao 源，然后执行 &lt;code&gt;pnpm i&lt;/code&gt; 与 &lt;code&gt;pnpm run dev&lt;/code&gt;”。或者使用项目级的配置文件实现。&lt;/p&gt;
+&lt;p&gt;有时候准备就绪了，但是项目工作目录下没有代码文件，则是远程仓库拉取失败&lt;/p&gt;
+&lt;h3&gt;启动项目&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;npm i&lt;/code&gt;时终端长时间未响应（openhands 未收到输出结束符合）会认为超时，会中断重试。例如使用：“全局安装 nrm 、 pnpm ，并使用 nrm 切换为 taobao 源，然后执行 &lt;code&gt;pnpm i&lt;/code&gt; 与 &lt;code&gt;pnpm run dev&lt;/code&gt;”。或者使用项目级的配置文件实现。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_1.png&quot; alt=&quot;img_1.png&quot; /&gt;&lt;/p&gt;
+&lt;h3&gt;根据需求修改功能，并推送&lt;/h3&gt;
+&lt;p&gt;https://github.com/Byte-n/flower/tree/feature/add-background-toggle&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_2.png&quot; alt=&quot;img_2.png&quot; /&gt;&lt;/p&gt;
+&lt;h2&gt;扩展&lt;/h2&gt;
+&lt;h3&gt;MCP&lt;/h3&gt;
+&lt;p&gt;参考文档：https://docs.openhands.dev/overview/model-context-protocol&lt;/p&gt;
+&lt;p&gt;在 openhands 的配置文件（config.tom 已标记弃用）、网页UI设置（好像对于setting.json文件）中可以配置 MCP 服务器。&lt;/p&gt;
+&lt;p&gt;支持 SHTTP、SSE、STDIO 三种&lt;/p&gt;
+&lt;h3&gt;Skills&lt;/h3&gt;
+&lt;p&gt;参考文档：https://docs.openhands.dev/overview/skills&lt;/p&gt;
+&lt;p&gt;包含两部分，一部分是 openhands 内置功能相关的，例如 git 操作，npm 操作，内置的浏览器预览等。另外一部分是项目级别的，会自动识别以下目录中的：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;your-repository/
+├── AGENTS.md                       # 永久仓库指令（推荐）
+└── .agents/
+    └── skills/
+        ├── my-skill/               # AgentSkills 标准格式
+        │   └── SKILL.md
+        └── legacy_trigger.md       # 旧格式（关键词触发）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;自定义工作空间的docker镜像&lt;/h3&gt;
+&lt;p&gt;参加一个自定义的 docker 镜像，在通过 docker 启动 openhands 的时候，使用 &lt;code&gt;SANDBOX_BASE_CONTAINER_IMAGE&lt;/code&gt;  参数指定自定义的镜像。&lt;/p&gt;
+&lt;p&gt;为不同的项目配备单独的 openhands 与 工作空间镜像。工作空间镜像中预设项目环境，固定新需求的基础代码分支等等&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;docker run -it --rm --pull=always \
+    -e SANDBOX_BASE_CONTAINER_IMAGE=custom-image \
+    ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;飞书机器人集成的可能实现方式&lt;/h3&gt;
+&lt;p&gt;通过openhands api 的方式，将输入与输出 中转到 openhands 。&lt;/p&gt;
+&lt;p&gt;通过飞书机器人私聊、艾特的方式创建一个项目，机器人会参加一个飞书群聊对应 openhands 的一个会话。群聊 ID 与 openhands 会话 ID 关联。&lt;/p&gt;
+</content:encoded></item><item><title>Ant design Table 多选卡顿性能优化</title><link>https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/ant-design-table-%E5%A4%9A%E9%80%89%E5%8D%A1%E9%A1%BF%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/</guid><pubDate>Tue, 03 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
 &lt;p&gt;在OMS项目中有一个展示销售订单的表格（基于 Ant design Table），表格有36列，包含基础的字符、自定义组件、操作列等。在表格每页展示100行数据的时候，表格也能较快的完成渲染。但在点击表格全选按钮（或取消全选）时会非常卡顿，整个界面都会进入短暂的不可交互状态。&lt;/p&gt;
 &lt;h2&gt;问题分析&lt;/h2&gt;
 &lt;p&gt;借助浏览器的控制台工具中的性能板块，可以查看、录制一段时间内的代码运行、渲染等耗时时间。其中 &lt;a href=&quot;https://web.dev/articles/inp?hl=zh-cn&quot;&gt;INP&lt;/a&gt; 指标在每一次点击时都会自动记录。&lt;/p&gt;
