@@ -749,11 +749,11 @@ Spec Kitty Dashboard
 
 在 Implement 界面中查看任务进度
 
-![image.png](attachment:8b2318e8-8e9e-46a8-b37d-7450bb14a26d:image.png)
+![img_5.png](img_5.png)
 
-一个小时后，这期间需要不断手动 `/spec-kitty.implement` 、`/spec-kitty.review`。可以
+一个小时后，这期间需要不断手动 `/spec-kitty.implement` 、`/spec-kitty.review`。理论上也可以写一个提示词让他按顺序自动跑完所有指令。
 
-![image.png](attachment:b3f5f4d4-498a-478c-a0ca-44e5d603bc54:image.png)
+![img_6.png](img_6.png)
 
 ## 结果
 
@@ -776,4 +776,4 @@ claude code 成本统计。AI 工作耗时 2h 2m 48s
 
 界面效果：https://byte-n.github.io/spec-kitty-test-question-game/
 
-![image.png](attachment:2a6067c5-bcec-4039-acfc-c800a2073542:image.png)
+![img_7.png](img_7.png)
