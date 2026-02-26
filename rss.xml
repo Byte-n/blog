@@ -735,9 +735,9 @@ Spec Kitty Dashboard
 ✅ Opening dashboard in your browser...
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;在 Implement 界面中查看任务进度&lt;/p&gt;
-&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
-&lt;p&gt;一个小时后，这期间需要不断手动 &lt;code&gt;/spec-kitty.implement&lt;/code&gt; 、&lt;code&gt;/spec-kitty.review&lt;/code&gt;。可以&lt;/p&gt;
-&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_5.png&quot; alt=&quot;img_5.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;一个小时后，这期间需要不断手动 &lt;code&gt;/spec-kitty.implement&lt;/code&gt; 、&lt;code&gt;/spec-kitty.review&lt;/code&gt;。理论上也可以写一个提示词让他按顺序自动跑完所有指令。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_6.png&quot; alt=&quot;img_6.png&quot; /&gt;&lt;/p&gt;
 &lt;h2&gt;结果&lt;/h2&gt;
 &lt;p&gt;claude code 成本统计。AI 工作耗时 2h 2m 48s&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;❯ /cost
@@ -752,7 +752,7 @@ Spec Kitty Dashboard
 &lt;p&gt;在开发完成后，因为 Agent 使用超出时间窗口限制，手动修复了两个全局状态使用错误。&lt;/p&gt;
 &lt;p&gt;从界面效果来看需求描述中的功能都实现了。H5 与 移动端的适配也还可以。界面样式美观程度一般，因为没有补充对应的要求说明，若搭配上对应的 skill 应该就能生成更美观的界面（例如 https://github.com/nextlevelbuilder/ui-ux-pro-max-skill 或 https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md）&lt;/p&gt;
 &lt;p&gt;界面效果：https://byte-n.github.io/spec-kitty-test-question-game/&lt;/p&gt;
-&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_7.png&quot; alt=&quot;img_7.png&quot; /&gt;&lt;/p&gt;
 </content:encoded></item><item><title>Agent Skills</title><link>https://fuwari.vercel.app/blog/posts/ai/agent-skills/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/agent-skills/</guid><pubDate>Wed, 25 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Agent Skills 就是把“干活工具”和“操作说明书”打包成一个插件，让 AI 知道在什么时候、按什么步骤去完成一件具体的专业杂事。&lt;/p&gt;
 &lt;p&gt;Agent Skills 与 MCP 的差异及优势：&lt;/p&gt;
 &lt;ul&gt;
