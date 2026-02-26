@@ -1,4 +1,1105 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>OpenHands 的探索</title><link>https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</guid><pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;OpenHands（原名 OpenDevin）是一个开源的 AI 软件开发平台和自主智能体（AI Agent），旨在通过人工智能模拟人类开发者的行为来自动化软件开发任务。
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>使用 Spec-kitty + Claude 从零构建答题游戏</title><link>https://fuwari.vercel.app/blog/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/</guid><pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;::github{repo=&quot;Priivacy-ai/spec-kitty&quot;}&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;spec-kitty&lt;/code&gt; 则是由社区（Priivacy-ai）在&lt;code&gt;spec-kit&lt;/code&gt; 基础上进行的二次开发，加入了更多针对&lt;strong&gt;复杂项目&lt;/strong&gt;和&lt;strong&gt;多 AI 代理协作&lt;/strong&gt;的实战功能。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;spec-kitty&lt;/strong&gt; 是在原版的基础上，增加了一套 “&lt;strong&gt;AI 自动打工”的工程系统&lt;/strong&gt;：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;物理隔离&lt;/strong&gt;：用 Git Worktree 开辟独立空间，AI 随便改，不弄乱你的主代码。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;自动闭环&lt;/strong&gt;：不仅会写代码，还会&lt;strong&gt;自动运行、自动改错、自动测试&lt;/strong&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;可视化&lt;/strong&gt;：提供 &lt;strong&gt;Web 看板&lt;/strong&gt;，像管理员工一样点点鼠标就能监控 AI 进度。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;精准控制&lt;/strong&gt;：通过“宪法”和“任务拆解”大幅降低 AI 乱写代码（幻觉）的概率。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;spec-kitty 支持的 Agent 如下：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;&lt;a href=&quot;https://www.anthropic.com/claude-code&quot;&gt;Claude Code&lt;/a&gt;&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;GitHub Copilot&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://github.com/google-gemini/gemini-cli&quot;&gt;Gemini CLI&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://cursor.sh/&quot;&gt;Cursor&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://github.com/QwenLM/qwen-code&quot;&gt;Qwen Code&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://opencode.ai/&quot;&gt;opencode&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://windsurf.com/&quot;&gt;Windsurf&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://github.com/Kilo-Org/kilocode&quot;&gt;Kilo Code&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://docs.augmentcode.com/cli/overview&quot;&gt;Auggie CLI&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://roocode.com/&quot;&gt;Roo Code&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;&lt;a href=&quot;https://github.com/openai/codex&quot;&gt;Codex CLI&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;使用步骤：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;spec-kitty init&lt;/code&gt;  — 在项目中初始化 spec-kitty&lt;/li&gt;
+&lt;li&gt;切换到 Agent 中
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.constitution&lt;/code&gt; — 定义项目的技术栈、编码约束、严禁事项&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.specify&lt;/code&gt; — 明确需求&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.clarify&lt;/code&gt; — 进一步细化规格中的模糊点&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.plan&lt;/code&gt; — 生成实现计划和设计文档&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.research&lt;/code&gt;— 可行性研究&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.tasks&lt;/code&gt; — 生成工作包和可执行任务&lt;/li&gt;
+&lt;li&gt;执行任务，依次完成所有任务
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.implement&lt;/code&gt; — 实现需求&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.review&lt;/code&gt; — 检查代码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.merge&lt;/code&gt; — 合并所有分支&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2&gt;初始化&lt;/h2&gt;
+&lt;p&gt;在项目中执行命令 &lt;code&gt;spec-kitty init .&lt;/code&gt; 完成项目的初始化。这里选择的 Agent 是 claude code&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                                                                                                                                                             │
+│  Specify Project Setup                                                                                                                                                                                                                                                                                                      │
+│                                                                                                                                                                                                                                                                                                                             │
+│  Project         test-card-mey                                                                                                                                                                                                                                                                                              │
+│  Working Path    /Users/xzl/Desktop/test-card-mey                                                                                                                                                                                                                                                                           │
+│                                                                                                                                                                                                                                                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+✓ git detected - will be used for version control
+
+Agent Selection Strategy
+This determines how agents are chosen for implementation and review tasks.
+
+Single agent mode: Claude Code will do both implementation and review
+Auto-detected script type: POSIX Shell (bash/zsh)
+Selected AI assistant(s): Claude Code
+Selected script type: sh
+Selected mission: Software Dev Kitty
+Initialize Specify Project
+├── ● Check required tools (ok)
+├── ● Select AI assistant(s) (Claude Code)
+├── ● Select script type (sh)
+├── ● Select mission (Software Dev Kitty)
+├── ● Activate mission (Software Dev Kitty (per-feature selection))
+├── ● Claude Code: fetch latest release (packaged data)
+├── ● Claude Code: download template (local files)
+├── ● Claude Code: extract template (commands generated)
+├── ● Claude Code: archive contents (templates ready)
+├── ● Claude Code: extraction summary (commands ready)
+├── ● Claude Code: cleanup (done)
+├── ● Ensure scripts executable (0 updated)
+├── ● Initialize git repository (existing repo detected)
+├── ● Finalize (project ready)
+└── ● Install git hooks (3 hook(s) installed)
+
+Project ready.
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Agent Folder Security ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                                                                                                                                                             │
+│  Some agents may store credentials, auth tokens, or other identifying and private artifacts in the agent folder within your project.                                                                                                                                                                                        │
+│  Consider adding the following folders (or subsets) to .gitignore:                                                                                                                                                                                                                                                          │
+│                                                                                                                                                                                                                                                                                                                             │
+│  - Claude Code: .claude/                                                                                                                                                                                                                                                                                                    │
+│                                                                                                                                                                                                                                                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Next Steps ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                                                                                                                                                             │
+│  1. You&apos;re already in the project directory!                                                                                                                                                                                                                                                                                │
+│  2. Available missions: software-dev, research (selected per-feature during /spec-kitty.specify)                                                                                                                                                                                                                            │
+│  3. Start using slash commands with your AI agent (in workflow order):                                                                                                                                                                                                                                                      │
+│     - /spec-kitty.dashboard - Open the real-time kanban dashboard                                                                                                                                                                                                                                                           │
+│     - /spec-kitty.constitution - Establish project principles                                                                                                                                                                                                                                                               │
+│     - /spec-kitty.specify - Create baseline specification                                                                                                                                                                                                                                                                   │
+│     - /spec-kitty.plan - Create implementation plan                                                                                                                                                                                                                                                                         │
+│     - /spec-kitty.research - Run mission-specific Phase 0 research scaffolding                                                                                                                                                                                                                                              │
+│     - /spec-kitty.tasks - Generate tasks and kanban-ready prompt files                                                                                                                                                                                                                                                      │
+│     - /spec-kitty.implement - Execute implementation from /tasks/doing/                                                                                                                                                                                                                                                     │
+│     - /spec-kitty.review - Review prompts and move them to /tasks/done/                                                                                                                                                                                                                                                     │
+│     - /spec-kitty.accept - Run acceptance checks and verify feature complete                                                                                                                                                                                                                                                │
+│     - /spec-kitty.merge - Merge feature into main and cleanup worktree                                                                                                                                                                                                                                                      │
+│                                                                                                                                                                                                                                                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Enhancement Commands ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                                                                                                                                                             │
+│  Optional commands that you can use for your specs (improve quality &amp;amp; confidence)                                                                                                                                                                                                                                           │
+│                                                                                                                                                                                                                                                                                                                             │
+│  ○ /spec-kitty.clarify (optional) - Ask structured questions to de-risk ambiguous areas before planning (run before /spec-kitty.plan if used)                                                                                                                                                                               │
+│  ○ /spec-kitty.analyze (optional) - Cross-artifact consistency &amp;amp; alignment report (after /spec-kitty.tasks, before /spec-kitty.implement)                                                                                                                                                                                   │
+│  ○ /spec-kitty.checklist (optional) - Generate quality checklists to validate requirements completeness, clarity, and consistency (after /spec-kitty.plan)                                                                                                                                                                  │
+│                                                                                                                                                                                                                                                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Spec Kitty Dashboard Started ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│                                                                                                                                                                                                                                                                                                                             │
+│  Dashboard URL: http://127.0.0.1:9237                                                                                                                                                                                                                                                                                       │
+│  Port: 9237                                                                                                                                                                                                                                                                                                                 │
+│                                                                                                                                                                                                                                                                                                                             │
+│  The dashboard is running in the background and will continue even after                                                                                                                                                                                                                                                    │
+│  this command exits. It will automatically update as you work.                                                                                                                                                                                                                                                              │
+│                                                                                                                                                                                                                                                                                                                             │
+│  Tip: Run /spec-kitty.dashboard or spec-kitty dashboard to open it in your browser                                                                                                                                                                                                                                          │
+│                                                                                                                                                                                                                                                                                                                             │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+Updated .gitignore to exclude AI agent directories:
+  • .claude/
+  • .codex/
+  • .opencode/
+  • .windsurf/
+  • .gemini/
+  • .cursor/
+  • .qwen/
+  • .kilocode/
+  • .augment/
+  • .roo/
+  • .amazonq/
+  • .github/copilot/
+  • .kittify/.dashboard
+Created .claudeignore to optimize AI assistant scanning
+Saved agent configuration (preferred strategy)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在初始化完成后，进入 claude code. 输入 &lt;code&gt;/spec-kitty&lt;/code&gt;  就能看见相关的指令了。也可以使用 &lt;code&gt;spec-kitty verify-setup&lt;/code&gt;  验证初始化是否正确。&lt;/p&gt;
+&lt;h2&gt;定义项目规章 spec-kitty.constitution&lt;/h2&gt;
+&lt;p&gt;在项目中切换到 claude code，执行指令 &lt;code&gt;/spec-kitty.constitution&lt;/code&gt;  定义项目的技术栈、代码风格、严禁事项。&lt;/p&gt;
+&lt;p&gt;听着是不是与 skills 中对项目组件、样式的定义有重叠？这里可以直接引用 skills，例如：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;## H5 Mobile Styling Standards
+
+Applies to all mobile/H5 views. Reference the `h5-style-guide` skill for full details.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这里可以说吗项目的技术栈，引用 skils / mcp / 提示词 / 任意文件 来约束、补充说明。这里就是一个大纲，说明项目相关的内容。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ /spec-kitty.constitution
+
+⏺ Searched for 1 pattern (ctrl+o to expand)
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · Do you want to establish a project constitution? → Minimal
+
+⏺ Phase 1: Technical Standards
+  These are the non-negotiable technical requirements that all features must follow.
+
+  ---
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · What languages and frameworks are required for this project? → TypeScript + React (Frontend)
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · What testing framework and coverage requirements apply? → Jest + Vitest, coverage optional
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · What are the performance and scale expectations? → Standard web app
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · What are the deployment constraints or platform requirements? → Docker + Kubernetes
+
+⏺ Constitution Summary
+
+  ---
+  Technical Standards:
+  - Languages: TypeScript + React (Frontend)
+  - Testing: Jest + Vitest, tests required but no strict coverage target
+  - Performance: Standard web app — page load &amp;lt; 3s, smooth 60fps interactions
+  - Deployment: Docker + Kubernetes
+
+  Governance: Defaults (PR-based amendments, review-time compliance)
+
+  Estimated length: ~50-60 lines
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · Proceed with writing the constitution? → /Users/xzl/Desktop/test-card-mey/.agents/skills/vercel-react-best-practices 与 /Users/xzl/Desktop/test-card-mey/.agents/skills/h5-style-guide
+
+⏺ It looks like you want to incorporate your existing skill files into the constitution. Let me read them.
+
+⏺ Searched for 2 patterns, read 4 files (ctrl+o to expand)
+
+⏺ Got it — I&apos;ll bake the key standards from both skills into the constitution. Writing now.
+
+⏺ Bash(mkdir -p /Users/xzl/Desktop/test-card-mey/.kittify/memory)
+  ⎿  Done
+
+⏺ Write(.kittify/memory/constitution.md)
+  ⎿  Wrote 114 lines to .kittify/memory/constitution.md
+       1 # test-card-mey Constitution
+       2
+       3 &amp;gt; Auto-generated by spec-kitty constitution command
+       4 &amp;gt; Created: 2026-02-25
+       5 &amp;gt; Version: 1.0.0
+       6
+       7 ## Purpose
+       8
+       9 This constitution captures the technical standards and coding conventions for
+      10 test-card-mey. All features and pull requests should align with these principles.
+     … +104 lines (ctrl+o to expand)
+
+⏺ Constitution written to .kittify/memory/constitution.md.
+
+  What was captured:
+
+  - Technical Standards — TypeScript + React, Jest/Vitest, standard web perf targets, Docker + Kubernetes
+  - React Performance — References the vercel-react-best-practices skill with the full 8-category priority ordering (from CRITICAL waterfalls/bundle to LOW advanced patterns)
+  - H5 Styling Standards — Full rules from the h5-style-guide skill: style solution priority, unit conventions (rem/px via postcss-pxtorem, 750px base), camelCase naming, CSS property order, and the complete code review checklist
+
+  Next steps:
+  - Run /spec-kitty.specify to create a feature spec (constitution will automatically guide it)
+  - Share .kittify/memory/constitution.md with your team for review
+  - Run /spec-kitty.constitution anytime to update it
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;明确需求 spec-kitty.specify&lt;/h2&gt;
+&lt;p&gt;这一步需要说明的内容是需要实现什么样的需求，从产品经理的角度描述需求，不参杂任何技术角度的问题。&lt;/p&gt;
+&lt;p&gt;例如 “帮我实现一个可以在PC与手机端与平板端使用的答题游戏网页。” 而不是“帮我实现几个基于React + Nextjs + TaildWin……”，然后 claude code 会向你确认需求，后续都是交互式的回答与修改即可，最终确认没问题即可自动生成需求规格说明等记录文档。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ /spec-kitty.specify
+
+⏺ What feature would you like to build? Describe it in a sentence or two — what it does and who it&apos;s for.
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 帮我实现一个可以在PC与手机端与平板端使用的答题游戏网页。
+
+⏺ 好的！这是一个答题游戏网页，跨 PC / 手机 / 平板使用。让我了解一下核心玩法。
+
+  问题 1 / 3
+
+  答题游戏的核心模式是什么？
+
+  - 单人闯关 — 玩家独自答题，通关/计分，类似知识竞赛
+  - 多人实时对战 — 多个玩家同时在线抢答，房间制（类似 Kahoot）
+  - 多人轮流答题 — 同一设备/房间轮流作答，适合聚会场景
+  - 练习/刷题模式 — 无时间压力，用于学习复习
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 帮我实现一个可以在PC与手机端与平板端使用的答题游戏网页。
+
+⏺ 好的！这是一个答题游戏网页，跨 PC / 手机 / 平板使用。让我了解一下核心玩法。
+
+  问题 1 / 3
+
+  答题游戏的核心模式是什么？
+
+  - 单人闯关 — 玩家独自答题，通关/计分，类似知识竞赛
+  - 多人实时对战 — 多个玩家同时在线抢答，房间制（类似 Kahoot）
+  - 多人轮流答题 — 同一设备/房间轮流作答，适合聚会场景
+  - 练习/刷题模式 — 无时间压力，用于学习复习
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 多人轮流答题，在一个网页上进行
+
+⏺ 明白了！同一页面上多人轮流作答，聚会/桌游风格。
+
+  问题 2 / 3
+
+  题目内容怎么来？
+
+  - 内置题库 — 预设好一批题目，开箱即用
+  - 主持人/管理员自定义 — 游戏开始前手动输入题目和答案
+  - 两者都要 — 有默认题库，也支持自定义
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 两者都要 — 有默认题库，也支持自定义
+
+⏺ 问题 3 / 3
+
+  游戏规则细节是什么？（可多选，没有要求就选默认）
+
+  - 计时答题 — 每题有倒计时，超时算错
+  - 计分制 — 答对得分，可有速度加成
+  - 答错扣分 — 答错会扣分
+  - 纯娱乐 — 不计分，只看对错，重在参与
+
+  你期望玩家人数范围大概是多少？（比如 2-8 人）
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 1～12人
+
+⏺ 完美。我已经有足够的上下文了。
+
+  ---
+  Intent Summary — 多人轮流答题游戏
+
+  功能标题: Multiplayer Turn-Based Quiz Game
+
+  一个响应式答题游戏网页，支持 1-12 名玩家在同一页面上轮流作答。
+
+  核心功能：
+  - 玩家设置 — 游戏开始前输入玩家数量（1-12）和名字
+  - 题目来源 — 内置默认题库 + 主持人可在游戏前自定义题目/答案
+  - 轮流机制 — 每轮显示当前玩家，展示题目，等待作答
+  - 题型 — 单选题（多选项，含正确答案）
+  - 计分 — 答对得分，答错不扣分，最终展示排行榜
+  - 计时 — 每题有倒计时（默认合理秒数）
+  - 结束 — 所有题目完成后显示最终排行榜
+  - 设备适配 — PC / 平板 / 手机全端响应式布局
+
+  Mission: software-dev
+
+  这个理解准确吗？有需要调整的地方吗？
+
+❯ 题目来源 — 内置默认题库 + 自定义的题库 （可自定义新增题库）多个题库合并
+
+⏺ 明白了，更新理解：
+
+  题目来源（更新）：
+  - 内置默认题库 — 预设题目，开箱可用
+  - 自定义题库 — 可新建多个独立题库，每个题库有名称和题目列表
+  - 题库合并 — 开始游戏前，可勾选多个题库（内置 + 自定义任意组合），合并后随机抽题
+
+  所以游戏流程大概是：选择题库 → 设置玩家 → 开始答题 → 排行榜
+
+  这个理解对吗？确认后我就开始生成规格说明。
+
+❯ 对的
+
+⏺ Bash(spec-kitty agent feature create-feature &quot;multiplayer-turn-based-quiz-game&quot; --json)
+	 ...
+   ...
+
+⏺ 规格说明已生成并提交。
+
+  ---
+  Feature 001-multiplayer-turn-based-quiz-game — 完成
+
+  文件位置:
+  - kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md — 主规格说明
+  - kitty-specs/001-multiplayer-turn-based-quiz-game/meta.json — 元数据
+  - kitty-specs/001-multiplayer-turn-based-quiz-game/checklists/requirements.md — 质量检查清单（全部通过）
+
+  规格摘要:
+
+  ┌──────────┬──────────────────────────────────────────────────────────────────┐
+  │   项目   │                               内容                               │
+  ├──────────┼──────────────────────────────────────────────────────────────────┤
+  │ 用户故事 │ 4 个（P1 核心游戏流程 → P4 响应式适配）                          │
+  ├──────────┼──────────────────────────────────────────────────────────────────┤
+  │ 功能需求 │ 22 条（FR-001 ~ FR-022）                                         │
+  ├──────────┼──────────────────────────────────────────────────────────────────┤
+  │ 成功标准 │ 6 条可量化指标                                                   │
+  ├──────────┼──────────────────────────────────────────────────────────────────┤
+  │ 边界情况 │ 6 个已定义                                                       │
+  ├──────────┼──────────────────────────────────────────────────────────────────┤
+  │ 关键实体 │ 5 个（QuestionBank、Question、Player、GameSession、Leaderboard） │
+  └──────────┴──────────────────────────────────────────────────────────────────┘
+
+  核心假设（已记录在 spec）:
+  - 纯客户端，localStorage 持久化，无需后端
+  - 单设备共享屏幕，无网络多人
+  - 仅支持单选题，中文内置题库，答对得 1 分
+
+  ---
+  下一步:
+  - /spec-kitty.clarify — 进一步细化规格中的模糊点
+  - /spec-kitty.plan — 生成实现计划和设计文档
+  - /spec-kitty.tasks — 生成工作包和可执行任务
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这里可以看见已经自动给出了下一步的操作说明 &lt;code&gt;/spec-kitty.clarify&lt;/code&gt;，&lt;code&gt;/spec-kitty.plan&lt;/code&gt;，&lt;code&gt;/spec-kitty.tasks&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;细化需求 spec-kitty.clarify&lt;/h2&gt;
+&lt;p&gt;在 Claude code 中输入 &lt;code&gt;/spec-kitty.clarify&lt;/code&gt; ，等待 AI 验证和抛出问题。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ /spec-kitty.clarify
+
+⏺ Bash(spec-kitty agent feature check-prerequisites --json --paths-only)
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ 已加载规格说明并完成覆盖度扫描。发现以下几个需要澄清的关键点，我将逐一提问。
+
+  ---
+  问题 1 / 5 — 答题后的推进方式
+
+  玩家答完一题（或超时）后，系统如何进入下一题？
+
+  Options: (A) 自动推进 — 显示答案结果约 3 秒后自动进入下一轮 · (B) 手动推进 — 显示答案结果后，需有人点击&quot;下一题&quot;按钮才推进 · (C) 短暂展示后需确认 — 先显示对错，再出现一个&quot;继续&quot;按钮，所有人确认后才推进
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ C
+
+⏺ ✓ 答案记录：答题结果先展示，然后由人点击&quot;继续&quot;推进。正在更新规格说明……
+
+⏺ Update(kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md)
+
+⏺ ---
+  问题 2 / 5 — 换人过渡屏
+
+  每位玩家答完题、点击&quot;继续&quot;后，切换到下一位玩家时，是否需要一个过渡屏（例如：&quot;轮到 [玩家名] 了 — 请接过设备，点击开始&quot;）？
+
+  Options: (A) 需要 — 每次换人都有过渡屏，防止上一位玩家看到下一题 · (B) 不需要 — 直接显示下一题，玩家名在题目页面上方展示即可
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+✻ Baked for 36s
+
+❯ B
+
+⏺ ✓ 答案记录：换人无过渡屏，直接展示下一题，当前玩家名显示在题目页顶部。正在更新规格说明……
+
+⏺ Update(kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md)
+
+⏺ ---
+  问题 3 / 5 — 每局题目数量
+
+  开始游戏时，是否可以设定本局要答的题目数量（而不是默认使用所选题库的全部题目）？
+
+  Options: (A) 固定全部 — 永远使用所选题库中的全部题目，无需设置 · (B) 可自定义 — 主持人可在开始前设置本局题目数量上限（如&quot;只答 20 题&quot;）
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+❯ 设定游戏的轮数
+
+⏺ ✓ 答案记录：&quot;轮数&quot;作为游戏配置项 — 主持人在开始前设定本局要进行几轮，一轮 = 每位玩家各答一题。正在更新规格说明……
+
+⏺ Update(kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md)
+
+⏺ ---
+  问题 4 / 5 — 自定义题库的导入/导出
+
+  用户能否将自定义题库导出为文件（方便分享或备份），或从文件导入题库？
+
+  Options: (A) 不需要 — 题库仅存本设备，无导入/导出功能 · (B) 仅导出 — 可将题库导出为文件（如 JSON），方便备份 · (C) 导入+导出 — 可导出也可从文件导入，支持跨设备共享
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+✻ Sautéed for 1m 8s
+
+❯ C
+
+⏺ ✓ 答案记录：支持题库导出（JSON 文件）和从文件导入，实现跨设备共享。正在更新规格说明……
+
+⏺ Update(kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md)
+
+⏺ ---
+  问题 5 / 5 — 排行榜同分处理
+
+  游戏结束时，若多名玩家得分相同，排行榜如何排列？
+
+  Options: (A) 相同排名 — 同分玩家并列同一名次（如并列第 2） · (B) 按答题顺序 — 同分时轮次靠前的玩家排名更高 · (C) 按名字字母序排列同分玩家
+
+  WAITING_FOR_DISCOVERY_INPUT
+
+✻ Crunched for 30s
+
+❯ A
+
+⏺ ✓ 答案记录：同分玩家并列相同名次。正在写入并完成最终验证……
+
+⏺ Update(kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md)
+
+⏺ ---
+  澄清完成 — 5 / 5 问题已回答
+
+  规格说明已更新并提交：kitty-specs/001-multiplayer-turn-based-quiz-game/spec.md
+
+  修改的章节：
+  - Clarifications / Session 2026-02-25 — 新增，记录 5 条问答
+  - Functional Requirements / Gameplay — FR-006、FR-008、FR-009 更新
+  - Functional Requirements / Game Setup — 新增 FR-005b（轮数设置）
+  - Functional Requirements / Question Bank Management — 新增 FR-017b、FR-017c（导入/导出）
+  - Functional Requirements / End of Game — FR-019 更新（同分并列）
+  - Key Entities — GameSession 更新（含轮数字段）
+  - Edge Cases — 问题池不足时的提示说明更新
+
+  覆盖度总结：
+  - 功能范围与行为 — Resolved
+  - 领域与数据模型 — Resolved
+  - 交互与 UX 流程 — Resolved（答题推进方式、换人方式均已明确）
+  - 非功能质量属性 — Clear（性能指标已在规格中定义）
+  - 集成与外部依赖 — Resolved（JSON 导入/导出格式已明确）
+  - 边界情况与错误处理 — Clear
+  - 约束与取舍 — Clear
+  - 术语一致性 — Clear
+  - 完成信号 — Clear
+
+  下一步：执行 /spec-kitty.plan 生成实现计划和设计文档。
+
+✻ Worked for 46s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;生成实现计划和设计文档 spec-kitty.plan&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;❯ /spec-kitty.plan
+
+⏺ 已加载规格说明。这是一个中高复杂度功能（多屏幕状态机 + 本地持久化 + 导入/导出），需要确认几个架构决策。
+
+  ---
+  规划问题 1 / 4 — 项目起点
+
+  当前 test-card-mey 是全新项目还是已有代码基础？
+
+  Options: (A) 全新项目 — 从零搭建，需要初始化脚手架 · (B) 已有 React/TypeScript 项目 — 在现有代码库中新增此功能 · (C) 有框架但无业务代码 — 已初始化脚手架（如 Vite + React），但业务代码为空
+
+  WAITING_FOR_PLANNING_INPUT
+
+❯ C
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ 已确认：Vite + React 19 + TypeScript + Ant Design v6 + Tailwind + Less，完全符合宪法。
+
+  ---
+  规划问题 2 / 4 — 状态管理
+
+  游戏会话有复杂状态（当前玩家、轮次、分数、题目池等），选用哪种状态管理方案？
+
+  Options: (A) Zustand — 轻量全局状态库，适合游戏状态机，推荐 · (B) React Context + useReducer — 纯内置方案，无额外依赖 · (C) Redux Toolkit — 功能完整但相对重量级
+
+  WAITING_FOR_PLANNING_INPUT
+
+✻ Cooked for 39s
+
+❯ A
+
+⏺ ---
+  规划问题 3 / 4 — 页面导航
+
+  游戏有多个视图（设置 → 答题 → 结果 → 题库管理），如何处理视图切换？
+
+  Options: (A) React Router — URL 路由，支持浏览器前进/后退，可直接分享特定页面链接 · (B) 条件渲染 — 用状态控制视图切换，无 URL 变化，更简单
+
+  WAITING_FOR_PLANNING_INPUT
+
+❯ A
+
+⏺ ---
+  规划问题 4 / 4 — 测试策略
+
+  游戏逻辑（轮次推进、计分、题库合并等）如何测试？
+
+  Options: (A) Vitest 单元测试覆盖核心游戏逻辑 + React Testing Library 覆盖关键交互 · (B) 仅 Vitest 单元测试覆盖纯函数逻辑，组件不写测试 · (C) 暂不写测试，先实现功能
+
+  WAITING_FOR_PLANNING_INPUT
+
+❯ B
+
+⏺ 工程对齐确认：
+  - 脚手架：Vite + React 19 + TypeScript（现有）
+  - 状态管理：Zustand
+  - 路由：React Router
+  - 测试：Vitest（纯函数/游戏逻辑）
+  - UI：Ant Design v6 + Tailwind + Less（宪法规定）
+  - 持久化：localStorage + Browser File API（导入/导出）
+
+  确认后我将开始生成计划文档。没问题的话直接回复确认即可。
+
+  WAITING_FOR_PLANNING_INPUT
+
+❯ 确认
+
+⏺ Bash(git rev-parse --abbrev-ref HEAD)
+  ...
+
+⏺ 规划阶段完成。
+
+  ---
+  生成的文档
+
+  ┌────────────────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────┐
+  │                                      文件                                      │                                          内容                                          │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/plan.md                       │ 完整实现计划（技术上下文、宪法检查、项目结构、屏幕流程、状态机）                       │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/research.md                   │ 9 个架构决策（Zustand、React Router、File API、密集排名、计时器、pxtorem、题库格式等） │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/data-model.md                 │ TypeScript 接口定义、状态机、验证规则、localStorage 布局、派生值公式                   │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/contracts/state-contracts.ts  │ Zustand Store 接口契约                                                                 │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/contracts/storage-schema.json │ localStorage + 导入/导出 JSON Schema                                                   │
+  ├────────────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────┤
+  │ kitty-specs/001-multiplayer-turn-based-quiz-game/quickstart.md                 │ 安装步骤、路由表、工作包顺序（WP-01 ~ WP-09）                                          │
+  └────────────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────┘
+
+  宪法检查：全部通过 — 无违规项。
+
+  覆盖度：
+  - 功能范围 — Clear
+  - 数据模型 — Resolved（含完整 TS 类型）
+  - 交互/UX 流程 — Resolved（状态机 + 屏幕流）
+  - 非功能属性 — Clear（性能目标已在 plan.md 记录）
+  - 集成与依赖 — Resolved（Zustand persist、File API、JSON schema）
+  - 边界情况 — Clear
+
+  ---
+  下一步：执行 /spec-kitty.tasks 生成工作包和可执行任务。
+
+✻ Baked for 4m 35s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;生成可执行任务 spec-kitty.tasks&lt;/h2&gt;
+&lt;pre&gt;&lt;code&gt;❯ /spec-kitty.tasks
+
+⏺ Bash(spec-kitty agent feature check-prerequisites --json --paths-only --include-tasks)
+
+⏺ Read 3 files (ctrl+o to expand)
+
+⏺ 正在推导完整子任务列表并分组……生成 9 个工作包。
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks.md)
+
+⏺ Now generate all 9 WP prompt files in parallel batches:
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP01-project-setup-and-foundation.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP02-bank-store-and-persistence.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP03-game-engine-and-store.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP04-setup-page.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP05-game-page-and-result-page.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP06-leaderboard-page.md)
+  
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP07-bank-manager-page.md)
+ 
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP08-responsive-design-and-polish.md)
+
+⏺ Write(kitty-specs/001-multiplayer-turn-based-quiz-game/tasks/WP09-unit-tests.md)
+
+⏺ Now run finalize-tasks:
+
+⏺ Bash(spec-kitty agent feature finalize-tasks --json)
+
+⏺ ✅ 已提交（fe01bb5）。任务生成完毕。
+
+  ---
+  工作包汇总 — 9 个 WP，46 个子任务
+
+  ┌──────┬────────────────────────────┬──────────┬──────────┬───────────┐
+  │  WP  │            标题            │ 子任务数 │ 预估行数 │   依赖    │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP01 │ Project Setup &amp;amp; Foundation │ 6        │ ~350     │ 无        │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP02 │ Bank Store &amp;amp; Persistence   │ 5        │ ~380     │ WP01      │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP03 │ Game Engine &amp;amp; Game Store   │ 6        │ ~400     │ WP01      │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP04 │ Setup Page                 │ 5        │ ~370     │ WP02+WP03 │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP05 │ Game Page &amp;amp; Result Page    │ 5        │ ~420     │ WP03      │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP06 │ Leaderboard Page           │ 4        │ ~280     │ WP03      │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP07 │ Bank Manager Page          │ 6        │ ~450     │ WP02      │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP08 │ Responsive Design &amp;amp; Polish │ 6        │ ~380     │ WP04-07   │
+  ├──────┼────────────────────────────┼──────────┼──────────┼───────────┤
+  │ WP09 │ Unit Tests                 │ 3        │ ~300     │ WP02+WP03 │
+  └──────┴────────────────────────────┴──────────┴──────────┴───────────┘
+
+  大小验证: ✓ 所有 WP 在 280–450 行范围内，均在理想区间（200–500 行）
+
+  并行化机会:
+  WP01
+   ├── WP02 ──┬── WP04 ──┐
+   └── WP03 ──┤           ├── WP08
+              ├── WP05 ──┤
+              ├── WP06 ──┤
+              └── WP07 ──┘   WP09（可与 WP08 并行）
+
+  MVP 范围: WP01 + WP02 + WP03 + WP04 + WP05 + WP06 — 可完整运行游戏，含内置题库
+
+  下一步: 执行 /spec-kitty.implement WP01 开始实现第一个工作包。
+
+✻ Cooked for 14m 10s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;执行任务&lt;/h2&gt;
+&lt;p&gt;轮流执行 &lt;code&gt;/spec-kitty.implement&lt;/code&gt; 、&lt;code&gt;/spec-kitty.review&lt;/code&gt; 直至所有的任务都为待合并状态，再执行 &lt;code&gt;/spec-kitty.merge&lt;/code&gt;&lt;/p&gt;
+&lt;h2&gt;监控面板 spec-kitty dashboard&lt;/h2&gt;
+&lt;p&gt;执行命令 &lt;code&gt;spec-kitty dashboard&lt;/code&gt; 即可启动监控面板服务&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;xzl@xzldeMac-mini test-card-mey % spec-kitty dashboard
+
+Spec Kitty Dashboard
+============================================================
+
+  Project Root: /Users/xzl/Desktop/test-card-mey
+  URL: http://127.0.0.1:9237
+  Port: 9237
+
+  ✅ Status: Dashboard already running on port 9237
+
+============================================================
+
+✅ Opening dashboard in your browser...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在 Implement 界面中查看任务进度&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;一个小时后，这期间需要不断手动 &lt;code&gt;/spec-kitty.implement&lt;/code&gt; 、&lt;code&gt;/spec-kitty.review&lt;/code&gt;。可以&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+&lt;h2&gt;结果&lt;/h2&gt;
+&lt;p&gt;claude code 成本统计。AI 工作耗时 2h 2m 48s&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ /cost
+  ⎿  Total cost:            $36.45
+     Total duration (API):  2h 2m 48s
+     Total duration (wall): 13h 56m 49s
+     Total code changes:    7581 lines added, 161 lines removed
+     Usage by model:
+         claude-haiku-4-5:  106.4k input, 9.3k output, 0 cache read, 65.9k cache write ($0.2353)
+        claude-sonnet-4-6:  21.7k input, 213.7k output, 39.5m cache read, 1.8m cache write ($36.22)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在开发完成后，因为 Agent 使用超出时间窗口限制，手动修复了两个全局状态使用错误。&lt;/p&gt;
+&lt;p&gt;从界面效果来看需求描述中的功能都实现了。H5 与 移动端的适配也还可以。界面样式美观程度一般，因为没有补充对应的要求说明，若搭配上对应的 skill 应该就能生成更美观的界面（例如 https://github.com/nextlevelbuilder/ui-ux-pro-max-skill 或 https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md）&lt;/p&gt;
+&lt;p&gt;界面效果：https://byte-n.github.io/spec-kitty-test-question-game/&lt;/p&gt;
+&lt;p&gt;&lt;img alt=&quot;image.png&quot; /&gt;&lt;/p&gt;
+</content:encoded></item><item><title>Agent Skills</title><link>https://fuwari.vercel.app/blog/posts/ai/agent-skills/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/agent-skills/</guid><pubDate>Wed, 25 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Agent Skills 就是把“干活工具”和“操作说明书”打包成一个插件，让 AI 知道在什么时候、按什么步骤去完成一件具体的专业杂事。&lt;/p&gt;
+&lt;p&gt;Agent Skills 与 MCP 的差异及优势：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;功能差异（角色不同）：
+&lt;ul&gt;
+&lt;li&gt;MCP 是“通电插座”：它是一套通用的技术标准，负责把 AI 和外部世界（如 GitHub、数据库、Slack）连起来。它解决的是“能不能拿得到数据”的问题。&lt;/li&gt;
+&lt;li&gt;Agent Skills 是“专业说明书”：它是一套本地的指令包，负责教 AI 针对特定任务怎么干活。它解决的是“拿到了数据后怎么处理”的问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;核心优点（为什么更省 Token）：
+&lt;ul&gt;
+&lt;li&gt;MCP 比较“费话”：当你连接 MCP 工具时，它通常需要预先将所有工具的复杂定义（JSON Schema）全部塞进 AI 的记忆里（Context Window），即使还没开始用，就已经占用了大量 Token。&lt;/li&gt;
+&lt;li&gt;Skills 更加“聪明”：它采用延迟加载。平时只在 AI 脑子里占几个 Token 的“标题”与“职能说明”，只有当 AI 确定要用这个技能时，才会临时翻开对应的说明书（加载几百个 Token 的具体指令），从而大幅降低了基础成本。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;blockquote&gt;
+&lt;p&gt;例如在让 AI 读取浏览器界面信息的场景下 &lt;a href=&quot;https://github.com/vercel-labs/agent-browser&quot;&gt;agent-browser&lt;/a&gt; 比 &lt;a href=&quot;https://github.com/ChromeDevTools/chrome-devtools-mcp&quot;&gt;chrome-devtools-mcp&lt;/a&gt; 要节省 90% 的 token&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Skills 规范&lt;/h2&gt;
+&lt;p&gt;规范文档见：&lt;a href=&quot;https://agentskills.io/home&quot;&gt;Agent Skills&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;一个 skill 的组成部分如下所示。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;my-skill/
+├── SKILL.md          # Required: instructions + metadata
+├── scripts/          # Optional: executable code
+├── references/       # Optional: documentation
+└── assets/           # Optional: templates, resources
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;除此之外，还可以包含任意自定义的目录，例如 &lt;a href=&quot;https://github.com/anthropics/skills/tree/main/skills/skill-creator&quot;&gt;skill-creator&lt;/a&gt; 的目录结构中还包含 agents、eval-viewer。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;SKILL.md&lt;/code&gt; 为入口文件，该文件包含元数据（至少包含 &lt;strong&gt;&lt;code&gt;name&lt;/code&gt;&lt;/strong&gt; 和 &lt;strong&gt;&lt;code&gt;description&lt;/code&gt;&lt;/strong&gt;  ），当任务描述匹配 &lt;strong&gt;&lt;code&gt;description&lt;/code&gt;&lt;/strong&gt; 时，则将完整的 &lt;strong&gt;&lt;code&gt;SKILL.md&lt;/code&gt;&lt;/strong&gt; 指令读入上下文。在 &lt;strong&gt;&lt;code&gt;SKILL.md&lt;/code&gt;&lt;/strong&gt;  中可以引用上述文件夹中的内容或让 AI 执行 &lt;code&gt;scripts&lt;/code&gt;  中的脚本。&lt;/p&gt;
+&lt;p&gt;一个最简单的 skil 可以仅包含 &lt;code&gt;SKILL.md&lt;/code&gt; 文件，例如官网示例中的 pdf-processing：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;---
+name: pdf-processing
+description: Extract text and tables from PDF files, fill forms, merge documents.
+---
+
+# PDF Processing
+
+## When to use this skill
+Use this skill when the user needs to work with PDF files...
+
+## How to extract text
+1. Use pdfplumber for text extraction...
+
+## How to fill forms
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Skills cli&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&quot;https://www.npmjs.com/package/skills&quot;&gt;Skills cli&lt;/a&gt;  是一个管理 AI Agent Skills 的 npm 工具库，支持 &lt;strong&gt;OpenCode，ClaudeCode，Codex，Cursor&lt;/strong&gt; 等 &lt;a href=&quot;https://www.npmjs.com/package/skills#available-agents&quot;&gt;&lt;strong&gt;37&lt;/strong&gt;&lt;/a&gt; 种不同的 Agent。使用此工具可以方便的管理项目或全局中所有 Agent 的 skills。&lt;/p&gt;
+&lt;p&gt;skills cli 支持从 git 仓库、npm、 本地磁盘安装 skills：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# GitHub shorthand (owner/repo)
+npx skills add vercel-labs/agent-skills
+
+# Full GitHub URL
+npx skills add https://github.com/vercel-labs/agent-skills
+
+# Direct path to a skill in a repo
+npx skills add https://github.com/vercel-labs/agent-skills/tree/main/skills/web-design-guidelines
+
+# GitLab URL
+npx skills add https://gitlab.com/org/repo
+
+# Any git URL
+npx skills add git@github.com:vercel-labs/agent-skills.git
+
+# Local path
+npx skills add ./my-local-skills
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;实际安装使用：&lt;code&gt;npx skills add vercel-labs/agent-skills&lt;/code&gt; 。这里选择了vercel-react-best-practices 、web-design-guidelines 两个 skil，Agent 选择的是 Claude Code，安装方式选择的是 Symlink&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;┌   skills
+│
+◇  Source: https://github.com/vercel-labs/agent-skills.git
+│
+◇  Repository cloned
+│
+◇  Found 4 skills
+│
+◇  Select skills to install (space to toggle)
+│  vercel-react-best-practices, web-design-guidelines
+│
+◇  41 agents
+◇  Which agents do you want to install to?
+│  Amp, Codex, Cursor, Gemini CLI, GitHub Copilot, Kimi Code CLI, OpenCode, Claude Code
+│
+◇  Installation scope
+│  Project
+│
+◇  Installation method
+│  Symlink (Recommended)
+│
+◇  Installation Summary ────────────────────────────────────────────────╮
+│                                                                       │
+│  ~/Desktop/skill1/.agents/skills/vercel-react-best-practices          │
+│    universal: Amp, Codex, Cursor, Gemini CLI, GitHub Copilot +2 more  │
+│    symlink → Claude Code                                              │
+│                                                                       │
+│  ~/Desktop/skill1/.agents/skills/web-design-guidelines                │
+│    universal: Amp, Codex, Cursor, Gemini CLI, GitHub Copilot +2 more  │
+│    symlink → Claude Code                                              │
+│                                                                       │
+├───────────────────────────────────────────────────────────────────────╯
+│
+◇  Security Risk Assessments ─────────────────────────────────────────────────╮
+│                                                                             │
+│                               Gen               Socket            Snyk      │
+│  vercel-react-best-practices  Safe              0 alerts          Low Risk  │
+│  web-design-guidelines        Safe              0 alerts          Med Risk  │
+│                                                                             │
+│  Details: https://skills.sh/vercel-labs/agent-skills                        │
+│                                                                             │
+├─────────────────────────────────────────────────────────────────────────────╯
+│
+◇  Proceed with installation?
+│  Yes
+│
+◇  Installation complete
+│
+◇  Installed 2 skills ──────────────────────────────────────────────────╮
+│                                                                       │
+│  ✓ ~/Desktop/skill1/.agents/skills/vercel-react-best-practices        │
+│    universal: Amp, Codex, Cursor, Gemini CLI, GitHub Copilot +2 more  │
+│    symlinked: Claude Code                                             │
+│  ✓ ~/Desktop/skill1/.agents/skills/web-design-guidelines              │
+│    universal: Amp, Codex, Cursor, Gemini CLI, GitHub Copilot +2 more  │
+│    symlinked: Claude Code                                             │
+│                                                                       │
+├───────────────────────────────────────────────────────────────────────╯
+│
+└  Done!  Review skills before use; they run with full agent permissions.
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;skills 都会存储在 &lt;code&gt;.agents/skills&lt;/code&gt; 目录下，部分 Agent 的 skills 目录不是此目录。例如 claude code 对应的是 &lt;code&gt;.claude/skills&lt;/code&gt; ，通过 Symlink 的方式安装，则会通过软连接的方式映射文件夹。安装后的目录结构如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;.
+├── skills-lock.json
+├── .agents
+│   └── skills
+│       ├── web-design-guidelines
+│       │   └── SKILL.md
+│       └── vercel-react-best-practices
+│           ├── README.md
+│           ├── SKILL.md
+│           ├── rules
+│           │   ├── js-cache-storage.md
+│           │   ├── ....
+│           │   ├── bundle-preload.md
+│           └── AGENTS.md
+└── .claude
+    └── skills
+        ├── web-design-guidelines
+        └── vercel-react-best-practices
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;另外一个问题，什么样的仓库或目录结构才能被 skills cli 所安装呢？&lt;/p&gt;
+&lt;p&gt;skills cli 会在多个目录下查找符合条件的 **&lt;code&gt;SKILL.md&lt;/code&gt; 文件，**例如以下目录：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;- Root directory (根目录 SKILL.md)
+- skills/
+- skills/.curated/
+- skills/.experimental/
+- skills/.system/
+- .agents/skills/
+- .agent/skills/
+- .augment/skills/
+- .claude/skills/
+- .cline/skills/
+- .codebuddy/skills/
+- .commandcode/skills/
+- .continue/skills/
+- .cortex/skills/
+- .crush/skills/
+- .factory/skills/
+- .goose/skills/
+- .junie/skills/
+- .iflow/skills/
+- .kilocode/skills/
+- .kiro/skills/
+- .kode/skills/
+- .mcpjam/skills/
+- .vibe/skills/
+- .mux/skills/
+- .openhands/skills/
+- .pi/skills/
+- .qoder/skills/
+- .qwen/skills/
+- .roo/skills/
+- .trae/skills/
+- .windsurf/skills/
+- .zencoder/skills/
+- .neovate/skills/
+- .pochi/skills/
+- .adal/skills/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;除此之外还支持 claude code 的清单文件：&lt;code&gt;.claude-plugin/marketplace.json&lt;/code&gt; 或 &lt;code&gt;.claude-plugin/plugin.json&lt;/code&gt; 。例如 &lt;a href=&quot;https://github.com/anthropics/skills&quot;&gt;anthropics/skills&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;至此可以通过 skills cli 这个工具来管理团队的 skills。可以创建一个 git 仓库管理团队 skills：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;.
+├── skills-lock.json
+├── .agents
+│   └── skills
+│       ├── 组件编写规范
+│       ├── H5样式编写规范
+│       ├── ...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;Skill 创建&lt;/h2&gt;
+&lt;h3&gt;按 skill 的规范创建&lt;/h3&gt;
+&lt;p&gt;根据第一章中的 sill 规范 新建对应的项目目录文件，放入对应 Agent 的目录即可。根据&lt;/p&gt;
+&lt;h3&gt;skill-creator 交互式创建&lt;/h3&gt;
+&lt;p&gt;&lt;code&gt;skill-creator&lt;/code&gt; 本身就是一个 skill。可以通过下面的命令直接安装到当前项目的 claude code 中：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;npx skills add https://github.com/anthropics/skills/tree/main/skills/skill-creator -a claude-code -y
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;安装完成后就可以在 claude code 的对话中通过指令 &lt;code&gt;/skill-creator&lt;/code&gt; 进入交互式的 skill 创建过程。例如创建一个 “H5项目的样式编写规范” 的 skill。借助交互式的对话也可以让 Agent 分析已有的代码生成规范以及追加修改要求等。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ /skill-creator H5项目的样式编写规范
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ 在开始创建 skill 之前，我需要了解一些具体细节。
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · 你的 H5 项目通常使用哪种样式方案？ → 多种方案混合
+     · H5 适配方案使用哪种？ → rem 适配
+     · 这个 skill 主要用于哪些场景？ → 编写新组件样式, 重构旧样式, Code Review, 修改组件
+
+⏺ 了解了。再问几个关键问题来确保规范的完整性。
+
+⏺ User answered Claude&apos;s questions:
+  ⎿  · 项目的设计稿基准宽度是多少？ → 750px
+     · 命名规范选用哪种？ → camelCase
+
+⏺ 很好，现在我有足够的信息来创建这个 skill 了。让我先规划内容结构，然后初始化 skill。
+
+  规划内容：
+  - SKILL.md — 核心规范概览 + 触发条件
+  - references/naming.md — camelCase 命名规范详情
+  - references/adaptation.md — rem 适配方案（750px 设计稿）
+  - references/properties-order.md — CSS 属性书写顺序
+  - references/common-patterns.md — 常用样式模式
+
+  初始化 skill：
+
+⏺ Bash(cd /Users/xzl/Desktop/test-card-mey/.claude/skills/skill-creator &amp;amp;&amp;amp; python3 scripts/init_skill.py h5-style-guide
+      --path /Users/xzl/Desktop/test-card-mey/.claude…)
+  ⎿  Initializing skill: h5-style-guide
+       Location: /Users/xzl/Desktop/test-card-mey/.claude/skills/
+     … +13 lines (ctrl+o to expand)
+
+⏺ Bash(rm /Users/xzl/Desktop/test-card-mey/.claude/skills/h5-style-guide/scripts/example.py
+      /Users/xzl/Desktop/test-card-mey/.claude/skills/h5-style-guide/assets/examp…)
+  ⎿  Done
+
+⏺ 现在写 SKILL.md 和各个 references 文件：
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/SKILL.md)
+  ⎿  Error writing file
+
+⏺ Read 1 file (ctrl+o to expand)
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/SKILL.md)
+  ⎿  Added 79 lines, removed 54 lines
+        1  ---
+        2  name: h5-style-guide
+        ...
+      110 +- [ ] 颜色、间距使用变量，无魔法数字
+
+⏺ 现在创建 references 文件：
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/references/naming.md)
+  ⎿  Wrote 202 lines to ../../../.claude/skills/h5-style-guide/references/naming.md
+      1 # 命名规范详细指南
+      ...
+     … +192 lines (ctrl+o to expand)
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/references/adaptation.md)
+  ⎿  Wrote 132 lines to ../../../.claude/skills/h5-style-guide/references/adaptation.md
+      1 # rem 适配方案详细说明
+      ...
+     … +122 lines (ctrl+o to expand)
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/references/properties-order.md)
+  ⎿  Wrote 215 lines to ../../../.claude/skills/h5-style-guide/references/properties-order.md
+      1 # CSS 属性书写顺序规范
+      ...
+     … +205 lines (ctrl+o to expand)
+
+⏺ Write(~/Desktop/test-card-mey/.claude/skills/h5-style-guide/references/common-patterns.md)
+  ⎿  Wrote 393 lines to ../../../.claude/skills/h5-style-guide/references/common-patterns.md
+       1 # 常用样式模式
+       ...
+     … +383 lines (ctrl+o to expand)
+
+⏺ 现在打包 skill：
+
+⏺ Bash(cd /Users/xzl/Desktop/test-card-mey/.claude/skills/skill-creator &amp;amp;&amp;amp; python3 scripts/package_skill.py
+      /Users/xzl/Desktop/test-card-mey/.claude/skills/h5-style-gu…)
+  ⎿  Packaging skill: /Users/xzl/Desktop/test-card-mey/.claude/skills/h5-style-guide
+
+     Validating skill...
+     … +10 lines (ctrl+o to expand)
+
+⏺ h5-style-guide skill 已创建并打包成功。
+
+  ---
+  Skill 结构概览：
+
+  h5-style-guide/
+  ├── SKILL.md                        # 核心规范速查 + Code Review 检查项
+  └── references/
+      ├── naming.md                   # camelCase 命名规范详细示例
+      ├── adaptation.md               # rem 适配方案配置与换算规则
+      ├── properties-order.md         # CSS 属性书写顺序（5 组）
+      └── common-patterns.md          # 常用样式模式（文本截断、1px线、安全区等）
+
+  触发场景： 当你说&quot;帮我写这个组件的样式&quot;、&quot;检查这段 CSS 是否规范&quot;、&quot;rem 怎么配置&quot;等，该 skill 会自动激活并按规范指导编写。
+
+  如果有需要补充的规范内容（比如 SCSS 变量约定、颜色 token、特定组件库用法等），随时可以告知我更新。
+
+✻ Baked for 4m 27s
+
+❯ 布局的情况下优先使用Ant提供的Flex Grid等布局组件。其他情况下优先使用tailwindcss，其次再是less module 再次
+  style。样式主题
+  ⎿  Interrupted · What should Claude do instead?
+
+❯ 布局的情况下优先使用Ant提供的Flex Grid等布局组件。其他情况下优先使用tailwindcss，其次再是less module 再次
+    style
+
+⏺ 明白了，需要更新 skill 加入样式方案优先级规则。让我先读取当前文件再修改。
+
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;综上生成后的目录结构为：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;  .claude/skills/h5-style-guide/
+  ├── SKILL.md                        # 核心规范速查 + Code Review 检查项
+  └── references/
+      ├── naming.md                   # camelCase 命名规范详细示例
+      ├── adaptation.md               # rem 适配方案配置与换算规则
+      ├── properties-order.md         # CSS 属性书写顺序（5 组）
+      └── common-patterns.md          # 常用样式模式（文本截断、1px线、安全区等）
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在 claude code 中使用 &lt;code&gt;skill-creator&lt;/code&gt; 生成后文件会默认放在 &lt;code&gt;.claude/skills&lt;/code&gt; 下。如果需要在不同 Agent 中共享最好使用 skills cli 本地路径的安装方式导入到 &lt;code&gt;.agents/skills&lt;/code&gt; 下，团队贡献也可以发布到 git 仓库中。&lt;/p&gt;
+&lt;h2&gt;Skills 仓库 与常用 skill&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;仓库：https://skills.sh/ 或 npm 上检索&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;常用 skills&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;查找 skill ： https://github.com/vercel-labs/skills/blob/main/skills/find-skills/SKILL.md&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+</content:encoded></item><item><title>AI 工程师智能体：OpenHands</title><link>https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/openhands-%E7%9A%84%E6%8E%A2%E7%B4%A2/</guid><pubDate>Mon, 16 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;OpenHands（原名 OpenDevin）是一个开源的 AI 软件开发平台和自主智能体（AI Agent），旨在通过人工智能模拟人类开发者的行为来自动化软件开发任务。
 它的核心功能和特点包括：&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;自主编程能力：OpenHands 不仅仅是一个聊天机器人，它具备“动手”能力，可以自主修改代码、执行终端命令、浏览网页以及调用 API。&lt;/li&gt;
@@ -3173,215 +4274,6 @@ unplugin took 0.006 secs
 &lt;/li&gt;
 &lt;li&gt;&lt;code&gt;sw.js&lt;/code&gt; 中通过&lt;code&gt;self.addEventListener(&apos;fetch&apos;, event =&amp;gt; { .. })&lt;/code&gt; 事件拦截请求，判断缓存是否存在且有效，若有效则返回缓存内容，若无效则放行请求，并在请求成功后加入缓存。&lt;/li&gt;
 &lt;/ol&gt;
-</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
-&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
-&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
-&lt;h2&gt;实现&lt;/h2&gt;
-&lt;p&gt;创建axios实例&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
-const request = axios.create({ baseURL: &apos;/api&apos; })
-
-// 拦截请求
-request.interceptors.request.use(
-  (option) =&amp;gt; {
-    if (option.headers.authorization === undefined) {
-      // 补充身份验证字段
-      option.headers.authorization = xxxx;
-    }
-    // 打印请求信息
-    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
-    return option
-  }
-)
-
-// 拦截响应
-request.interceptors.response.use(
-  async (response) =&amp;gt; {
-    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
-    const data = response.data as Resp&amp;lt;any&amp;gt;;
-    if (data.code === 101) {
-      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
-      // 刷新token、重新发起请求，注意避免嵌套！无限递归
-      if (
-        response.config.params.___retry !== undefined
-        || !refreshToken
-        || response.config.url?.includes(URL_REFRESH_TOKEN)
-      ) {
-        return Promise.reject(response)
-      }
-
-      // 刷新token
-      const { access_token, refresh_token } = await refreshTokenApi(
-        refreshToken,
-      )
-      localStorage.setItem(STORAGE_TOKEN, access_token)
-      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
-
-      // 重新请求
-      const opts = _.cloneDeep(response.config)
-      opts.headers.authorization = `Bearer ${access_token}`
-      // 标记为重试
-      if (!opts.params) {
-        opts.params = {}
-      }
-      opts.params.___retry = true;
-      return request(opts)
-    }
-    // 成功响应
-    else if (data.code === 200 || data.code === 0) {
-      return response
-    } else if (data.failData) {
-      return response
-    }
-    return Promise.reject(response)
-  },
-  (err) =&amp;gt; {
-    // 响应拦截器逻辑 - 错误响应
-    if (err instanceof AxiosError) {
-      const { response, config } = err
-      if (config.params?.___checkLogin) {
-        goLogin()
-        return Promise.reject(err)
-      }
-      console.debug(
-        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
-        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
-      )
-      if ([401, 424].includes(err.status!)) {
-        message.error(&apos;登录过期&apos;)
-        goLogin()
-      } else if ([404].includes(err.status!)) {
-        message.error(&apos;网络环境差，请稍后重试&apos;)
-        goLogin()
-      } else {
-        message.error(`网络错误[${err.status}] ${err.message}]`)
-      }
-    } else if (err instanceof Error) {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    } else {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    }
-    return Promise.reject(err)
-  },
-)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;/**
- * 统一的响应格式
- */
-type Resp&amp;lt;T&amp;gt; = {
-  code: number
-  msg: string
-  data: T
-}
-interface SelectNameResult {
-  name: string
-}
-
-interface SelectNameRequest {
-  id: number
-}
-
-async function go() {
-  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
-    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
-  /*
-  response类型：
-  {
-    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
-    status: number
-    statusText: string
-    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
-    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
-    request?: any
-  }
-  */
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;扩展&lt;/h2&gt;
-&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
-&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
-&lt;ul&gt;
-&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;const api = {
-  getUri(config?: AxiosRequestConfig) {
-    return request.getUri(config)
-  },
-  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
-  },
-  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
-    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
-  },
-  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  }
-}
-
-/**
- * 将结果扁平化
- */
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
-  const res = await this;
-  if (level === 1) {
-    return res.data;
-  }
-  return res.data?.data;
-}
-
-function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
-  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
-  newPromise.flat = flat;
-  return newPromise;
-}
-
-export default api;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;再看看效果：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;async function go() {
-  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
-}
-&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>网络安全</title><link>https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E5%AE%89%E5%85%A8/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;JWT Token&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;JWT(JSON Web Token)是一个开放标准(RFC 7519)，它定义了一种紧凑且自包含的方式，以JSON对象的形式在各方之间安全地传输信息。&lt;/li&gt;
@@ -3704,6 +4596,215 @@ exec(`git clone &quot;${repo}&quot; /some/path`);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h3&gt;DNS劫持&lt;/h3&gt;
 &lt;h3&gt;DDOS攻击&lt;/h3&gt;
+</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
+&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
+&lt;h2&gt;实现&lt;/h2&gt;
+&lt;p&gt;创建axios实例&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
+const request = axios.create({ baseURL: &apos;/api&apos; })
+
+// 拦截请求
+request.interceptors.request.use(
+  (option) =&amp;gt; {
+    if (option.headers.authorization === undefined) {
+      // 补充身份验证字段
+      option.headers.authorization = xxxx;
+    }
+    // 打印请求信息
+    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
+    return option
+  }
+)
+
+// 拦截响应
+request.interceptors.response.use(
+  async (response) =&amp;gt; {
+    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
+    const data = response.data as Resp&amp;lt;any&amp;gt;;
+    if (data.code === 101) {
+      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
+      // 刷新token、重新发起请求，注意避免嵌套！无限递归
+      if (
+        response.config.params.___retry !== undefined
+        || !refreshToken
+        || response.config.url?.includes(URL_REFRESH_TOKEN)
+      ) {
+        return Promise.reject(response)
+      }
+
+      // 刷新token
+      const { access_token, refresh_token } = await refreshTokenApi(
+        refreshToken,
+      )
+      localStorage.setItem(STORAGE_TOKEN, access_token)
+      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
+
+      // 重新请求
+      const opts = _.cloneDeep(response.config)
+      opts.headers.authorization = `Bearer ${access_token}`
+      // 标记为重试
+      if (!opts.params) {
+        opts.params = {}
+      }
+      opts.params.___retry = true;
+      return request(opts)
+    }
+    // 成功响应
+    else if (data.code === 200 || data.code === 0) {
+      return response
+    } else if (data.failData) {
+      return response
+    }
+    return Promise.reject(response)
+  },
+  (err) =&amp;gt; {
+    // 响应拦截器逻辑 - 错误响应
+    if (err instanceof AxiosError) {
+      const { response, config } = err
+      if (config.params?.___checkLogin) {
+        goLogin()
+        return Promise.reject(err)
+      }
+      console.debug(
+        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
+        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
+      )
+      if ([401, 424].includes(err.status!)) {
+        message.error(&apos;登录过期&apos;)
+        goLogin()
+      } else if ([404].includes(err.status!)) {
+        message.error(&apos;网络环境差，请稍后重试&apos;)
+        goLogin()
+      } else {
+        message.error(`网络错误[${err.status}] ${err.message}]`)
+      }
+    } else if (err instanceof Error) {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    } else {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    }
+    return Promise.reject(err)
+  },
+)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/**
+ * 统一的响应格式
+ */
+type Resp&amp;lt;T&amp;gt; = {
+  code: number
+  msg: string
+  data: T
+}
+interface SelectNameResult {
+  name: string
+}
+
+interface SelectNameRequest {
+  id: number
+}
+
+async function go() {
+  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
+    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
+  /*
+  response类型：
+  {
+    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
+    status: number
+    statusText: string
+    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
+    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
+    request?: any
+  }
+  */
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;扩展&lt;/h2&gt;
+&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
+&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
+&lt;ul&gt;
+&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const api = {
+  getUri(config?: AxiosRequestConfig) {
+    return request.getUri(config)
+  },
+  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
+  },
+  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
+    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
+  },
+  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  }
+}
+
+/**
+ * 将结果扁平化
+ */
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
+  const res = await this;
+  if (level === 1) {
+    return res.data;
+  }
+  return res.data?.data;
+}
+
+function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
+  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
+  newPromise.flat = flat;
+  return newPromise;
+}
+
+export default api;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再看看效果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;async function go() {
+  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
+}
+&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>Taro-语音识别的 hook</title><link>https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
 &lt;li&gt;使用
 &lt;ul&gt;
