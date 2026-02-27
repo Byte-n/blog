@@ -37,14 +37,17 @@ spec-kitty 支持的 Agent 如下：
 2. 切换到 Agent 中
     1. `/spec-kitty.constitution` — 定义项目的技术栈、编码约束、严禁事项
     2. `/spec-kitty.specify` — 明确需求
-    3. `/spec-kitty.clarify` — 进一步细化规格中的模糊点
+    3. `/spec-kitty.clarify` — 进一步细化规格中的模糊点，可选
     4. `/spec-kitty.plan` — 生成实现计划和设计文档
-    5. `/spec-kitty.research`— 可行性研究
+    5. `/spec-kitty.research`— 可行性研究，可选
     6. `/spec-kitty.tasks` — 生成工作包和可执行任务
     7. 执行任务，依次完成所有任务
         1. `/spec-kitty.implement` — 实现需求
         2. `/spec-kitty.review` — 检查代码
-    8. `/spec-kitty.merge` — 合并所有分支
+    8. `/spec-kitty.accept` – 验证，可选
+    9. `/spec-kitty.merge` — 合并所有分支
+
+`.kittify` / `kitty-specs` 目录需要提交到 git 仓库中，目录中不需要提交到内容 spec-kitty 会自动识别并添加到 .gitignore 文件中
 
 ## 初始化
 
