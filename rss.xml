@@ -3147,30 +3147,6 @@ async function* countAsync() {
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;async/await/Promise&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;const req = require.context(&apos;@/pages&apos;, true, __AUTO_ROUTER_REG__, &apos;lazy&apos;)&lt;/code&gt;&lt;/p&gt;
-&lt;p&gt;路由组件都动态导入，路由的&lt;code&gt;component&lt;/code&gt; 设置为&lt;code&gt;Loadable({ loader, loading: Loading })&lt;/code&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;loading&lt;/code&gt;：自定义的加载提示组件&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;loader&lt;/code&gt; 的签名为&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre&gt;&lt;code&gt;Promise&amp;lt;React.ComponentType&amp;lt;Props&amp;gt; | { default: React.ComponentType&amp;lt;Props&amp;gt; }&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;借助req可以轻松实现这一点&lt;code&gt;() =&amp;gt; Promise.resolve(req(key))&lt;/code&gt; ，&lt;code&gt;key&lt;/code&gt; 是&lt;code&gt;req.keys()&lt;/code&gt; 的项。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 是一个高阶组件，它会返回一个新的组件，此组件内部会调用&lt;code&gt;loader&lt;/code&gt; 加载异步导入的组件(&lt;code&gt;import(xxx)&lt;/code&gt;)。在加载完成前，会展示&lt;code&gt;loading&lt;/code&gt; 对应的组件。&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 来自&lt;code&gt;&apos;react-loadable&apos;&lt;/code&gt; 库。
-也可以使用&lt;code&gt;React.lazy&lt;/code&gt; + &lt;code&gt;Suspense&lt;/code&gt; 来实现：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;// React 官方方案示例
-const LazyComponent = React.lazy(() =&amp;gt; import(&apos;./HeavyComponent&apos;));
-
-function App() {
-  return (
-    &amp;lt;Suspense fallback={&amp;lt;Loading /&amp;gt;}&amp;gt;
-      &amp;lt;LazyComponent /&amp;gt;
-    &amp;lt;/Suspense&amp;gt;
-  );
-}
-&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>Antd-ext Select 组件的来源与创建历程</title><link>https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-select-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
 &lt;p&gt;在实际项目中，我们几乎所有页面都会用到 &lt;code&gt;Select&lt;/code&gt;：&lt;/p&gt;
 &lt;ul&gt;
@@ -3689,6 +3665,30 @@ const ResponsiveDemo: React.FC = () =&amp;gt; {
 &lt;li&gt;结合 TypeScript 的泛型参数（&lt;code&gt;V&lt;/code&gt;/&lt;code&gt;D&lt;/code&gt;/&lt;code&gt;M&lt;/code&gt;），在定义组件时就把值类型与业务数据结构声明清楚，可以显著减少后续 bug；&lt;/li&gt;
 &lt;li&gt;下拉扩展时，尽量把“新增/编辑”操作放在 &lt;code&gt;popupRender&lt;/code&gt; 中完成，并在操作结束后调用 &lt;code&gt;close()&lt;/code&gt;，保持交互的一致性。&lt;/li&gt;
 &lt;/ul&gt;
+</content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;const req = require.context(&apos;@/pages&apos;, true, __AUTO_ROUTER_REG__, &apos;lazy&apos;)&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;路由组件都动态导入，路由的&lt;code&gt;component&lt;/code&gt; 设置为&lt;code&gt;Loadable({ loader, loading: Loading })&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;loading&lt;/code&gt;：自定义的加载提示组件&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loader&lt;/code&gt; 的签名为&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code&gt;Promise&amp;lt;React.ComponentType&amp;lt;Props&amp;gt; | { default: React.ComponentType&amp;lt;Props&amp;gt; }&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;借助req可以轻松实现这一点&lt;code&gt;() =&amp;gt; Promise.resolve(req(key))&lt;/code&gt; ，&lt;code&gt;key&lt;/code&gt; 是&lt;code&gt;req.keys()&lt;/code&gt; 的项。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 是一个高阶组件，它会返回一个新的组件，此组件内部会调用&lt;code&gt;loader&lt;/code&gt; 加载异步导入的组件(&lt;code&gt;import(xxx)&lt;/code&gt;)。在加载完成前，会展示&lt;code&gt;loading&lt;/code&gt; 对应的组件。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Loadable&lt;/code&gt; 来自&lt;code&gt;&apos;react-loadable&apos;&lt;/code&gt; 库。
+也可以使用&lt;code&gt;React.lazy&lt;/code&gt; + &lt;code&gt;Suspense&lt;/code&gt; 来实现：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// React 官方方案示例
+const LazyComponent = React.lazy(() =&amp;gt; import(&apos;./HeavyComponent&apos;));
+
+function App() {
+  return (
+    &amp;lt;Suspense fallback={&amp;lt;Loading /&amp;gt;}&amp;gt;
+      &amp;lt;LazyComponent /&amp;gt;
+    &amp;lt;/Suspense&amp;gt;
+  );
+}
+&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>微信小程序maxLength在IOS拼音输入法下异常</title><link>https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/wx-mini/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8Fmaxlength%E5%9C%A8ios%E6%8B%BC%E9%9F%B3%E8%BE%93%E5%85%A5%E6%B3%95%E4%B8%8B%E5%BC%82%E5%B8%B8/</guid><pubDate>Sat, 08 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;使用自定义的高阶函数在onInput会调中手动限制长度&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;import {BaseEventOrig, CommonEventFunction} from &quot;@tarojs/components/types/common&quot;;
 import {InputProps} from &quot;@tarojs/components&quot;;
@@ -4403,215 +4403,6 @@ unplugin took 0.006 secs
 &lt;li&gt;&lt;a href=&quot;https://juejin.cn/post/7237053697528496184&quot;&gt;Webpack 构建速度优化实践&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://www.notion.so/WEBPACK5_MIGRATION_PROMPT.md&quot;&gt;项目 Webpack 5 迁移文档&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
-&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
-&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
-&lt;h2&gt;实现&lt;/h2&gt;
-&lt;p&gt;创建axios实例&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
-const request = axios.create({ baseURL: &apos;/api&apos; })
-
-// 拦截请求
-request.interceptors.request.use(
-  (option) =&amp;gt; {
-    if (option.headers.authorization === undefined) {
-      // 补充身份验证字段
-      option.headers.authorization = xxxx;
-    }
-    // 打印请求信息
-    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
-    return option
-  }
-)
-
-// 拦截响应
-request.interceptors.response.use(
-  async (response) =&amp;gt; {
-    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
-    const data = response.data as Resp&amp;lt;any&amp;gt;;
-    if (data.code === 101) {
-      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
-      // 刷新token、重新发起请求，注意避免嵌套！无限递归
-      if (
-        response.config.params.___retry !== undefined
-        || !refreshToken
-        || response.config.url?.includes(URL_REFRESH_TOKEN)
-      ) {
-        return Promise.reject(response)
-      }
-
-      // 刷新token
-      const { access_token, refresh_token } = await refreshTokenApi(
-        refreshToken,
-      )
-      localStorage.setItem(STORAGE_TOKEN, access_token)
-      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
-
-      // 重新请求
-      const opts = _.cloneDeep(response.config)
-      opts.headers.authorization = `Bearer ${access_token}`
-      // 标记为重试
-      if (!opts.params) {
-        opts.params = {}
-      }
-      opts.params.___retry = true;
-      return request(opts)
-    }
-    // 成功响应
-    else if (data.code === 200 || data.code === 0) {
-      return response
-    } else if (data.failData) {
-      return response
-    }
-    return Promise.reject(response)
-  },
-  (err) =&amp;gt; {
-    // 响应拦截器逻辑 - 错误响应
-    if (err instanceof AxiosError) {
-      const { response, config } = err
-      if (config.params?.___checkLogin) {
-        goLogin()
-        return Promise.reject(err)
-      }
-      console.debug(
-        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
-        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
-      )
-      if ([401, 424].includes(err.status!)) {
-        message.error(&apos;登录过期&apos;)
-        goLogin()
-      } else if ([404].includes(err.status!)) {
-        message.error(&apos;网络环境差，请稍后重试&apos;)
-        goLogin()
-      } else {
-        message.error(`网络错误[${err.status}] ${err.message}]`)
-      }
-    } else if (err instanceof Error) {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    } else {
-      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
-      message.error(&apos;系统错误&apos;)
-    }
-    return Promise.reject(err)
-  },
-)
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;/**
- * 统一的响应格式
- */
-type Resp&amp;lt;T&amp;gt; = {
-  code: number
-  msg: string
-  data: T
-}
-interface SelectNameResult {
-  name: string
-}
-
-interface SelectNameRequest {
-  id: number
-}
-
-async function go() {
-  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
-    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
-  /*
-  response类型：
-  {
-    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
-    status: number
-    statusText: string
-    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
-    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
-    request?: any
-  }
-  */
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;扩展&lt;/h2&gt;
-&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
-&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
-&lt;ul&gt;
-&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;const api = {
-  getUri(config?: AxiosRequestConfig) {
-    return request.getUri(config)
-  },
-  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
-  },
-  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
-    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
-  },
-  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
-  },
-  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  },
-  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
-    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
-  }
-}
-
-/**
- * 将结果扁平化
- */
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
-function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
-async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
-  const res = await this;
-  if (level === 1) {
-    return res.data;
-  }
-  return res.data?.data;
-}
-
-function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
-  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
-  newPromise.flat = flat;
-  return newPromise;
-}
-
-export default api;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;再看看效果：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;async function go() {
-  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
-}
-&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>网络缓存</title><link>https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/network/%E7%BD%91%E7%BB%9C%E7%BC%93%E5%AD%98/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;缓存命中顺序&lt;/h2&gt;
 &lt;p&gt;顺序从上往下，命中即返回缓存的内容。&lt;/p&gt;
 &lt;ol&gt;
@@ -5039,6 +4830,215 @@ exec(`git clone &quot;${repo}&quot; /some/path`);
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h3&gt;DNS劫持&lt;/h3&gt;
 &lt;h3&gt;DDOS攻击&lt;/h3&gt;
+</content:encoded></item><item><title>Typescript axios接口工具函数封装</title><link>https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ts/typescript-axios%E6%8E%A5%E5%8F%A3%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0%E5%B0%81%E8%A3%85/</guid><pubDate>Wed, 05 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;背景&lt;/h2&gt;
+&lt;p&gt;为什么需要封装，每次请求，都需要处理身份验证、请求与响应数据转换、错误与异常处理等。若不同业务的后端验证、请求响应数据格式等不一致，则每次请求时手动处理这些规则十分麻烦，且不利于维护。&lt;/p&gt;
+&lt;p&gt;对于不同的后端服务，可以封装不同的请求工具对象。&lt;/p&gt;
+&lt;h2&gt;实现&lt;/h2&gt;
+&lt;p&gt;创建axios实例&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 设置每个请求默认的配置
+const request = axios.create({ baseURL: &apos;/api&apos; })
+
+// 拦截请求
+request.interceptors.request.use(
+  (option) =&amp;gt; {
+    if (option.headers.authorization === undefined) {
+      // 补充身份验证字段
+      option.headers.authorization = xxxx;
+    }
+    // 打印请求信息
+    console.info(`🛫🛫🛫🛫🛫🛫请求：[${option.method}]${option.url}`, &apos;params&apos;, option.params, &apos;data&apos;, option.data, &apos;headers&apos;, option.headers)
+    return option
+  }
+)
+
+// 拦截响应
+request.interceptors.response.use(
+  async (response) =&amp;gt; {
+    console.info(`⬇️⬇️⬇️⬇️⬇️⬇️响应：[${response.config.method}]${response.config.url}`, &apos;data&apos;, response.data, &apos;headers&apos;, response.headers)
+    const data = response.data as Resp&amp;lt;any&amp;gt;;
+    if (data.code === 101) {
+      const refreshToken = localStorage.getItem(STORAGE_REFRESH_TOKEN)
+      // 刷新token、重新发起请求，注意避免嵌套！无限递归
+      if (
+        response.config.params.___retry !== undefined
+        || !refreshToken
+        || response.config.url?.includes(URL_REFRESH_TOKEN)
+      ) {
+        return Promise.reject(response)
+      }
+
+      // 刷新token
+      const { access_token, refresh_token } = await refreshTokenApi(
+        refreshToken,
+      )
+      localStorage.setItem(STORAGE_TOKEN, access_token)
+      localStorage.setItem(STORAGE_REFRESH_TOKEN, refresh_token)
+
+      // 重新请求
+      const opts = _.cloneDeep(response.config)
+      opts.headers.authorization = `Bearer ${access_token}`
+      // 标记为重试
+      if (!opts.params) {
+        opts.params = {}
+      }
+      opts.params.___retry = true;
+      return request(opts)
+    }
+    // 成功响应
+    else if (data.code === 200 || data.code === 0) {
+      return response
+    } else if (data.failData) {
+      return response
+    }
+    return Promise.reject(response)
+  },
+  (err) =&amp;gt; {
+    // 响应拦截器逻辑 - 错误响应
+    if (err instanceof AxiosError) {
+      const { response, config } = err
+      if (config.params?.___checkLogin) {
+        goLogin()
+        return Promise.reject(err)
+      }
+      console.debug(
+        `❌❌❌❌❌❌请求异常[${config?.method}:${response?.status ?? &apos;&apos;}:${response?.data?.code}]${config?.url}: `,
+        &apos;data&apos;, response?.data, &apos;headers&apos;, response?.headers, &apos;response&apos;, response
+      )
+      if ([401, 424].includes(err.status!)) {
+        message.error(&apos;登录过期&apos;)
+        goLogin()
+      } else if ([404].includes(err.status!)) {
+        message.error(&apos;网络环境差，请稍后重试&apos;)
+        goLogin()
+      } else {
+        message.error(`网络错误[${err.status}] ${err.message}]`)
+      }
+    } else if (err instanceof Error) {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, err.message, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    } else {
+      console.debug(&apos;❌❌❌❌❌❌请求异常&apos;, &apos;-&apos;, &apos;error&apos;, err)
+      message.error(&apos;系统错误&apos;)
+    }
+    return Promise.reject(err)
+  },
+)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;现在就可以使用&lt;code&gt;request&lt;/code&gt; 发起请求。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;/**
+ * 统一的响应格式
+ */
+type Resp&amp;lt;T&amp;gt; = {
+  code: number
+  msg: string
+  data: T
+}
+interface SelectNameResult {
+  name: string
+}
+
+interface SelectNameRequest {
+  id: number
+}
+
+async function go() {
+  const response: AxiosResponse&amp;lt;SelectNameResult, SelectNameRequest, {}&amp;gt; =
+    await request.post&amp;lt;SelectNameResult, AxiosResponse&amp;lt;SelectNameResult&amp;gt;, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1});
+  /*
+  response类型：
+  {
+    data: { data: { name: string }, code: 0, msg: &apos;成功&apos; }
+    status: number
+    statusText: string
+    headers: (H &amp;amp; RawAxiosResponseHeaders) | AxiosResponseHeaders
+    config: InternalAxiosRequestConfig&amp;lt;Ry&amp;gt;
+    request?: any
+  }
+  */
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;扩展&lt;/h2&gt;
+&lt;p&gt;但是出现另外一个问题。大部分情况下我们仅需要直接读取 &lt;code&gt;name&lt;/code&gt; 就行。因为所有的错误（响应错误、&lt;code&gt;Resp.code&lt;/code&gt;错误)都已经在&lt;code&gt;request.interceptors.response&lt;/code&gt; 中拦截并抛出异常了，代码能运行到这里，肯定是没问题的。读取&lt;code&gt;name&lt;/code&gt; 需要&lt;code&gt;response.data.data.name&lt;/code&gt; ，而期望的结果最好是&lt;code&gt;response&lt;/code&gt;就是&lt;code&gt;name&lt;/code&gt; 。所以需要将响应结果扁平化处理。&lt;/p&gt;
+&lt;p&gt;扁平化处理的时机：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;响应拦截器中直接返回&lt;code&gt;response.data.data&lt;/code&gt; 达到目的。
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;axios.post&lt;/code&gt; 的返回值还是&lt;code&gt;AxiosResponse&lt;/code&gt; ，需要重新通过修改这些函数的TS类型定义。另外在一些特殊请求时，需要返回完整的响应内容，这时就需要添加额外的函数参数来做区分。那么还需要针对函数参数做TS类型重载完善提示。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;自定义工具函数，针对&lt;code&gt;response&lt;/code&gt; 做提取。
+&lt;ul&gt;
+&lt;li&gt;需要手动调用。需要TS类型重载。但控制更精细、扩展更方便。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面选择自定义工具函数来实现。将&lt;code&gt;request&lt;/code&gt; 再封装一层为&lt;code&gt;api&lt;/code&gt; （仅提供需要的部分）。使用&lt;code&gt;wrap&lt;/code&gt; 来扩展&lt;code&gt;request.xxx&lt;/code&gt; 返回的&lt;code&gt;promise&lt;/code&gt; 。通过&lt;code&gt;flat(level)&lt;/code&gt;来控制响应展开的层级（这里需要使用到TS的函数类型重载来实现更精细的类型提示）。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const api = {
+  getUri(config?: AxiosRequestConfig) {
+    return request.getUri(config)
+  },
+  request&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(config: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.request&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(config))
+  },
+  post&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap&amp;lt;T, R&amp;gt;(request.post&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  get&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig) {
+    return wrap(request.get&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;&amp;gt;(url, config))
+  },
+  put&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.put&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patch&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patch&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  delete&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.delete&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  head&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.head&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  options&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.options&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, config))
+  },
+  postForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.postForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  putForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.putForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  },
+  patchForm&amp;lt;T = any, D = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(url: string, data?: D, config?: AxiosRequestConfig&amp;lt;D&amp;gt;) {
+    return wrap(request.patchForm&amp;lt;T, AxiosResponse&amp;lt;R&amp;gt;, D&amp;gt;(url, data, config))
+  }
+}
+
+/**
+ * 将结果扁平化
+ */
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 1): Promise&amp;lt;R&amp;gt;;
+function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level: 2): Promise&amp;lt;R[&apos;data&apos;]&amp;gt;;
+async function flat&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(this: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;, level?: 1 | 2): Promise&amp;lt;T | R&amp;gt; {
+  const res = await this;
+  if (level === 1) {
+    return res.data;
+  }
+  return res.data?.data;
+}
+
+function wrap&amp;lt;T = any, R extends Resp&amp;lt;any&amp;gt; = Resp&amp;lt;T&amp;gt;&amp;gt;(promise: Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt;) {
+  const newPromise = promise as Promise&amp;lt;AxiosResponse&amp;lt;R&amp;gt;&amp;gt; &amp;amp; { flat: typeof flat }
+  newPromise.flat = flat;
+  return newPromise;
+}
+
+export default api;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;再看看效果：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;async function go() {
+  const response: string = await api.post&amp;lt;SelectNameResult, SelectNameRequest&amp;gt;(&apos;url&apos;, {id: 1}).flat();
+}
+&lt;/code&gt;&lt;/pre&gt;
 </content:encoded></item><item><title>Taro-语音识别的 hook</title><link>https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/taro/userecordermanager/</guid><pubDate>Tue, 04 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;ul&gt;
 &lt;li&gt;使用
 &lt;ul&gt;
