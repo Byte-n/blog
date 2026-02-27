@@ -169,7 +169,7 @@ Spec-kit（通常指 GitHub 推出的 github/spec-kit）是一个旨在标准化
 
 我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。
 ::github{repo="Priivacy-ai/spec-kitty"}  
-基础使用见：[使用 Spec-kitty + Claude 从零构建答题游戏.md](%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/)
+基础使用见：[使用 Spec-kitty + Claude 从零构建答题游戏.md](/posts/ai/使用-spec-kitty--claude-从零构建答题游戏/)
 
 在没有 Spec-kitty 之前，使用 Agent 完成一个复杂需求的开发是什么样的？
 * 将需求拆分成 N 个小的模块，让 Agent 逐渐完成各个模块，并挨个 Review 生成的代码。（Agent 可能失忆了，不记得你前面的内容）
