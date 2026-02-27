@@ -319,24 +319,24 @@ if (document.readyState === 'loading') {
 <li>测试用例的脑图 xmind 文件：使用工具 转化为 Markdown 文件。也可以编写一个 Skill + script 的方式让 Agent 自行处理。</li>
 </ul><p>虽然能读取飞书的需求文档了，但是目前一个需求文档稍微稍微有点大，还是得手动创建一个文档，将此次需求的内容梳理并摘出来。有没有什么更好的方案管理需求文档？</p></section>
 <section><h2 id="使用-spec-kit-解决复杂需求">使用 Spec-kit 解决复杂需求<a class="anchor" href="#使用-spec-kit-解决复杂需求"><span class="anchor-icon" data-pagefind-ignore="">#</span></a></h2><p>Spec-kit（通常指 GitHub 推出的 github/spec-kit）是一个旨在标准化 规范驱动开发 (Spec-driven Development, SDD) 的工具包。
-它通过将 Agent 辅助编程从“随意的聊天式对话（Vibe Coding）”转变为“基于结构化文档的系统化工程”，帮助开发者更精准地引导 Agent 构建高质量、可维护的软件系统。</p><p>我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。</p><a id="GCwc8p3a-card" class="card-github fetch-waiting no-styling" href="https://github.com/Priivacy-ai/spec-kitty" target="_blank" repo="Priivacy-ai/spec-kitty"><div class="gc-titlebar"><div class="gc-titlebar-left"><div class="gc-owner"><div id="GCwc8p3a-avatar" class="gc-avatar"></div><div class="gc-user">Priivacy-ai</div></div><div class="gc-divider">/</div><div class="gc-repo">spec-kitty</div></div><div class="github-logo"></div></div><div id="GCwc8p3a-description" class="gc-description">Waiting for api.github.com...</div><div class="gc-infobar"><div id="GCwc8p3a-stars" class="gc-stars">00K</div><div id="GCwc8p3a-forks" class="gc-forks">0K</div><div id="GCwc8p3a-license" class="gc-license">0K</div><span id="GCwc8p3a-language" class="gc-language">Waiting...</span></div><script id="GCwc8p3a-script" type="text/javascript" defer>
+它通过将 Agent 辅助编程从“随意的聊天式对话（Vibe Coding）”转变为“基于结构化文档的系统化工程”，帮助开发者更精准地引导 Agent 构建高质量、可维护的软件系统。</p><p>我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。</p><a id="GCzdwsfn-card" class="card-github fetch-waiting no-styling" href="https://github.com/Priivacy-ai/spec-kitty" target="_blank" repo="Priivacy-ai/spec-kitty"><div class="gc-titlebar"><div class="gc-titlebar-left"><div class="gc-owner"><div id="GCzdwsfn-avatar" class="gc-avatar"></div><div class="gc-user">Priivacy-ai</div></div><div class="gc-divider">/</div><div class="gc-repo">spec-kitty</div></div><div class="github-logo"></div></div><div id="GCzdwsfn-description" class="gc-description">Waiting for api.github.com...</div><div class="gc-infobar"><div id="GCzdwsfn-stars" class="gc-stars">00K</div><div id="GCzdwsfn-forks" class="gc-forks">0K</div><div id="GCzdwsfn-license" class="gc-license">0K</div><span id="GCzdwsfn-language" class="gc-language">Waiting...</span></div><script id="GCzdwsfn-script" type="text/javascript" defer>
       fetch('https://api.github.com/repos/Priivacy-ai/spec-kitty', { referrerPolicy: "no-referrer" }).then(response => response.json()).then(data => {
-        document.getElementById('GCwc8p3a-description').innerText = data.description?.replace(/:[a-zA-Z0-9_]+:/g, '') || "Description not set";
-        document.getElementById('GCwc8p3a-language').innerText = data.language;
-        document.getElementById('GCwc8p3a-forks').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.forks).replaceAll(" ", '');
-        document.getElementById('GCwc8p3a-stars').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.stargazers_count).replaceAll(" ", '');
-        const avatarEl = document.getElementById('GCwc8p3a-avatar');
+        document.getElementById('GCzdwsfn-description').innerText = data.description?.replace(/:[a-zA-Z0-9_]+:/g, '') || "Description not set";
+        document.getElementById('GCzdwsfn-language').innerText = data.language;
+        document.getElementById('GCzdwsfn-forks').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.forks).replaceAll(" ", '');
+        document.getElementById('GCzdwsfn-stars').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.stargazers_count).replaceAll(" ", '');
+        const avatarEl = document.getElementById('GCzdwsfn-avatar');
         avatarEl.style.backgroundImage = 'url(' + data.owner.avatar_url + ')';
         avatarEl.style.backgroundColor = 'transparent';
-        document.getElementById('GCwc8p3a-license').innerText = data.license?.spdx_id || "no-license";
-        document.getElementById('GCwc8p3a-card').classList.remove("fetch-waiting");
-        console.log("[GITHUB-CARD] Loaded card for Priivacy-ai/spec-kitty | GCwc8p3a.")
+        document.getElementById('GCzdwsfn-license').innerText = data.license?.spdx_id || "no-license";
+        document.getElementById('GCzdwsfn-card').classList.remove("fetch-waiting");
+        console.log("[GITHUB-CARD] Loaded card for Priivacy-ai/spec-kitty | GCzdwsfn.")
       }).catch(err => {
-        const c = document.getElementById('GCwc8p3a-card');
+        const c = document.getElementById('GCzdwsfn-card');
         c?.classList.add("fetch-error");
-        console.warn("[GITHUB-CARD] (Error) Loading card for Priivacy-ai/spec-kitty | GCwc8p3a.")
+        console.warn("[GITHUB-CARD] (Error) Loading card for Priivacy-ai/spec-kitty | GCzdwsfn.")
       })
-    </script></a><p>基础使用见：<a href="%E4%BD%BF%E7%94%A8%20Spec-kitty%20%2B%20Claude%20%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F.md">使用 Spec-kitty + Claude 从零构建答题游戏.md</a></p><p>在没有 Spec-kitty 之前，使用 Agent 完成一个复杂需求的开发是什么样的？</p><ul>
+    </script></a><p>基础使用见：<a href="/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/">使用 Spec-kitty + Claude 从零构建答题游戏.md</a></p><p>在没有 Spec-kitty 之前，使用 Agent 完成一个复杂需求的开发是什么样的？</p><ul>
 <li>将需求拆分成 N 个小的模块，让 Agent 逐渐完成各个模块，并挨个 Review 生成的代码。（Agent 可能失忆了，不记得你前面的内容）</li>
 <li>将需求充分描述并记录一个很长的“提示词.md”文件中，并梭哈式的投喂给 Agent 让其一口气完成（可能写到一半，上下文长度超了…或者 Agent 失忆了）</li>
 </ul><p>而 Spec-kitty 就可以用来解决这种问题。在让 Agent 真正开始干活之前，通过生成规范的文件，让 Agent 明确知道自己在做什么，做到第几步了，还有几步。
@@ -349,7 +349,7 @@ if (document.readyState === 'loading') {
 </ol><p>可以看见一些任务是有前后依赖关系的，部分还是可以并行的（2、3）。</p><p>在项目中使用 Spec-kitty 时，会在项目中创建一些“基于结构化文档”文件。
 分布在 <code>.kittify</code> 与 <code>kitty-specs</code> 两个文件夹中，这两个文件夹中的内容都需要随项目提交到 Git 仓库中。其中不需要提交到仓库中的内容 Spec-kitty 会自动追加的 <code>.gitignore</code> 文件中。</p><p>在完成初始化以及项目总纲规范（<code>/spec-kitty.constitution</code>）补充后，就可以使用 <code>/spec-kitty.specify</code> 来开启一个需求的开发前置准备工作。
 根据提示一步一步完善需求内容与验证，最终指向 <code>/spec-kitty.implement</code> / <code>/spec-kitty.review</code> / <code>/spec-kitty.merge</code> 完成 开始、审查、合并的实际开发工作。</p><p><code>/spec-kitty.implement</code> 时，Spec-kitty 会基于当前分支创建一个新的分支并在上面完成任务的开发。若有多个任务，则会创建多个分支，若任务2依赖任务1，则任务2的分支会从任务1上新建。
-在所有任务分支都完成 <code>/spec-kitty.review</code> 后，就能通过 <code>/spec-kitty.merge</code> 将代码都合并到主分支上。</p><div class="mermaid-diagram-container"><div class="mermaid-wrapper" id="mermaid-4f2lah"><div class="mermaid" data-mermaid-code="stateDiagram-v2
+在所有任务分支都完成 <code>/spec-kitty.review</code> 后，就能通过 <code>/spec-kitty.merge</code> 将代码都合并到主分支上。</p><div class="mermaid-diagram-container"><div class="mermaid-wrapper" id="mermaid-bj8aeg"><div class="mermaid" data-mermaid-code="stateDiagram-v2
     [*] --> Planned: /spec-kitty.tasks
     Planned --> Doing: /spec-kitty.implement
     Doing --> ForReview: Agent completes work

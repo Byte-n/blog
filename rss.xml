@@ -153,7 +153,7 @@ skill resources 中的相关规范内容...
 它通过将 Agent 辅助编程从“随意的聊天式对话（Vibe Coding）”转变为“基于结构化文档的系统化工程”，帮助开发者更精准地引导 Agent 构建高质量、可维护的软件系统。&lt;/p&gt;
 &lt;p&gt;我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。
 ::github{repo=&quot;Priivacy-ai/spec-kitty&quot;}&lt;br /&gt;
-基础使用见：&lt;a href=&quot;%E4%BD%BF%E7%94%A8%20Spec-kitty%20%2B%20Claude%20%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F.md&quot;&gt;使用 Spec-kitty + Claude 从零构建答题游戏.md&lt;/a&gt;&lt;/p&gt;
+基础使用见：&lt;a href=&quot;/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/&quot;&gt;使用 Spec-kitty + Claude 从零构建答题游戏.md&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;在没有 Spec-kitty 之前，使用 Agent 完成一个复杂需求的开发是什么样的？&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;将需求拆分成 N 个小的模块，让 Agent 逐渐完成各个模块，并挨个 Review 生成的代码。（Agent 可能失忆了，不记得你前面的内容）&lt;/li&gt;
@@ -4487,7 +4487,7 @@ unplugin took 0.006 secs
 &lt;/ul&gt;
 &lt;p&gt;缓存失效：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;手动调用 API &lt;code&gt;cache.delete(resource)&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;手动调用 API &lt;code&gt;cache.delete(resource)&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;容量超过限制&lt;/li&gt;
 &lt;li&gt;浏览器全部清空&lt;/li&gt;
 &lt;/ul&gt;
