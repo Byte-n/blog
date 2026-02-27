@@ -1,7 +1,7 @@
 ---
 title: 使用 Spec-kitty + Claude 从零构建答题游戏
 published: 2026-02-26
-tags: []
+tags: ['agent', 'spec-kit']
 category: AI
 draft: false
 ---
