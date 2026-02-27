@@ -54,9 +54,9 @@
 &lt;ol&gt;
 &lt;li&gt;&lt;code&gt;/spec-kitty.constitution&lt;/code&gt; — 定义项目的技术栈、编码约束、严禁事项&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;/spec-kitty.specify&lt;/code&gt; — 明确需求&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;/spec-kitty.clarify&lt;/code&gt; — 进一步细化规格中的模糊点&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.clarify&lt;/code&gt; — 进一步细化规格中的模糊点，可选&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;/spec-kitty.plan&lt;/code&gt; — 生成实现计划和设计文档&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;/spec-kitty.research&lt;/code&gt;— 可行性研究&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.research&lt;/code&gt;— 可行性研究，可选&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;/spec-kitty.tasks&lt;/code&gt; — 生成工作包和可执行任务&lt;/li&gt;
 &lt;li&gt;执行任务，依次完成所有任务
 &lt;ol&gt;
@@ -64,10 +64,12 @@
 &lt;li&gt;&lt;code&gt;/spec-kitty.review&lt;/code&gt; — 检查代码&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/li&gt;
+&lt;li&gt;&lt;code&gt;/spec-kitty.accept&lt;/code&gt; – 验证，可选&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;/spec-kitty.merge&lt;/code&gt; — 合并所有分支&lt;/li&gt;
 &lt;/ol&gt;
 &lt;/li&gt;
 &lt;/ol&gt;
+&lt;p&gt;&lt;code&gt;.kittify&lt;/code&gt; / &lt;code&gt;kitty-specs&lt;/code&gt; 目录需要提交到 git 仓库中，目录中不需要提交到内容 spec-kitty 会自动识别并添加到 .gitignore 文件中&lt;/p&gt;
 &lt;h2&gt;初始化&lt;/h2&gt;
 &lt;p&gt;在项目中执行命令 &lt;code&gt;spec-kitty init .&lt;/code&gt; 完成项目的初始化。这里选择的 Agent 是 claude code&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;╭─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
