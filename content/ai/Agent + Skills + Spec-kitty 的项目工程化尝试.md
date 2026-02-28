@@ -94,7 +94,7 @@ export default function Button (props: ButtonProps) {
 skill resources 中的相关规范内容...
 
 ```
-给 Agent 安装上述 skill 时，在让它执行新建组件任务的时候，就会匹配到上述 skill 的 `description`，就会将完整的 skill 内容载入到 Agent 的上下文中。
+给 Agent 安装上述 skill 时，在让它执行新建组件任务的时候，就会匹配到上述 skill 的 `description`，就会将完整的 skill 内容（`SKILL.md`）载入到 Agent 的上下文中。
 从而让 Agent 写出符合规范的组件代码。
 
 从上面的“React组件规范”可以看出，开发一个组件设计的规范中包含很多细分可独立的规范，有一些是可以独立于当前项目的，在整个前端项目中使用。
@@ -116,11 +116,12 @@ skill resources 中的相关规范内容...
 * TailwindCSS 规范：H5、小程序
 
 假设这些规范都已经准备就绪，那么就可以在“React组件规范”中引用这些规范。这样有如下好处：
-* 不需要重复编写基础的 Skills 描述
+* 不需要重复编写基础的 Skills 描述，或不用 Agent 每次都执行 “我先查看一下当前项目的编程风格”（浪费 token）
 * 多个项目中让 Agent 写出风格一样或类似的代码，团队 Agent 代码风格统一。
 * 团队、项目的 Skills 职责清晰、可维护
 
-将单个 Skill 按照最小职责的原则设计，在新的 Skill 中引用其他的 Skill。按原子化思想为团队、项目构建专属的 Skills Git 仓库。
+将基础的 Skill 按照最小职责的原则设计，即原子 Skill。在具体组件、模块、工具函数编写的规范中引用这些原子 Skill 或其他 Skill。
+按原子化思想为团队、项目构建专属的 Skills Git 仓库。
 
 将 Skills 发布到 Git 仓库，通过 [skills](https://github.com/vercel-labs/skills) 这个工具安装到具体的项目中。
 另外还可以通过这个工具检查已安装的 Skills 是否有更新并更新。此工具支持市面上常见的 Agent 的 Skills 安装配置。
@@ -162,9 +163,12 @@ skill resources 中的相关规范内容...
 
 虽然能读取飞书的需求文档了，但是目前一个需求文档稍微稍微有点大，还是得手动创建一个文档，将此次需求的内容梳理并摘出来。有没有什么更好的方案管理需求文档？
 
+可能的实践优化方式：已启动的 MCP 服务中的描述会载入到每一次对话的上下文中，这可能会带来额外的 tokens 消费，
+是否可以通过 Skill 来包装描述 MCP 服务，在 Agent 匹配到对应 Skill 时再根据提示词描述装载 MCP 服务或按提示词直接调用 MCP 服务
+
 ## 使用 Spec-kit 解决复杂需求
 
-Spec-kit（通常指 GitHub 推出的 github/spec-kit）是一个旨在标准化 规范驱动开发 (Spec-driven Development, SDD) 的工具包。 
+Spec-kit 是一个旨在标准化 规范驱动开发 (Spec-driven Development, SDD) 的工具包。 
 它通过将 Agent 辅助编程从“随意的聊天式对话（Vibe Coding）”转变为“基于结构化文档的系统化工程”，帮助开发者更精准地引导 Agent 构建高质量、可维护的软件系统。
 
 我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。
@@ -253,8 +257,11 @@ stateDiagram-v2
 然后在业务项目中使用 skills 工具来安装这些依赖，并提交 `.agent/skills` 文件夹到业务项目的仓库中。
 可以进一步使用 npm 的生命周期机制，让安装依赖时也触发 skills 工具来检查并更新业务项目中的 Skills
 
-Spec-kit 需要在业务项目中完成初始化，然后再通过 Agent 的 `/spec-kitty.constitution` 指令完成项目总纲指南的初始化。
-随后使用 `/spec-kitty.specify` 开始复杂的需求开发流程。（并不是所有的需求都需要走 Spec-kit 流程，简单的通过与 Agent 直接对话更快或临时的提示词文件）
-
+Spec-kitty 需要在业务项目中完成初始化，然后再通过 Agent 的 `/spec-kitty.constitution` 指令完成项目总纲指南的初始化。
+随后使用 `/spec-kitty.specify` 开始复杂的需求开发流程。（并不是所有的需求都需要走 Spec-kitty 流程，简单的通过与 Agent 直接对话更快或临时的提示词文件）  
+Spec-kitty 使用 `/spec-kitty.specify` 创建一个需求后，需求相关的文档描述都存储在 `spec-kitty/xxx` 目录下，
+此需求实现阶段的代码都会在本地的具体任务分支上（可能有多个）。应在本地分支合并到需求分支后再将 `spec-kitty/xxx` 提交到需求分支中。  
+虽然具体的任务实现是在本地的其他分支上进行的，但是各任务的进度数据同步是在当前分支上进行的（Agent 任务进度感知与 spec-kitty dashboard 看板需要）。  
+Spec-kitty 的使用会带来额外的 tokens 消费，因为在 Agent 开始实际编程工作之前需要通过 `/spec-kitty.xxx` 指令完成多轮对话和相关规格文档生成。
 
 Skills 只能靠人来维护吗，是否可以在合适的需求开发完成后，让 Agent 根据此次对话记录、变更文件、Skill使用分析 skill 来总结输出可能的 skill 优化报告？
