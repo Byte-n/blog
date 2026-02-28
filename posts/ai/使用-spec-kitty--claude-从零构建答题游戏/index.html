@@ -259,22 +259,22 @@ if (document.readyState === 'loading') {
                 <a href="/blog/archive/?tag=agent" aria-label="View all posts with the agent tag" class="link-lg transition text-50 text-sm font-medium
                                 hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> agent </a><div class="mx-1.5 text-[var(--meta-divider)] text-sm">/</div>
                 <a href="/blog/archive/?tag=spec-kit" aria-label="View all posts with the spec-kit tag" class="link-lg transition text-50 text-sm font-medium
-                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> spec-kit </a>  </div> </div> </div> <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div> </div> <!-- always show cover as long as it has one -->  <div data-pagefind-body class="prose dark:prose-invert prose-base !max-w-none custom-md mb-6 markdown-content onload-animation"> <!--<div class="prose dark:prose-invert max-w-none custom-md">--> <!--<div class="max-w-none custom-md">-->  <a id="GCmxunyk-card" class="card-github fetch-waiting no-styling" href="https://github.com/Priivacy-ai/spec-kitty" target="_blank" repo="Priivacy-ai/spec-kitty"><div class="gc-titlebar"><div class="gc-titlebar-left"><div class="gc-owner"><div id="GCmxunyk-avatar" class="gc-avatar"></div><div class="gc-user">Priivacy-ai</div></div><div class="gc-divider">/</div><div class="gc-repo">spec-kitty</div></div><div class="github-logo"></div></div><div id="GCmxunyk-description" class="gc-description">Waiting for api.github.com...</div><div class="gc-infobar"><div id="GCmxunyk-stars" class="gc-stars">00K</div><div id="GCmxunyk-forks" class="gc-forks">0K</div><div id="GCmxunyk-license" class="gc-license">0K</div><span id="GCmxunyk-language" class="gc-language">Waiting...</span></div><script id="GCmxunyk-script" type="text/javascript" defer>
+                                hover:text-[var(--primary)] dark:hover:text-[var(--primary)] whitespace-nowrap"> spec-kit </a>  </div> </div> </div> <div class="border-[var(--line-divider)] border-dashed border-b-[1px] mb-5"></div> </div> <!-- always show cover as long as it has one -->  <div data-pagefind-body class="prose dark:prose-invert prose-base !max-w-none custom-md mb-6 markdown-content onload-animation"> <!--<div class="prose dark:prose-invert max-w-none custom-md">--> <!--<div class="max-w-none custom-md">-->  <a id="GCud5s29-card" class="card-github fetch-waiting no-styling" href="https://github.com/Priivacy-ai/spec-kitty" target="_blank" repo="Priivacy-ai/spec-kitty"><div class="gc-titlebar"><div class="gc-titlebar-left"><div class="gc-owner"><div id="GCud5s29-avatar" class="gc-avatar"></div><div class="gc-user">Priivacy-ai</div></div><div class="gc-divider">/</div><div class="gc-repo">spec-kitty</div></div><div class="github-logo"></div></div><div id="GCud5s29-description" class="gc-description">Waiting for api.github.com...</div><div class="gc-infobar"><div id="GCud5s29-stars" class="gc-stars">00K</div><div id="GCud5s29-forks" class="gc-forks">0K</div><div id="GCud5s29-license" class="gc-license">0K</div><span id="GCud5s29-language" class="gc-language">Waiting...</span></div><script id="GCud5s29-script" type="text/javascript" defer>
       fetch('https://api.github.com/repos/Priivacy-ai/spec-kitty', { referrerPolicy: "no-referrer" }).then(response => response.json()).then(data => {
-        document.getElementById('GCmxunyk-description').innerText = data.description?.replace(/:[a-zA-Z0-9_]+:/g, '') || "Description not set";
-        document.getElementById('GCmxunyk-language').innerText = data.language;
-        document.getElementById('GCmxunyk-forks').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.forks).replaceAll(" ", '');
-        document.getElementById('GCmxunyk-stars').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.stargazers_count).replaceAll(" ", '');
-        const avatarEl = document.getElementById('GCmxunyk-avatar');
+        document.getElementById('GCud5s29-description').innerText = data.description?.replace(/:[a-zA-Z0-9_]+:/g, '') || "Description not set";
+        document.getElementById('GCud5s29-language').innerText = data.language;
+        document.getElementById('GCud5s29-forks').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.forks).replaceAll(" ", '');
+        document.getElementById('GCud5s29-stars').innerText = Intl.NumberFormat('en-us', { notation: "compact", maximumFractionDigits: 1 }).format(data.stargazers_count).replaceAll(" ", '');
+        const avatarEl = document.getElementById('GCud5s29-avatar');
         avatarEl.style.backgroundImage = 'url(' + data.owner.avatar_url + ')';
         avatarEl.style.backgroundColor = 'transparent';
-        document.getElementById('GCmxunyk-license').innerText = data.license?.spdx_id || "no-license";
-        document.getElementById('GCmxunyk-card').classList.remove("fetch-waiting");
-        console.log("[GITHUB-CARD] Loaded card for Priivacy-ai/spec-kitty | GCmxunyk.")
+        document.getElementById('GCud5s29-license').innerText = data.license?.spdx_id || "no-license";
+        document.getElementById('GCud5s29-card').classList.remove("fetch-waiting");
+        console.log("[GITHUB-CARD] Loaded card for Priivacy-ai/spec-kitty | GCud5s29.")
       }).catch(err => {
-        const c = document.getElementById('GCmxunyk-card');
+        const c = document.getElementById('GCud5s29-card');
         c?.classList.add("fetch-error");
-        console.warn("[GITHUB-CARD] (Error) Loading card for Priivacy-ai/spec-kitty | GCmxunyk.")
+        console.warn("[GITHUB-CARD] (Error) Loading card for Priivacy-ai/spec-kitty | GCud5s29.")
       })
     </script></a>
 <p><code>spec-kitty</code> 则是由社区（Priivacy-ai）在<code>spec-kit</code> 基础上进行的二次开发，加入了更多针对<strong>复杂项目</strong>和<strong>多 AI 代理协作</strong>的实战功能。</p>

@@ -81,7 +81,7 @@ export default function Button (props: ButtonProps) {
 skill resources 中的相关规范内容...
 
 &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;给 Agent 安装上述 skill 时，在让它执行新建组件任务的时候，就会匹配到上述 skill 的 &lt;code&gt;description&lt;/code&gt;，就会将完整的 skill 内容载入到 Agent 的上下文中。
+&lt;p&gt;给 Agent 安装上述 skill 时，在让它执行新建组件任务的时候，就会匹配到上述 skill 的 &lt;code&gt;description&lt;/code&gt;，就会将完整的 skill 内容（&lt;code&gt;SKILL.md&lt;/code&gt;）载入到 Agent 的上下文中。
 从而让 Agent 写出符合规范的组件代码。&lt;/p&gt;
 &lt;p&gt;从上面的“React组件规范”可以看出，开发一个组件设计的规范中包含很多细分可独立的规范，有一些是可以独立于当前项目的，在整个前端项目中使用。&lt;/p&gt;
 &lt;p&gt;例如：&lt;/p&gt;
@@ -104,11 +104,12 @@ skill resources 中的相关规范内容...
 &lt;/ul&gt;
 &lt;p&gt;假设这些规范都已经准备就绪，那么就可以在“React组件规范”中引用这些规范。这样有如下好处：&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;不需要重复编写基础的 Skills 描述&lt;/li&gt;
+&lt;li&gt;不需要重复编写基础的 Skills 描述，或不用 Agent 每次都执行 “我先查看一下当前项目的编程风格”（浪费 token）&lt;/li&gt;
 &lt;li&gt;多个项目中让 Agent 写出风格一样或类似的代码，团队 Agent 代码风格统一。&lt;/li&gt;
 &lt;li&gt;团队、项目的 Skills 职责清晰、可维护&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;将单个 Skill 按照最小职责的原则设计，在新的 Skill 中引用其他的 Skill。按原子化思想为团队、项目构建专属的 Skills Git 仓库。&lt;/p&gt;
+&lt;p&gt;将基础的 Skill 按照最小职责的原则设计，即原子 Skill。在具体组件、模块、工具函数编写的规范中引用这些原子 Skill 或其他 Skill。
+按原子化思想为团队、项目构建专属的 Skills Git 仓库。&lt;/p&gt;
 &lt;p&gt;将 Skills 发布到 Git 仓库，通过 &lt;a href=&quot;https://github.com/vercel-labs/skills&quot;&gt;skills&lt;/a&gt; 这个工具安装到具体的项目中。
 另外还可以通过这个工具检查已安装的 Skills 是否有更新并更新。此工具支持市面上常见的 Agent 的 Skills 安装配置。&lt;/p&gt;
 &lt;h2&gt;让 Agent 获取需求相关文档&lt;/h2&gt;
@@ -148,8 +149,10 @@ skill resources 中的相关规范内容...
 &lt;li&gt;测试用例的脑图 xmind 文件：使用工具 转化为 Markdown 文件。也可以编写一个 Skill + script 的方式让 Agent 自行处理。&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;虽然能读取飞书的需求文档了，但是目前一个需求文档稍微稍微有点大，还是得手动创建一个文档，将此次需求的内容梳理并摘出来。有没有什么更好的方案管理需求文档？&lt;/p&gt;
+&lt;p&gt;可能的实践优化方式：已启动的 MCP 服务中的描述会载入到每一次对话的上下文中，这可能会带来额外的 tokens 消费，
+是否可以通过 Skill 来包装描述 MCP 服务，在 Agent 匹配到对应 Skill 时再根据提示词描述装载 MCP 服务或按提示词直接调用 MCP 服务&lt;/p&gt;
 &lt;h2&gt;使用 Spec-kit 解决复杂需求&lt;/h2&gt;
-&lt;p&gt;Spec-kit（通常指 GitHub 推出的 github/spec-kit）是一个旨在标准化 规范驱动开发 (Spec-driven Development, SDD) 的工具包。
+&lt;p&gt;Spec-kit 是一个旨在标准化 规范驱动开发 (Spec-driven Development, SDD) 的工具包。
 它通过将 Agent 辅助编程从“随意的聊天式对话（Vibe Coding）”转变为“基于结构化文档的系统化工程”，帮助开发者更精准地引导 Agent 构建高质量、可维护的软件系统。&lt;/p&gt;
 &lt;p&gt;我这里使用的是 Spec-kitty， 这是在 Spec-kit 基础上开发的项目。用于在 Agent 开始编程之前的需求分析、任务拆分编排等控制，以降低 Agent 出现幻觉乱写代码的情况。
 ::github{repo=&quot;Priivacy-ai/spec-kitty&quot;}&lt;br /&gt;
@@ -227,8 +230,12 @@ skill resources 中的相关规范内容...
 &lt;p&gt;将团队与项目的 Skills 都发布到仓库中，方便 Skills 的版本管理。
 然后在业务项目中使用 skills 工具来安装这些依赖，并提交 &lt;code&gt;.agent/skills&lt;/code&gt; 文件夹到业务项目的仓库中。
 可以进一步使用 npm 的生命周期机制，让安装依赖时也触发 skills 工具来检查并更新业务项目中的 Skills&lt;/p&gt;
-&lt;p&gt;Spec-kit 需要在业务项目中完成初始化，然后再通过 Agent 的 &lt;code&gt;/spec-kitty.constitution&lt;/code&gt; 指令完成项目总纲指南的初始化。
-随后使用 &lt;code&gt;/spec-kitty.specify&lt;/code&gt; 开始复杂的需求开发流程。（并不是所有的需求都需要走 Spec-kit 流程，简单的通过与 Agent 直接对话更快或临时的提示词文件）&lt;/p&gt;
+&lt;p&gt;Spec-kitty 需要在业务项目中完成初始化，然后再通过 Agent 的 &lt;code&gt;/spec-kitty.constitution&lt;/code&gt; 指令完成项目总纲指南的初始化。
+随后使用 &lt;code&gt;/spec-kitty.specify&lt;/code&gt; 开始复杂的需求开发流程。（并不是所有的需求都需要走 Spec-kitty 流程，简单的通过与 Agent 直接对话更快或临时的提示词文件）&lt;br /&gt;
+Spec-kitty 使用 &lt;code&gt;/spec-kitty.specify&lt;/code&gt; 创建一个需求后，需求相关的文档描述都存储在 &lt;code&gt;spec-kitty/xxx&lt;/code&gt; 目录下，
+此需求实现阶段的代码都会在本地的具体任务分支上（可能有多个）。应在本地分支合并到需求分支后再将 &lt;code&gt;spec-kitty/xxx&lt;/code&gt; 提交到需求分支中。&lt;br /&gt;
+虽然具体的任务实现是在本地的其他分支上进行的，但是各任务的进度数据同步是在当前分支上进行的（Agent 任务进度感知与 spec-kitty dashboard 看板需要）。&lt;br /&gt;
+Spec-kitty 的使用会带来额外的 tokens 消费，因为在 Agent 开始实际编程工作之前需要通过 &lt;code&gt;/spec-kitty.xxx&lt;/code&gt; 指令完成多轮对话和相关规格文档生成。&lt;/p&gt;
 &lt;p&gt;Skills 只能靠人来维护吗，是否可以在合适的需求开发完成后，让 Agent 根据此次对话记录、变更文件、Skill使用分析 skill 来总结输出可能的 skill 优化报告？&lt;/p&gt;
 </content:encoded></item><item><title>使用 Spec-kitty + Claude 从零构建答题游戏</title><link>https://fuwari.vercel.app/blog/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/%E4%BD%BF%E7%94%A8-spec-kitty--claude-%E4%BB%8E%E9%9B%B6%E6%9E%84%E5%BB%BA%E7%AD%94%E9%A2%98%E6%B8%B8%E6%88%8F/</guid><pubDate>Thu, 26 Feb 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;::github{repo=&quot;Priivacy-ai/spec-kitty&quot;}&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;spec-kitty&lt;/code&gt; 则是由社区（Priivacy-ai）在&lt;code&gt;spec-kit&lt;/code&gt; 基础上进行的二次开发，加入了更多针对&lt;strong&gt;复杂项目&lt;/strong&gt;和&lt;strong&gt;多 AI 代理协作&lt;/strong&gt;的实战功能。&lt;/p&gt;
