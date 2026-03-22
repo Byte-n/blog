@@ -1,4 +1,163 @@
-<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>Agent 是如何知道 &quot;Skill&quot; 这个概念的？</title><link>https://fuwari.vercel.app/blog/posts/ai/agent-%E6%98%AF%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93-skill-%E8%BF%99%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/agent-%E6%98%AF%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93-skill-%E8%BF%99%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84/</guid><pubDate>Thu, 05 Mar 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;问题的起源&lt;/h2&gt;
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Byte的独立内容站</title><description>No description</description><link>https://fuwari.vercel.app/</link><language>zh_CN</language><item><title>Apifox Skill</title><link>https://fuwari.vercel.app/blog/posts/ai/apifox-skill/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/apifox-skill/</guid><pubDate>Wed, 18 Mar 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;MCP 目前的问题&lt;/h2&gt;
+&lt;p&gt;官方的 MCP 文档：https://docs.apifox.com/6327888m0&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+  &quot;mcpServers&quot;: {
+    &quot;API 文档1&quot;: {
+      &quot;command&quot;: &quot;npx&quot;,
+      &quot;args&quot;: [
+        &quot;-y&quot;,
+        &quot;apifox-mcp-server@latest&quot;,
+        &quot;--project=&amp;lt;project-id1&amp;gt;&quot;
+      ],
+      &quot;env&quot;: {
+        &quot;APIFOX_ACCESS_TOKEN&quot;: &quot;&amp;lt;access-token&amp;gt;&quot;
+      }
+    },
+    &quot;API 文档2&quot;: {
+      &quot;command&quot;: &quot;npx&quot;,
+      &quot;args&quot;: [
+        &quot;-y&quot;,
+        &quot;apifox-mcp-server@latest&quot;,
+        &quot;--project=&amp;lt;project-id2&amp;gt;&quot;
+      ],
+      &quot;env&quot;: {
+        &quot;APIFOX_ACCESS_TOKEN&quot;: &quot;&amp;lt;access-token&amp;gt;&quot;
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;在 OMS 项目中，存在多个 APIFOX 的 MCP 服务，其中一个API项目（模块）对应一个 MCP 服务。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_10.png&quot; alt=&quot;img_10.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;MCP 服务在使用之前都需要先手动启用。每个对话的开始，都会先加载已启用的 MCP 的工具清单。
+APIFOX的 MCP 清单是这样的一串内容（MCP tool/list 指令的结果）：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;{
+  &quot;jsonrpc&quot;: &quot;2.0&quot;,
+  &quot;id&quot;: 1,
+  &quot;result&quot;: {
+    &quot;tools&quot;: [
+      {
+        &quot;name&quot;: &quot;read_project_oas_qtcjdm&quot;,
+        &quot;description&quot;: &quot;读取“默认模块”的 OpenAPI Spec 文件内容&quot;,
+        &quot;inputSchema&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;_&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;additionalProperties&quot;: false,
+          &quot;$schema&quot;: &quot;http://json-schema.org/draft-07/schema#&quot;
+        }
+      },
+      {
+        &quot;name&quot;: &quot;read_project_oas_ref_resources_qtcjdm&quot;,
+        &quot;description&quot;: &quot;读取“默认模块”的 OpenAPI Spec 文件内 $ref 的文件内容, 可以同时获取多个文件内容&quot;,
+        &quot;inputSchema&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;path&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;items&quot;: {
+                &quot;type&quot;: &quot;string&quot;
+              },
+              &quot;description&quot;: &quot;OpenAPI Spec 文件内 $ref 的值, 可以同时获取多个文件内容, 如：[\&quot;/paths/_get_pet.json\&quot;, \&quot;/paths/_get_order.json\&quot;]&quot;
+            }
+          },
+          &quot;required&quot;: [
+            &quot;path&quot;
+          ],
+          &quot;additionalProperties&quot;: false,
+          &quot;$schema&quot;: &quot;http://json-schema.org/draft-07/schema#&quot;
+        }
+      },
+      {
+        &quot;name&quot;: &quot;refresh_project_oas_qtcjdm&quot;,
+        &quot;description&quot;: &quot;从服务器重新下载最新的“默认模块”的 OpenAPI Spec 文件内容&quot;,
+        &quot;inputSchema&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;properties&quot;: {
+            &quot;_&quot;: {
+              &quot;type&quot;: &quot;string&quot;
+            }
+          },
+          &quot;additionalProperties&quot;: false,
+          &quot;$schema&quot;: &quot;http://json-schema.org/draft-07/schema#&quot;
+        }
+      }
+    ]
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这里大概是 2～300 左右的token。也就是说新开一个会话就会有800～1200的token被塞入上下文中。即使你只是发了一个“你好”&lt;/p&gt;
+&lt;p&gt;OMS-订单处理-API文档、OMS-销售管理-API文档、仓储管理-API文档、聚合服务-API文档会导致加载4份一样的数据到上下文中，只不过对应的
+MCP工具名称 不一样。&lt;/p&gt;
+&lt;p&gt;除此 MCP 的使用流程如下：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;读取 OAS 入口文件：调用 read_project_oas，获取 OpenAPI Spec 的根文件，里面包含所有路径的 $ref 引用列表。&lt;/li&gt;
+&lt;li&gt;在入口中定位接口：根据接口名称（中文名或路径关键词）在返回的路径列表中匹配对应的 $ref 路径，例如：/paths/_
+post_sale-barrel-order_detail.json&lt;/li&gt;
+&lt;li&gt;读取具体接口定义：
+调用 read_project_oas_ref_resources，传入上一步找到的 $ref 路径（支持批量），获取该接口的完整定义： { &quot;
+path&quot;: [&quot;/paths/_post_sale-barrel-order_detail.json&quot;] }&lt;/li&gt;
+&lt;li&gt;递归解析嵌套 $ref：如果接口定义中的请求体或响应体还有嵌套的 $ref（指向 schemas/ 或 components/），继续调用
+read_project_oas_ref_resources 获取这些数据结构定义。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;read_project_oas
+└─ 拿到路径列表
+   └─ 按名称匹配 $ref 路径
+        └─ read_project_oas_ref_resources([matched_path])
+             └─ 若有嵌套 $ref → 继续 read_project_oas_ref_resources([...])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;综上来说，MCP 是比较耗费 Token 的，并且需要每次使用前手动启动，用完不关闭又会占用较多的 token。那有啥优化办法？&lt;/p&gt;
+&lt;h2&gt;Skill&lt;/h2&gt;
+&lt;p&gt;总结 MCP 带来的问题：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;在会话开始，会加载重复的工具清单描述&lt;/li&gt;
+&lt;li&gt;MCP 的调用过程，会返回比较多的 JSON 数据，需要 Agent 自己思考匹配处理（可能发生递归调用）&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;如何解决？
+使用 skill 的方式定义一份 apifox 的使用技能，技能中仅描述 scripts/index.js node 脚本的使用方式，提供以下命令：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;模糊搜索接口&lt;/li&gt;
+&lt;li&gt;根据接口的路径获取完整的 openapi json 内容：脚本内自行识别 $ref 并递归处理，用脚步替代 Agent 思考&lt;/li&gt;
+&lt;li&gt;查询模块列表&lt;/li&gt;
+&lt;li&gt;查询模块内的所有接口&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;那么如何解决不同 apifox 项目需要不同的 mcp 服务呢？
+script/index.js支持参数 --projectName 指定 apifox 项目。在script/index.js内部则通过读取环境变量
+APIFOX_ACCESS_TOKEN、APIFOX_PROJECT_MAP获取凭据与项目ID，再去发起请求。整个过程对 Agent 来说是接触不到 ACCESS_TOKEN 与
+projectId
+--projectName 是可选参数，若没有则使用环境变量中的APIFOX_PROJECT_ID，若还没有则抛出异常给 Agent。Agent 会再反馈给用户。&lt;/p&gt;
+&lt;p&gt;Apifox skill 的目录结构如下：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apifox
+├── SKILL.md
+└── scripts
+└── index.js
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;scripts/index.js 为一个 nodejs 脚本，负责通过 apifox openapi 接口读取接口描述信息&lt;/li&gt;
+&lt;li&gt;SKILL.md 中包含 srcipts/index.js 脚步的调用方式和参数说明&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Apifox skill 的内容：https://github.com/Byte-n/skills/blob/master/skills/apifox/SKILL.md&lt;/p&gt;
+&lt;h2&gt;使用测试&lt;/h2&gt;
+&lt;p&gt;前置准备，环境变量配置：
+export APIFOX_ACCESS_TOKEN=&quot;APS-xxxxxx&quot;
+export APIFOX_PROJECT_MAP=&quot;[{&quot;label&quot;:&quot;订单&quot;,&quot;value&quot;:1},{&quot;label&quot;:&quot;销售&quot;,&quot;value&quot;:2}]&quot;&lt;/p&gt;
+&lt;p&gt;测试提示词：“将接口 /xxx/get 的 openapi 输出到 a.json 文件中”&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;❯ 将接口 /xxx/get 的 openapi 输出到 a.json 文件中
+
+⏺ Skill(apifox)
+⎿ Successfully loaded skill
+
+⏺ Bash(node .claude/skills/apifox/scripts/index.js search_paths --keyword &quot;/xxx/get&quot;)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;a.json 文件内容如下图所示。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&quot;img_11.png&quot; alt=&quot;img_11.png&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;拿到 openapi 结构的内容，此 skill 的使命就完成了。
+如果想生成 api 代码代码，应该在业务的 api 代码生成 skill 中：“获取 xxx/xxx 接口的详情....”，就可以触发 Agent 自动激活此
+skill。如果需要附带 projectName 参数，应该是“获取 销售 xxx/xxx 接口的详情....”&lt;/p&gt;
+</content:encoded></item><item><title>Agent 是如何知道 &quot;Skill&quot; 这个概念的？</title><link>https://fuwari.vercel.app/blog/posts/ai/agent-%E6%98%AF%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93-skill-%E8%BF%99%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/ai/agent-%E6%98%AF%E5%A6%82%E4%BD%95%E7%9F%A5%E9%81%93-skill-%E8%BF%99%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84/</guid><pubDate>Thu, 05 Mar 2026 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;问题的起源&lt;/h2&gt;
 &lt;p&gt;在使用 AI Agent 的过程中，我们经常遇到这样的情况：明明创建了相关的 Skill，但 Agent 有时能准确触发，有时却识别不到。比如说&quot;帮我写一个组件 Xxxx&quot;，它可能就无法匹配到对应的组件创建技能。&lt;/p&gt;
 &lt;p&gt;另一个有趣的现象是，在日常开发中，我们可能在一轮对话中切换多个不同的模型，但它们似乎都知道之前的对话内容，就像共享同一个上下文一样。但不同模型来自不同厂商，HTTP 服务又是无状态的，这是怎么做到的？&lt;/p&gt;
 &lt;h2&gt;技术原理揭秘&lt;/h2&gt;
@@ -2593,364 +2752,6 @@ module.exports = InjectVConsolePlugin
   }, [])
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;&lt;img src=&quot;img.png&quot; alt=&quot;img.png&quot; /&gt;&lt;/p&gt;
-</content:encoded></item><item><title>Antd-ext Sheet 组件的来源与创建历程</title><link>https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
-&lt;p&gt;在开发订单创建页面时，我们需要处理商品条目的录入。这是一个典型的“大量数据录入”场景，表格列中包含了多种输入组件（Input、Select、Picker 等）。&lt;/p&gt;
-&lt;p&gt;业务与产品团队提出了以下核心需求：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;类 Excel 体验&lt;/strong&gt;：界面要尽量简洁，减少嵌套层级和边框噪音。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;交互流畅&lt;/strong&gt;：单元格点击即可激活选中，再次点击进入编辑状态。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;视觉一致性&lt;/strong&gt;：整体视觉风格需与现有的 Ant Design 系统保持高度一致。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;2. 技术选型&lt;/h2&gt;
-&lt;p&gt;在实现方案上，我们主要对比了两种方向：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;方案一：引入类 Excel 库（如 x-data-spreadsheet）&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：天然具备 Excel 的交互体验和丰富功能。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：UI 定制成本极高，所有输入框样式都需要重写以匹配 Ant Design 的设计语言；维护成本较大。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;方案二：基于 Ant Design Table 模拟&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：完全复用 Ant Design 的组件生态和视觉风格；易于集成。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需要自行实现“选中/编辑”切换的交互逻辑和样式去噪。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;最终选择&lt;/strong&gt;：基于 Table 进行模拟。我们的目标是打造一个“看上去像 Excel”的录入表格，而不是实现一个完整的在线 Excel。利用 Table 的现有能力，配合精细的样式控制和逻辑封装，能以最低成本达成目标。&lt;/p&gt;
-&lt;h2&gt;3. 设计思路&lt;/h2&gt;
-&lt;p&gt;为了实现上述目标，我们在设计上做出了以下关键决策，并在每一步都进行了方案对比：&lt;/p&gt;
-&lt;h3&gt;3.1 渲染模型：Render Props vs Component Injection&lt;/h3&gt;
-&lt;p&gt;在如何定义单元格渲染逻辑上，我们考虑了两种方式：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;方案一：传统 Render Props (Ant Design Table 默认方式)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：极其灵活，开发者可以在 &lt;code&gt;render&lt;/code&gt; 函数中返回任意 JSX，逻辑完全掌控。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：对于大量输入组件，需要手动绑定 &lt;code&gt;value&lt;/code&gt; 和 &lt;code&gt;onChange&lt;/code&gt;，样板代码冗余；最关键的是，&lt;strong&gt;无法通过 TypeScript 自动推导组件的 Props 类型&lt;/strong&gt;，开发者容易传错属性。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;方案二：Component + componentProps 注入 (最终选择)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;类型安全&lt;/strong&gt;：可以利用 TypeScript 推导，根据传入的 &lt;code&gt;Component&lt;/code&gt; 自动提示对应的 &lt;code&gt;componentProps&lt;/code&gt;（并排除 &lt;code&gt;value&lt;/code&gt;/&lt;code&gt;onChange&lt;/code&gt;）。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;代码简洁&lt;/strong&gt;：Sheet 内部负责实例化组件并注入受控属性，开发者只需关注配置。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：灵活性稍逊，需要组件遵循 &lt;code&gt;value/onChange&lt;/code&gt; 的受控规范。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;Component + componentProps&lt;/strong&gt; 模式，优先保证开发效率和类型安全。底层沿用 Table 的 &lt;code&gt;columns&lt;/code&gt; 模型（列配置 -&amp;gt; 渲染单元格），保证开发者上手的低门槛。&lt;/p&gt;
-&lt;h3&gt;3.2 样式策略：全局覆盖 vs 局部隔离&lt;/h3&gt;
-&lt;p&gt;为了模拟 Excel 的无边框视觉：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;方案一：全局 CSS 覆盖 (Global Overrides)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：实现简单，通过 CSS 选择器强行覆盖 Input 样式。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：极易造成样式污染。例如，修改了 Input 的边框，可能会意外影响到 Select 下拉框中的搜索框或 Modal 中的输入框。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;方案二：局部样式注入 + ConfigProvider (最终选择)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;样式隔离&lt;/strong&gt;：通过 &lt;code&gt;useStyle&lt;/code&gt; 生成唯一的 hashId，在单元格内层统一去除边框、背景，并根据 &lt;code&gt;layout&lt;/code&gt;（&lt;code&gt;block&lt;/code&gt;/&lt;code&gt;inline&lt;/code&gt;）和 &lt;code&gt;size&lt;/code&gt; 派生出 &lt;code&gt;w-full&lt;/code&gt;、&lt;code&gt;h-full&lt;/code&gt; 等布局类。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：实现复杂度略高，需处理 CSS-in-JS 的优先级问题。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;局部样式注入&lt;/strong&gt;，确保组件的封装性和安全性。&lt;/p&gt;
-&lt;h3&gt;3.3 交互设计：状态切换 vs 始终渲染&lt;/h3&gt;
-&lt;p&gt;在实现“点击编辑”的交互时：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;方案一：查看态/编辑态切换 (Switching Mode)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：查看态仅渲染文本，DOM 节点少，性能较好。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：&lt;strong&gt;列宽抖动&lt;/strong&gt;严重。文本节点和输入框节点的默认宽度、内边距不同，切换瞬间表格列宽会发生跳变，体验极差。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;方案二：始终渲染输入控件 (最终选择)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：&lt;strong&gt;零视觉跳变&lt;/strong&gt;。通过样式将输入框伪装成文本（去边框、背景），配合点击计数逻辑（&lt;code&gt;cellClickCount&lt;/code&gt;：一次点击选中，二次点击编辑），激活时仅需添加高亮样式，列宽保持绝对稳定。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：DOM 节点数量较多，对 React 渲染性能有挑战（通过 &lt;code&gt;React.memo&lt;/code&gt; 和 &lt;code&gt;componentProps&lt;/code&gt; 缓存优化）。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;始终渲染输入控件&lt;/strong&gt; 策略，以空间换取极致的交互体验。同时，在双击进入编辑时，如果存在 &lt;code&gt;selectionStart&lt;/code&gt;，将光标自动置于末尾，避免误选文本。&lt;/p&gt;
-&lt;h3&gt;3.4 校验管理：Form.List vs 独立校验&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;方案一：复用 Ant Design Form.List&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：直接复用 Form 的验证体系，无需额外代码。&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：Ant Design Form 在处理数百行深层嵌套数据时性能瓶颈明显；且强绑定 Form 上下文，无法独立使用。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;方案二：独立状态管理 + async-validator (最终选择)&lt;/strong&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;独立性&lt;/strong&gt;：组件可独立运行，不依赖 Form Context。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;性能可控&lt;/strong&gt;：采用“列-行”维度的精细化更新，避免全表重渲染。&lt;code&gt;cellStatus&lt;/code&gt; 存储“列-行”维度的错误信息，通过 &lt;code&gt;classNames&lt;/code&gt; 渲染红色边框，并利用 Tooltip 展示具体错误文案。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/li&gt;
-&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需自行维护校验状态和集成 &lt;code&gt;async-validator&lt;/code&gt;。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;独立状态管理&lt;/strong&gt;，提供更灵活的校验 UI 和更好的性能，同时支持受控（&lt;code&gt;value&lt;/code&gt;）与非受控模式。&lt;/p&gt;
-&lt;h2&gt;4. 列映射（convertColumn）&lt;/h2&gt;
-&lt;p&gt;&lt;code&gt;convertColumn&lt;/code&gt; 是连接 Sheet 列配置与 Ant Design &lt;code&gt;Table&lt;/code&gt; 列配置的桥梁，它做了三件事：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;把 Sheet 自己的列描述（&lt;code&gt;ColumnType&lt;/code&gt;）转换成 Table 能识别的 &lt;code&gt;columns&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;在列级别挂上表头状态（例如是否有错误）&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;在单元格级别接管交互与样式（通过 &lt;code&gt;onCell&lt;/code&gt; 与 &lt;code&gt;render&lt;/code&gt;）&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;下面是核心实现的精简版本（有删减）：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;const convertColumn = useCallback(
-  (column: ColumnType&amp;lt;RecordType&amp;gt;, columnIndex: number): TableColumnType&amp;lt;RecordType&amp;gt; =&amp;gt; {
-    const { Component, componentProps, type, align, layout, ...rest } = column;
-    const isDataCell = type === &apos;data&apos; || isNil(type);
-
-    // 1. 解析布局：inline / w-full / h-full
-    let layouts: (typeof layout)[] = [];
-    let isInlineLayout = false;
-    if (!Component &amp;amp;&amp;amp; !layout) {
-      layouts = [&apos;inline&apos;];
-      isInlineLayout = true;
-    } else {
-      layouts = layout === &apos;block&apos; || !layout ? [&apos;w-full&apos;, &apos;h-full&apos;] : [layout];
-      isInlineLayout = layouts.includes(&apos;inline&apos;);
-    }
-
-    const dataIndex = isDataCell
-      ? (column as DataColumnType&amp;lt;RecordType, keyof RecordType&amp;gt;).dataIndex
-      : rowKey;
-
-    return {
-      ...rest,
-      dataIndex: dataIndex as string,
-
-      // 2. 头部单元格：如果这一列有任意单元格报错，则给表头加错误样式
-      onHeaderCell: () =&amp;gt; ({
-        className: classNames({ [`${prefixCls}-th-status-error`]: Boolean(cellStatus[columnIndex]) }),
-      }),
-
-      // 3. 表体单元格 onCell：负责行为 + 样式
-      onCell: (record: RecordType, rowIndex) =&amp;gt; {
-        if (!record || isNil(rowIndex)) return {};
-        if (isDataCell) {
-          // 计算当前单元格的状态：是否编辑 / 是否有错误 / 点击次数
-          const { edited, errorMessage, clickCount } = computeStatus(rowIndex, columnIndex);
-
-          // 组装单元格 className：状态 + 布局
-          const cns = classNames(`${prefixCls}-cell-data`, {
-            [`${prefixCls}-cell-error`]: errorMessage,
-            [`${prefixCls}-cell-active`]: edited,
-            [`${prefixCls}-cell-no-selection`]: clickCount === 1,
-            [`${prefixCls}-cell-layout-w-full`]: layouts.includes(&apos;w-full&apos;),
-            [`${prefixCls}-cell-layout-h-full`]: layouts.includes(&apos;h-full&apos;),
-            [`${prefixCls}-cell-layout-inline`]: isInlineLayout,
-          });
-
-          return {
-            className: cns,
-            onClick: (e) =&amp;gt; {
-              // 维护点击计数：第一次点击只选中，第二次点击进入编辑
-              const newCellClickCount: typeof cellClickCount =
-                [columnIndex, rowIndex, edited ? clickCount + 1 : 1];
-              setCellClickCount(newCellClickCount);
-
-              // 第二次点击时，如果目标是 input 等，可把光标移到末尾，避免整段选中
-              if (edited) {
-                const target = e.target as HTMLInputElement;
-                if (newCellClickCount[2] === 2 &amp;amp;&amp;amp; typeof target.selectionStart === &apos;number&apos;) {
-                  target.selectionStart = target.selectionEnd;
-                }
-              }
-            },
-          };
-        }
-        // 操作列：只挂上操作列样式
-        return { className: `${prefixCls}-cell-operator` };
-      },
-
-      // 4. render：真正渲染单元格内容，并把受控能力注入进去
-      render: (_: any, record: RecordType, rowIndex: number) =&amp;gt; {
-        if (isDataCell) {
-          const { edited, errorMessage } = computeStatus(rowIndex, dataIndex as any);
-          return (
-            &amp;lt;Cell&amp;lt;RecordType&amp;gt;
-              // 来自列配置的 componentProps：业务侧写的 props
-              componentProps={componentProps}
-              // 真正渲染的组件：列没指定时默认用 Sheet.Text
-              Component={(Component ?? Weigets.Text) as React.ComponentType&amp;lt;DataCellComponentProps&amp;gt;}
-              // 受控 value：从当前行数据里取对应 dataIndex 的值
-              value={record[dataIndex]}
-              // 定位信息：用于更新与校验
-              rowIndex={rowIndex}
-              dataIndex={dataIndex}
-              // 校验相关：是否展示 tooltip、错误信息
-              validateTooltip={Component ? validateTooltip : false}
-              edited={edited}
-              errorMessage={errorMessage}
-              // 视觉与布局
-              prefixCls={prefixCls}
-              align={align}
-              className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
-              // 更新回调：让单元格在内部调用时，能只更新自己这一格
-              onUpdateCellByKey={updateCellByKey}
-            /&amp;gt;
-          );
-        }
-
-        // 操作列的渲染：把当前行记录与一组操作回调注入进去
-        return (
-          &amp;lt;OperatorCell&amp;lt;RecordType&amp;gt;
-            Component={Component as React.ComponentType&amp;lt;OperatorCellComponentProps&amp;lt;RecordType&amp;gt;&amp;gt;}
-            value={record}
-            index={rowIndex}
-            prefixCls={prefixCls}
-            componentProps={componentProps}
-            onInsertRow={insertRow}
-            onDeleteRow={deleteRow}
-            onUpdateCell={updateCell}
-            align={align}
-            className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
-          /&amp;gt;
-        );
-      },
-    };
-  },
-  [computeStatus, prefixCls, updateCellByKey, validateTooltip, updateCell],
-);
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h3&gt;4.1 Table &lt;code&gt;onCell&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;在 Ant Design Table 中，&lt;code&gt;onCell&lt;/code&gt; 的本质作用是：&lt;strong&gt;为某一列的每一个单元格（&lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt;）动态注入 props&lt;/strong&gt;，这些 props 会和 Table 自己生成的属性合并，最终作用在真实 DOM 上。&lt;/li&gt;
-&lt;li&gt;在 Sheet 中，我们利用 &lt;code&gt;onCell&lt;/code&gt; 做了几件关键的事情：
-&lt;ul&gt;
-&lt;li&gt;通过 &lt;code&gt;className&lt;/code&gt; 控制&lt;strong&gt;单元格的状态样式&lt;/strong&gt;：是否处于编辑态（&lt;code&gt;cell-active&lt;/code&gt;）、是否有错误（&lt;code&gt;cell-error&lt;/code&gt;）、是否只是被选中但未进入编辑（&lt;code&gt;cell-no-selection&lt;/code&gt;）；&lt;/li&gt;
-&lt;li&gt;根据列的 &lt;code&gt;layout&lt;/code&gt; 决定布局类（&lt;code&gt;cell-layout-inline / -cell-layout-w-full / -cell-layout-h-full&lt;/code&gt;），从而统一内边距和宽高；&lt;/li&gt;
-&lt;li&gt;在 &lt;code&gt;onClick&lt;/code&gt; 中维护 &lt;code&gt;cellClickCount&lt;/code&gt;，实现“第一次点击选中、第二次点击进入编辑态”的 Excel 风格交互，并修正双击时的光标位置。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;可以理解为：&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责“外壳”的行为和状态，决定这个 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 看起来和“点起来”是什么感觉。&lt;/strong&gt;&lt;/p&gt;
-&lt;h3&gt;4.2 列 &lt;code&gt;render&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;在 Ant Design Table 中，列的 &lt;code&gt;render&lt;/code&gt; 决定了&lt;strong&gt;单元格内部内容&lt;/strong&gt;怎么渲染，它拿到当前行数据与索引后，返回一段 JSX。&lt;/li&gt;
-&lt;li&gt;在 Sheet 中，我们统一用 &lt;code&gt;render&lt;/code&gt; 去渲染封装好的 &lt;code&gt;Cell&lt;/code&gt; / &lt;code&gt;OperatorCell&lt;/code&gt;，并在这里把所有“受控能力”注入进去：
-&lt;ul&gt;
-&lt;li&gt;对于数据列：
-&lt;ul&gt;
-&lt;li&gt;把当前行的字段值 &lt;code&gt;record[dataIndex]&lt;/code&gt; 作为受控 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;Cell&lt;/code&gt;，再由 &lt;code&gt;Cell&lt;/code&gt; 传给真正的输入组件；&lt;/li&gt;
-&lt;li&gt;把 &lt;code&gt;rowIndex&lt;/code&gt;、&lt;code&gt;dataIndex&lt;/code&gt; 传进去，&lt;code&gt;Cell&lt;/code&gt; 在触发 &lt;code&gt;onChange&lt;/code&gt; 时会通过 &lt;code&gt;onUpdateCellByKey&lt;/code&gt; 精确更新这一格的数据；&lt;/li&gt;
-&lt;li&gt;把 &lt;code&gt;edited&lt;/code&gt;、&lt;code&gt;errorMessage&lt;/code&gt;、&lt;code&gt;validateTooltip&lt;/code&gt; 等状态注入，让单元格知道当前是否处于编辑态、是否需要展示错误提示；&lt;/li&gt;
-&lt;li&gt;把 &lt;code&gt;componentProps&lt;/code&gt; 注入，让业务侧配置的 &lt;code&gt;placeholder&lt;/code&gt;、&lt;code&gt;min&lt;/code&gt;、&lt;code&gt;options&lt;/code&gt; 等都能透传到具体输入组件上。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;li&gt;对于操作列：
-&lt;ul&gt;
-&lt;li&gt;把整行记录 &lt;code&gt;record&lt;/code&gt; 作为 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;OperatorCell&lt;/code&gt;，让操作列可以基于整行信息做事情（比如复制、删除）；&lt;/li&gt;
-&lt;li&gt;注入 &lt;code&gt;onInsertRow&lt;/code&gt;、&lt;code&gt;onDeleteRow&lt;/code&gt;、&lt;code&gt;onUpdateCell&lt;/code&gt; 等行级操作方法。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;因此可以总结为：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 外层：交互状态 + 布局 + 点击行为&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;&lt;code&gt;render&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 内层：真正渲染什么组件，以及组件如何拿到受控值与更新回调&lt;/strong&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;这两个能力叠加在一起，使得 Sheet 在保持 &lt;code&gt;Table&lt;/code&gt; 心智模型的同时，又能实现类 Excel 的高密度录入体验。&lt;/p&gt;
-&lt;h2&gt;5. 类型推导&lt;/h2&gt;
-&lt;p&gt;为了提供极致的开发体验，我们设计了辅助函数 &lt;code&gt;Sheet.col&lt;/code&gt;。它利用 TypeScript 的泛型推导，实现了 &lt;code&gt;componentProps&lt;/code&gt; 的智能提示。&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;// 开发者无需手动定义复杂的泛型
-Sheet.col(Sheet.InputNumber&amp;lt;number&amp;gt;, {
-  title: &apos;价格&apos;,
-  dataIndex: &apos;price&apos;,
-  //这里的 componentProps 会被自动推导为 InputNumberProps，且排除了 value/onChange
-  componentProps: {
-    min: 0,
-    precision: 2
-  },
-})
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;这一设计极大地降低了 TypeScript 的使用门槛，同时保证了类型安全。&lt;/p&gt;
-&lt;h2&gt;6. 扩展能力&lt;/h2&gt;
-&lt;p&gt;Sheet 组件设计了良好的扩展性：&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;内置组件 (Widgets)&lt;/strong&gt;：我们封装了 &lt;code&gt;Sheet.Input&lt;/code&gt;、&lt;code&gt;Sheet.InputNumber&lt;/code&gt;、&lt;code&gt;Sheet.CheckBox&lt;/code&gt; 等常用组件，它们默认实现了无边框样式和受控接口。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;Form 集成&lt;/strong&gt;：通过 &lt;code&gt;Sheet.FormItem&lt;/code&gt;，可以将 Sheet 作为一个普通的表单项嵌入到 Ant Design 的 Form 中，复用 Form 的验证体系，同时保留 Sheet 内部的列级校验。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;自定义组件&lt;/strong&gt;：任何支持 &lt;code&gt;value&lt;/code&gt; / &lt;code&gt;onChange&lt;/code&gt; 的组件都可以直接作为 &lt;code&gt;Component&lt;/code&gt; 传入。利用 &lt;code&gt;extractInnerLayoutClasses&lt;/code&gt; 工具，自定义组件也能轻松适配 Sheet 的布局系统。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h2&gt;7. 使用示例&lt;/h2&gt;
-&lt;p&gt;以下是一个完整的商品录入示例：&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;import Sheet, { SheetRef } from &apos;@byte.n/antd-ext/Sheet&apos;;
-import React, { useRef } from &apos;react&apos;;
-
-const App = () =&amp;gt; {
-  const ref = useRef&amp;lt;SheetRef&amp;lt;any&amp;gt;&amp;gt;(null);
-
-  const columns = [
-    // 使用辅助函数定义列
-    Sheet.col(Sheet.Input, {
-      title: &apos;商品名称&apos;,
-      dataIndex: &apos;name&apos;,
-      rule: { required: true, message: &apos;必填&apos; }, // 列级校验
-    }),
-    Sheet.col(Sheet.InputNumber, {
-      title: &apos;数量&apos;,
-      dataIndex: &apos;count&apos;,
-      componentProps: { min: 1 },
-    }),
-    // 自定义操作列
-    Sheet.operatorCol(Sheet.Text, {
-      title: &apos;操作&apos;,
-      width: 80
-    }),
-  ];
-
-  return (
-    &amp;lt;div&amp;gt;
-      &amp;lt;div style={{ marginBottom: 16 }}&amp;gt;
-        &amp;lt;button onClick={() =&amp;gt; ref.current?.insertRow(0)}&amp;gt;新增一行&amp;lt;/button&amp;gt;
-        &amp;lt;button onClick={() =&amp;gt; ref.current?.validate()}&amp;gt;提交验证&amp;lt;/button&amp;gt;
-      &amp;lt;/div&amp;gt;
-
-      &amp;lt;Sheet
-        ref={ref}
-        rowKey=&quot;id&quot;
-        // 生成唯一键的策略
-        createNewKey={({ index }) =&amp;gt; `row_${Date.now()}_${index}`}
-        columns={columns}
-        defaultValue={[{ id: &apos;1&apos;, name: &apos;示例商品&apos;, count: 10 }]}
-      /&amp;gt;
-    &amp;lt;/div&amp;gt;
-  );
-};
-
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h2&gt;8. 总结与实践提示&lt;/h2&gt;
-&lt;p&gt;Sheet 组件通过复用 Table 的底层能力，以较低的成本实现了类 Excel 的交互体验。&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;何时使用 Sheet？&lt;/strong&gt;&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;当需要在一个表格中密集录入数据时（如采购单、参数配置）。&lt;/li&gt;
-&lt;li&gt;需要“即点即改”的交互，而非传统的“点击编辑按钮 -&amp;gt; 弹窗/行编辑”模式。&lt;/li&gt;
-&lt;li&gt;表单中包含数组结构的数据。&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;strong&gt;实践提示：&lt;/strong&gt;&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;&lt;strong&gt;性能优化&lt;/strong&gt;：虽然 Sheet 做了大量优化，但面对数百行数据时，React 的重渲染仍是瓶颈。建议结合分页或虚拟滚动（如有必要）使用。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;校验时机&lt;/strong&gt;：Sheet 默认在 &lt;code&gt;change&lt;/code&gt; 时触发校验。如果数据量极大，可考虑防抖或仅在提交时调用 &lt;code&gt;ref.current.validate()&lt;/code&gt;。&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;样式定制&lt;/strong&gt;：尽量使用 &lt;code&gt;layout&lt;/code&gt; 属性（&lt;code&gt;w-full&lt;/code&gt;, &lt;code&gt;inline&lt;/code&gt;）来控制组件宽度，避免写硬编码的 style，以保持响应式能力。&lt;/li&gt;
-&lt;/ol&gt;
 </content:encoded></item><item><title>js ES6</title><link>https://fuwari.vercel.app/blog/posts/js/es6/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/js/es6/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;新增的对象、函数等&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;Map&lt;/code&gt;, &lt;code&gt;Set&lt;/code&gt; ,&lt;code&gt;WeakMap&lt;/code&gt;, &lt;code&gt;WeakSet&lt;/code&gt;&lt;/li&gt;
@@ -3750,6 +3551,364 @@ const ResponsiveDemo: React.FC = () =&amp;gt; {
 &lt;li&gt;结合 TypeScript 的泛型参数（&lt;code&gt;V&lt;/code&gt;/&lt;code&gt;D&lt;/code&gt;/&lt;code&gt;M&lt;/code&gt;），在定义组件时就把值类型与业务数据结构声明清楚，可以显著减少后续 bug；&lt;/li&gt;
 &lt;li&gt;下拉扩展时，尽量把“新增/编辑”操作放在 &lt;code&gt;popupRender&lt;/code&gt; 中完成，并在操作结束后调用 &lt;code&gt;close()&lt;/code&gt;，保持交互的一致性。&lt;/li&gt;
 &lt;/ul&gt;
+</content:encoded></item><item><title>Antd-ext Sheet 组件的来源与创建历程</title><link>https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/opensourceprojects/antd-ext-sheet-%E7%BB%84%E4%BB%B6%E7%9A%84%E6%9D%A5%E6%BA%90%E4%B8%8E%E5%88%9B%E5%BB%BA%E5%8E%86%E7%A8%8B/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;h2&gt;1. 背景&lt;/h2&gt;
+&lt;p&gt;在开发订单创建页面时，我们需要处理商品条目的录入。这是一个典型的“大量数据录入”场景，表格列中包含了多种输入组件（Input、Select、Picker 等）。&lt;/p&gt;
+&lt;p&gt;业务与产品团队提出了以下核心需求：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;类 Excel 体验&lt;/strong&gt;：界面要尽量简洁，减少嵌套层级和边框噪音。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;交互流畅&lt;/strong&gt;：单元格点击即可激活选中，再次点击进入编辑状态。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;视觉一致性&lt;/strong&gt;：整体视觉风格需与现有的 Ant Design 系统保持高度一致。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;2. 技术选型&lt;/h2&gt;
+&lt;p&gt;在实现方案上，我们主要对比了两种方向：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：引入类 Excel 库（如 x-data-spreadsheet）&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：天然具备 Excel 的交互体验和丰富功能。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：UI 定制成本极高，所有输入框样式都需要重写以匹配 Ant Design 的设计语言；维护成本较大。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：基于 Ant Design Table 模拟&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优点&lt;/em&gt;：完全复用 Ant Design 的组件生态和视觉风格；易于集成。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需要自行实现“选中/编辑”切换的交互逻辑和样式去噪。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;最终选择&lt;/strong&gt;：基于 Table 进行模拟。我们的目标是打造一个“看上去像 Excel”的录入表格，而不是实现一个完整的在线 Excel。利用 Table 的现有能力，配合精细的样式控制和逻辑封装，能以最低成本达成目标。&lt;/p&gt;
+&lt;h2&gt;3. 设计思路&lt;/h2&gt;
+&lt;p&gt;为了实现上述目标，我们在设计上做出了以下关键决策，并在每一步都进行了方案对比：&lt;/p&gt;
+&lt;h3&gt;3.1 渲染模型：Render Props vs Component Injection&lt;/h3&gt;
+&lt;p&gt;在如何定义单元格渲染逻辑上，我们考虑了两种方式：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：传统 Render Props (Ant Design Table 默认方式)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：极其灵活，开发者可以在 &lt;code&gt;render&lt;/code&gt; 函数中返回任意 JSX，逻辑完全掌控。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：对于大量输入组件，需要手动绑定 &lt;code&gt;value&lt;/code&gt; 和 &lt;code&gt;onChange&lt;/code&gt;，样板代码冗余；最关键的是，&lt;strong&gt;无法通过 TypeScript 自动推导组件的 Props 类型&lt;/strong&gt;，开发者容易传错属性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：Component + componentProps 注入 (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;类型安全&lt;/strong&gt;：可以利用 TypeScript 推导，根据传入的 &lt;code&gt;Component&lt;/code&gt; 自动提示对应的 &lt;code&gt;componentProps&lt;/code&gt;（并排除 &lt;code&gt;value&lt;/code&gt;/&lt;code&gt;onChange&lt;/code&gt;）。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;代码简洁&lt;/strong&gt;：Sheet 内部负责实例化组件并注入受控属性，开发者只需关注配置。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：灵活性稍逊，需要组件遵循 &lt;code&gt;value/onChange&lt;/code&gt; 的受控规范。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;Component + componentProps&lt;/strong&gt; 模式，优先保证开发效率和类型安全。底层沿用 Table 的 &lt;code&gt;columns&lt;/code&gt; 模型（列配置 -&amp;gt; 渲染单元格），保证开发者上手的低门槛。&lt;/p&gt;
+&lt;h3&gt;3.2 样式策略：全局覆盖 vs 局部隔离&lt;/h3&gt;
+&lt;p&gt;为了模拟 Excel 的无边框视觉：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：全局 CSS 覆盖 (Global Overrides)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：实现简单，通过 CSS 选择器强行覆盖 Input 样式。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：极易造成样式污染。例如，修改了 Input 的边框，可能会意外影响到 Select 下拉框中的搜索框或 Modal 中的输入框。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：局部样式注入 + ConfigProvider (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;样式隔离&lt;/strong&gt;：通过 &lt;code&gt;useStyle&lt;/code&gt; 生成唯一的 hashId，在单元格内层统一去除边框、背景，并根据 &lt;code&gt;layout&lt;/code&gt;（&lt;code&gt;block&lt;/code&gt;/&lt;code&gt;inline&lt;/code&gt;）和 &lt;code&gt;size&lt;/code&gt; 派生出 &lt;code&gt;w-full&lt;/code&gt;、&lt;code&gt;h-full&lt;/code&gt; 等布局类。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：实现复杂度略高，需处理 CSS-in-JS 的优先级问题。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;局部样式注入&lt;/strong&gt;，确保组件的封装性和安全性。&lt;/p&gt;
+&lt;h3&gt;3.3 交互设计：状态切换 vs 始终渲染&lt;/h3&gt;
+&lt;p&gt;在实现“点击编辑”的交互时：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：查看态/编辑态切换 (Switching Mode)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：查看态仅渲染文本，DOM 节点少，性能较好。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：&lt;strong&gt;列宽抖动&lt;/strong&gt;严重。文本节点和输入框节点的默认宽度、内边距不同，切换瞬间表格列宽会发生跳变，体验极差。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：始终渲染输入控件 (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：&lt;strong&gt;零视觉跳变&lt;/strong&gt;。通过样式将输入框伪装成文本（去边框、背景），配合点击计数逻辑（&lt;code&gt;cellClickCount&lt;/code&gt;：一次点击选中，二次点击编辑），激活时仅需添加高亮样式，列宽保持绝对稳定。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：DOM 节点数量较多，对 React 渲染性能有挑战（通过 &lt;code&gt;React.memo&lt;/code&gt; 和 &lt;code&gt;componentProps&lt;/code&gt; 缓存优化）。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;始终渲染输入控件&lt;/strong&gt; 策略，以空间换取极致的交互体验。同时，在双击进入编辑时，如果存在 &lt;code&gt;selectionStart&lt;/code&gt;，将光标自动置于末尾，避免误选文本。&lt;/p&gt;
+&lt;h3&gt;3.4 校验管理：Form.List vs 独立校验&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;方案一：复用 Ant Design Form.List&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：直接复用 Form 的验证体系，无需额外代码。&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：Ant Design Form 在处理数百行深层嵌套数据时性能瓶颈明显；且强绑定 Form 上下文，无法独立使用。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;方案二：独立状态管理 + async-validator (最终选择)&lt;/strong&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;em&gt;优势&lt;/em&gt;：
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;独立性&lt;/strong&gt;：组件可独立运行，不依赖 Form Context。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;性能可控&lt;/strong&gt;：采用“列-行”维度的精细化更新，避免全表重渲染。&lt;code&gt;cellStatus&lt;/code&gt; 存储“列-行”维度的错误信息，通过 &lt;code&gt;classNames&lt;/code&gt; 渲染红色边框，并利用 Tooltip 展示具体错误文案。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;em&gt;缺点&lt;/em&gt;：需自行维护校验状态和集成 &lt;code&gt;async-validator&lt;/code&gt;。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;决策&lt;/strong&gt;：采用 &lt;strong&gt;独立状态管理&lt;/strong&gt;，提供更灵活的校验 UI 和更好的性能，同时支持受控（&lt;code&gt;value&lt;/code&gt;）与非受控模式。&lt;/p&gt;
+&lt;h2&gt;4. 列映射（convertColumn）&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;convertColumn&lt;/code&gt; 是连接 Sheet 列配置与 Ant Design &lt;code&gt;Table&lt;/code&gt; 列配置的桥梁，它做了三件事：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;把 Sheet 自己的列描述（&lt;code&gt;ColumnType&lt;/code&gt;）转换成 Table 能识别的 &lt;code&gt;columns&lt;/code&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在列级别挂上表头状态（例如是否有错误）&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;在单元格级别接管交互与样式（通过 &lt;code&gt;onCell&lt;/code&gt; 与 &lt;code&gt;render&lt;/code&gt;）&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;下面是核心实现的精简版本（有删减）：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;const convertColumn = useCallback(
+  (column: ColumnType&amp;lt;RecordType&amp;gt;, columnIndex: number): TableColumnType&amp;lt;RecordType&amp;gt; =&amp;gt; {
+    const { Component, componentProps, type, align, layout, ...rest } = column;
+    const isDataCell = type === &apos;data&apos; || isNil(type);
+
+    // 1. 解析布局：inline / w-full / h-full
+    let layouts: (typeof layout)[] = [];
+    let isInlineLayout = false;
+    if (!Component &amp;amp;&amp;amp; !layout) {
+      layouts = [&apos;inline&apos;];
+      isInlineLayout = true;
+    } else {
+      layouts = layout === &apos;block&apos; || !layout ? [&apos;w-full&apos;, &apos;h-full&apos;] : [layout];
+      isInlineLayout = layouts.includes(&apos;inline&apos;);
+    }
+
+    const dataIndex = isDataCell
+      ? (column as DataColumnType&amp;lt;RecordType, keyof RecordType&amp;gt;).dataIndex
+      : rowKey;
+
+    return {
+      ...rest,
+      dataIndex: dataIndex as string,
+
+      // 2. 头部单元格：如果这一列有任意单元格报错，则给表头加错误样式
+      onHeaderCell: () =&amp;gt; ({
+        className: classNames({ [`${prefixCls}-th-status-error`]: Boolean(cellStatus[columnIndex]) }),
+      }),
+
+      // 3. 表体单元格 onCell：负责行为 + 样式
+      onCell: (record: RecordType, rowIndex) =&amp;gt; {
+        if (!record || isNil(rowIndex)) return {};
+        if (isDataCell) {
+          // 计算当前单元格的状态：是否编辑 / 是否有错误 / 点击次数
+          const { edited, errorMessage, clickCount } = computeStatus(rowIndex, columnIndex);
+
+          // 组装单元格 className：状态 + 布局
+          const cns = classNames(`${prefixCls}-cell-data`, {
+            [`${prefixCls}-cell-error`]: errorMessage,
+            [`${prefixCls}-cell-active`]: edited,
+            [`${prefixCls}-cell-no-selection`]: clickCount === 1,
+            [`${prefixCls}-cell-layout-w-full`]: layouts.includes(&apos;w-full&apos;),
+            [`${prefixCls}-cell-layout-h-full`]: layouts.includes(&apos;h-full&apos;),
+            [`${prefixCls}-cell-layout-inline`]: isInlineLayout,
+          });
+
+          return {
+            className: cns,
+            onClick: (e) =&amp;gt; {
+              // 维护点击计数：第一次点击只选中，第二次点击进入编辑
+              const newCellClickCount: typeof cellClickCount =
+                [columnIndex, rowIndex, edited ? clickCount + 1 : 1];
+              setCellClickCount(newCellClickCount);
+
+              // 第二次点击时，如果目标是 input 等，可把光标移到末尾，避免整段选中
+              if (edited) {
+                const target = e.target as HTMLInputElement;
+                if (newCellClickCount[2] === 2 &amp;amp;&amp;amp; typeof target.selectionStart === &apos;number&apos;) {
+                  target.selectionStart = target.selectionEnd;
+                }
+              }
+            },
+          };
+        }
+        // 操作列：只挂上操作列样式
+        return { className: `${prefixCls}-cell-operator` };
+      },
+
+      // 4. render：真正渲染单元格内容，并把受控能力注入进去
+      render: (_: any, record: RecordType, rowIndex: number) =&amp;gt; {
+        if (isDataCell) {
+          const { edited, errorMessage } = computeStatus(rowIndex, dataIndex as any);
+          return (
+            &amp;lt;Cell&amp;lt;RecordType&amp;gt;
+              // 来自列配置的 componentProps：业务侧写的 props
+              componentProps={componentProps}
+              // 真正渲染的组件：列没指定时默认用 Sheet.Text
+              Component={(Component ?? Weigets.Text) as React.ComponentType&amp;lt;DataCellComponentProps&amp;gt;}
+              // 受控 value：从当前行数据里取对应 dataIndex 的值
+              value={record[dataIndex]}
+              // 定位信息：用于更新与校验
+              rowIndex={rowIndex}
+              dataIndex={dataIndex}
+              // 校验相关：是否展示 tooltip、错误信息
+              validateTooltip={Component ? validateTooltip : false}
+              edited={edited}
+              errorMessage={errorMessage}
+              // 视觉与布局
+              prefixCls={prefixCls}
+              align={align}
+              className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
+              // 更新回调：让单元格在内部调用时，能只更新自己这一格
+              onUpdateCellByKey={updateCellByKey}
+            /&amp;gt;
+          );
+        }
+
+        // 操作列的渲染：把当前行记录与一组操作回调注入进去
+        return (
+          &amp;lt;OperatorCell&amp;lt;RecordType&amp;gt;
+            Component={Component as React.ComponentType&amp;lt;OperatorCellComponentProps&amp;lt;RecordType&amp;gt;&amp;gt;}
+            value={record}
+            index={rowIndex}
+            prefixCls={prefixCls}
+            componentProps={componentProps}
+            onInsertRow={insertRow}
+            onDeleteRow={deleteRow}
+            onUpdateCell={updateCell}
+            align={align}
+            className={isInlineLayout ? undefined : `${prefixCls}-cell-inner-layout`}
+          /&amp;gt;
+        );
+      },
+    };
+  },
+  [computeStatus, prefixCls, updateCellByKey, validateTooltip, updateCell],
+);
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3&gt;4.1 Table &lt;code&gt;onCell&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;在 Ant Design Table 中，&lt;code&gt;onCell&lt;/code&gt; 的本质作用是：&lt;strong&gt;为某一列的每一个单元格（&lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt;）动态注入 props&lt;/strong&gt;，这些 props 会和 Table 自己生成的属性合并，最终作用在真实 DOM 上。&lt;/li&gt;
+&lt;li&gt;在 Sheet 中，我们利用 &lt;code&gt;onCell&lt;/code&gt; 做了几件关键的事情：
+&lt;ul&gt;
+&lt;li&gt;通过 &lt;code&gt;className&lt;/code&gt; 控制&lt;strong&gt;单元格的状态样式&lt;/strong&gt;：是否处于编辑态（&lt;code&gt;cell-active&lt;/code&gt;）、是否有错误（&lt;code&gt;cell-error&lt;/code&gt;）、是否只是被选中但未进入编辑（&lt;code&gt;cell-no-selection&lt;/code&gt;）；&lt;/li&gt;
+&lt;li&gt;根据列的 &lt;code&gt;layout&lt;/code&gt; 决定布局类（&lt;code&gt;cell-layout-inline / -cell-layout-w-full / -cell-layout-h-full&lt;/code&gt;），从而统一内边距和宽高；&lt;/li&gt;
+&lt;li&gt;在 &lt;code&gt;onClick&lt;/code&gt; 中维护 &lt;code&gt;cellClickCount&lt;/code&gt;，实现“第一次点击选中、第二次点击进入编辑态”的 Excel 风格交互，并修正双击时的光标位置。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;可以理解为：&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责“外壳”的行为和状态，决定这个 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 看起来和“点起来”是什么感觉。&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;4.2 列 &lt;code&gt;render&lt;/code&gt; 在 Sheet 里的作用&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;在 Ant Design Table 中，列的 &lt;code&gt;render&lt;/code&gt; 决定了&lt;strong&gt;单元格内部内容&lt;/strong&gt;怎么渲染，它拿到当前行数据与索引后，返回一段 JSX。&lt;/li&gt;
+&lt;li&gt;在 Sheet 中，我们统一用 &lt;code&gt;render&lt;/code&gt; 去渲染封装好的 &lt;code&gt;Cell&lt;/code&gt; / &lt;code&gt;OperatorCell&lt;/code&gt;，并在这里把所有“受控能力”注入进去：
+&lt;ul&gt;
+&lt;li&gt;对于数据列：
+&lt;ul&gt;
+&lt;li&gt;把当前行的字段值 &lt;code&gt;record[dataIndex]&lt;/code&gt; 作为受控 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;Cell&lt;/code&gt;，再由 &lt;code&gt;Cell&lt;/code&gt; 传给真正的输入组件；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;rowIndex&lt;/code&gt;、&lt;code&gt;dataIndex&lt;/code&gt; 传进去，&lt;code&gt;Cell&lt;/code&gt; 在触发 &lt;code&gt;onChange&lt;/code&gt; 时会通过 &lt;code&gt;onUpdateCellByKey&lt;/code&gt; 精确更新这一格的数据；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;edited&lt;/code&gt;、&lt;code&gt;errorMessage&lt;/code&gt;、&lt;code&gt;validateTooltip&lt;/code&gt; 等状态注入，让单元格知道当前是否处于编辑态、是否需要展示错误提示；&lt;/li&gt;
+&lt;li&gt;把 &lt;code&gt;componentProps&lt;/code&gt; 注入，让业务侧配置的 &lt;code&gt;placeholder&lt;/code&gt;、&lt;code&gt;min&lt;/code&gt;、&lt;code&gt;options&lt;/code&gt; 等都能透传到具体输入组件上。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;对于操作列：
+&lt;ul&gt;
+&lt;li&gt;把整行记录 &lt;code&gt;record&lt;/code&gt; 作为 &lt;code&gt;value&lt;/code&gt; 传给 &lt;code&gt;OperatorCell&lt;/code&gt;，让操作列可以基于整行信息做事情（比如复制、删除）；&lt;/li&gt;
+&lt;li&gt;注入 &lt;code&gt;onInsertRow&lt;/code&gt;、&lt;code&gt;onDeleteRow&lt;/code&gt;、&lt;code&gt;onUpdateCell&lt;/code&gt; 等行级操作方法。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;因此可以总结为：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;onCell&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 外层：交互状态 + 布局 + 点击行为&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;code&gt;render&lt;/code&gt; 负责 &lt;code&gt;&amp;lt;td&amp;gt;&lt;/code&gt; 内层：真正渲染什么组件，以及组件如何拿到受控值与更新回调&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这两个能力叠加在一起，使得 Sheet 在保持 &lt;code&gt;Table&lt;/code&gt; 心智模型的同时，又能实现类 Excel 的高密度录入体验。&lt;/p&gt;
+&lt;h2&gt;5. 类型推导&lt;/h2&gt;
+&lt;p&gt;为了提供极致的开发体验，我们设计了辅助函数 &lt;code&gt;Sheet.col&lt;/code&gt;。它利用 TypeScript 的泛型推导，实现了 &lt;code&gt;componentProps&lt;/code&gt; 的智能提示。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 开发者无需手动定义复杂的泛型
+Sheet.col(Sheet.InputNumber&amp;lt;number&amp;gt;, {
+  title: &apos;价格&apos;,
+  dataIndex: &apos;price&apos;,
+  //这里的 componentProps 会被自动推导为 InputNumberProps，且排除了 value/onChange
+  componentProps: {
+    min: 0,
+    precision: 2
+  },
+})
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;这一设计极大地降低了 TypeScript 的使用门槛，同时保证了类型安全。&lt;/p&gt;
+&lt;h2&gt;6. 扩展能力&lt;/h2&gt;
+&lt;p&gt;Sheet 组件设计了良好的扩展性：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;内置组件 (Widgets)&lt;/strong&gt;：我们封装了 &lt;code&gt;Sheet.Input&lt;/code&gt;、&lt;code&gt;Sheet.InputNumber&lt;/code&gt;、&lt;code&gt;Sheet.CheckBox&lt;/code&gt; 等常用组件，它们默认实现了无边框样式和受控接口。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Form 集成&lt;/strong&gt;：通过 &lt;code&gt;Sheet.FormItem&lt;/code&gt;，可以将 Sheet 作为一个普通的表单项嵌入到 Ant Design 的 Form 中，复用 Form 的验证体系，同时保留 Sheet 内部的列级校验。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;自定义组件&lt;/strong&gt;：任何支持 &lt;code&gt;value&lt;/code&gt; / &lt;code&gt;onChange&lt;/code&gt; 的组件都可以直接作为 &lt;code&gt;Component&lt;/code&gt; 传入。利用 &lt;code&gt;extractInnerLayoutClasses&lt;/code&gt; 工具，自定义组件也能轻松适配 Sheet 的布局系统。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;7. 使用示例&lt;/h2&gt;
+&lt;p&gt;以下是一个完整的商品录入示例：&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import Sheet, { SheetRef } from &apos;@byte.n/antd-ext/Sheet&apos;;
+import React, { useRef } from &apos;react&apos;;
+
+const App = () =&amp;gt; {
+  const ref = useRef&amp;lt;SheetRef&amp;lt;any&amp;gt;&amp;gt;(null);
+
+  const columns = [
+    // 使用辅助函数定义列
+    Sheet.col(Sheet.Input, {
+      title: &apos;商品名称&apos;,
+      dataIndex: &apos;name&apos;,
+      rule: { required: true, message: &apos;必填&apos; }, // 列级校验
+    }),
+    Sheet.col(Sheet.InputNumber, {
+      title: &apos;数量&apos;,
+      dataIndex: &apos;count&apos;,
+      componentProps: { min: 1 },
+    }),
+    // 自定义操作列
+    Sheet.operatorCol(Sheet.Text, {
+      title: &apos;操作&apos;,
+      width: 80
+    }),
+  ];
+
+  return (
+    &amp;lt;div&amp;gt;
+      &amp;lt;div style={{ marginBottom: 16 }}&amp;gt;
+        &amp;lt;button onClick={() =&amp;gt; ref.current?.insertRow(0)}&amp;gt;新增一行&amp;lt;/button&amp;gt;
+        &amp;lt;button onClick={() =&amp;gt; ref.current?.validate()}&amp;gt;提交验证&amp;lt;/button&amp;gt;
+      &amp;lt;/div&amp;gt;
+
+      &amp;lt;Sheet
+        ref={ref}
+        rowKey=&quot;id&quot;
+        // 生成唯一键的策略
+        createNewKey={({ index }) =&amp;gt; `row_${Date.now()}_${index}`}
+        columns={columns}
+        defaultValue={[{ id: &apos;1&apos;, name: &apos;示例商品&apos;, count: 10 }]}
+      /&amp;gt;
+    &amp;lt;/div&amp;gt;
+  );
+};
+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h2&gt;8. 总结与实践提示&lt;/h2&gt;
+&lt;p&gt;Sheet 组件通过复用 Table 的底层能力，以较低的成本实现了类 Excel 的交互体验。&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;何时使用 Sheet？&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;当需要在一个表格中密集录入数据时（如采购单、参数配置）。&lt;/li&gt;
+&lt;li&gt;需要“即点即改”的交互，而非传统的“点击编辑按钮 -&amp;gt; 弹窗/行编辑”模式。&lt;/li&gt;
+&lt;li&gt;表单中包含数组结构的数据。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;实践提示：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;性能优化&lt;/strong&gt;：虽然 Sheet 做了大量优化，但面对数百行数据时，React 的重渲染仍是瓶颈。建议结合分页或虚拟滚动（如有必要）使用。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;校验时机&lt;/strong&gt;：Sheet 默认在 &lt;code&gt;change&lt;/code&gt; 时触发校验。如果数据量极大，可考虑防抖或仅在提交时调用 &lt;code&gt;ref.current.validate()&lt;/code&gt;。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;样式定制&lt;/strong&gt;：尽量使用 &lt;code&gt;layout&lt;/code&gt; 属性（&lt;code&gt;w-full&lt;/code&gt;, &lt;code&gt;inline&lt;/code&gt;）来控制组件宽度，避免写硬编码的 style，以保持响应式能力。&lt;/li&gt;
+&lt;/ol&gt;
 </content:encoded></item><item><title>基于文件系统的自动路由（哈希）AutoRouter</title><link>https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</link><guid isPermaLink="true">https://fuwari.vercel.app/blog/posts/react/%E5%9F%BA%E4%BA%8E%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E7%9A%84%E8%87%AA%E5%8A%A8%E8%B7%AF%E7%94%B1%E5%93%88%E5%B8%8Cautorouter/</guid><pubDate>Mon, 10 Nov 2025 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;获取pages目录结构动态构造路由&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;const req = require.context(&apos;@/pages&apos;, true, __AUTO_ROUTER_REG__, &apos;lazy&apos;)&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;路由组件都动态导入，路由的&lt;code&gt;component&lt;/code&gt; 设置为&lt;code&gt;Loadable({ loader, loading: Loading })&lt;/code&gt;&lt;/p&gt;
