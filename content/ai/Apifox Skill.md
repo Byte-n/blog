@@ -113,13 +113,13 @@ MCP工具名称 不一样。
 
 除此 MCP 的使用流程如下：
 
-1. 读取 OAS 入口文件：调用 read_project_oas，获取 OpenAPI Spec 的根文件，里面包含所有路径的 $ref 引用列表。
-2. 在入口中定位接口：根据接口名称（中文名或路径关键词）在返回的路径列表中匹配对应的 $ref 路径，例如：/paths/_
+1. 读取 OAS 入口文件：调用 read_project_oas，获取 OpenAPI Spec 的根文件，里面包含所有路径的 `$ref` 引用列表。
+2. 在入口中定位接口：根据接口名称（中文名或路径关键词）在返回的路径列表中匹配对应的 `$ref` 路径，例如：/paths/_
    post_sale-barrel-order_detail.json
 3. 读取具体接口定义：
-   调用 read_project_oas_ref_resources，传入上一步找到的 $ref 路径（支持批量），获取该接口的完整定义： { "
+   调用 read_project_oas_ref_resources，传入上一步找到的 `$ref` 路径（支持批量），获取该接口的完整定义： { "
    path": ["/paths/_post_sale-barrel-order_detail.json"] }
-4. 递归解析嵌套 $ref：如果接口定义中的请求体或响应体还有嵌套的 $ref（指向 schemas/ 或 components/），继续调用
+4. 递归解析嵌套 `$ref`：如果接口定义中的请求体或响应体还有嵌套的 `$ref`（指向 schemas/ 或 components/），继续调用
    read_project_oas_ref_resources 获取这些数据结构定义。
 
 ```txt
