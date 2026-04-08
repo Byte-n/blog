@@ -81,7 +81,7 @@ larkDocx2md 支持下载 https://xxx.feishu.cn/wiki/xxx 格式的链接为本地
 
 - 表格等格式转换
 - 附件图片下载并链接到 Markdown 文件中
-- 支持 `npx larkDocx2md` Cli 方式调用
+- 支持 `npx lark-docx2md` Cli 方式调用
 - 提供方便 Agent 调用的 [larkDocx2md Skill](https://github.com/Byte-n/larkDocx2md/tree/main/skills/larkDocx2md)
 
 ## 使用
@@ -89,7 +89,7 @@ larkDocx2md 支持下载 https://xxx.feishu.cn/wiki/xxx 格式的链接为本地
 ### Cli
 
 ```bash
-npx -y larkDocx2md download <url> --app-id <APP_ID> --app-secret <APP_SECRET>
+npx -y lark-docx2md download <url> --app-id <APP_ID> --app-secret <APP_SECRET>
 ```
 
 或先设置环境变量（命令行参数可省略）：
@@ -97,7 +97,7 @@ npx -y larkDocx2md download <url> --app-id <APP_ID> --app-secret <APP_SECRET>
 ```bash
 export LARK_DOCX2MD_APP_ID=<APP_ID>
 export LARK_DOCX2MD_APP_SECRET=<APP_SECRET>
-npx -y larkDocx2md download <url>
+npx -y lark-docx2md download <url>
 ```
 
 ### Skill
@@ -113,7 +113,7 @@ npx -y larkDocx2md download <url>
   └ Read SKILL.md
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 • 技能说明已确认。我将按规范把链接转换到 larkDocx2mdOutput/，然后读取生成的 Markdown 内容。
-• Ran npm_config_cache="/tmp/.npm-cache" npx -y larkDocx2md download --agent --output "/Users/xxx/WebstormProjects/lark2md/larkDocx2mdOutput/"
+• Ran npm_config_cache="/tmp/.npm-cache" npx -y lark-docx2md download --agent --output "/Users/xxx/WebstormProjects/lark2md/larkDocx2mdOutput/"
   │ "https://xxx.feishu.cn/wiki/xxx"
   └ Read and process the following Markdown file: /Users/xxx/WebstormProjects/lark2md/larkDocx2mdOutput/xxx.md
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
