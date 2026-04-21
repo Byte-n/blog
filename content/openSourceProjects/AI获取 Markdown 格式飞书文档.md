@@ -1,7 +1,7 @@
 ---
 title: AI获取 Markdown 格式飞书文档
 published: 2026-04-06
-tags: ['skills']
+tags: ['skills', 'lark-docx2md']
 category: 开源
 draft: false
 ---
